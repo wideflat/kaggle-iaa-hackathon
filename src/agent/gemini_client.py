@@ -97,7 +97,7 @@ FEW_SHOT_EXAMPLES = {
         },
         {
             'name': 'LogLotArea',
-            'code': "import numpy as np\ndf['LogLotArea'] = np.log1p(df['LotArea'])",
+            'code': "df['LogLotArea'] = np.log1p(df['LotArea'])",
             'rationale': 'Log-transformed lot area - diminishing returns for very large lots'
         },
         {
@@ -231,6 +231,7 @@ Generate ONE new feature to improve house price prediction. Focus on {strategy.u
 3. Handle NaN values with .fillna() to avoid errors
 4. Start with a comment: # Feature: <descriptive name>
 5. Create a NOVEL feature not in the existing list below
+6. DO NOT use import statements - 'np' (numpy) and 'pd' (pandas) are already available
 
 ## Features that ALREADY EXIST (do NOT recreate):
 {chr(10).join('- ' + f for f in BASELINE_FEATURES)}
@@ -370,6 +371,8 @@ You have access to SHAP-based feature importance analysis from the current model
 3. Handle NaN values with .fillna() to avoid errors
 4. Start with a comment: # Feature: <descriptive name>
 5. CREATE A FEATURE THAT LEVERAGES THE TOP IMPORTANT FEATURES
+6. DO NOT use import statements - 'np' (numpy) and 'pd' (pandas) are already available
+7. ONLY use columns that exist in the Available Columns list above
 
 ## Features that ALREADY EXIST (do NOT recreate):
 {chr(10).join('- ' + f for f in BASELINE_FEATURES)}

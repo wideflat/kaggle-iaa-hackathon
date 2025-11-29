@@ -64,7 +64,8 @@ def run_iteration(
     evaluator: FeatureEvaluator,
     memory: AgentMemory,
     current_best_rmsle: float,
-    use_feedback: bool = False
+    use_feedback: bool = False,
+    accumulated_df: pd.DataFrame = None
 ) -> tuple[float, bool]:
     """
     Run a single iteration of feature generation
@@ -81,6 +82,8 @@ def run_iteration(
         memory: Agent memory instance
         current_best_rmsle: Current best RMSLE score
         use_feedback: If True, use SHAP-based feedback (B7)
+        accumulated_df: The current accumulated dataframe with all successful features
+                       (used to recompute SHAP after rejection)
 
     Returns:
         Tuple of (new_rmsle, is_improvement)
@@ -176,6 +179,14 @@ def run_iteration(
         print(f"   >>> No improvement")
         memory.add_failed_feature(generated_code, f"No improvement: {new_rmsle:.5f} vs {current_best_rmsle:.5f}")
         memory.log_iteration(iteration, current_best_rmsle, generated_code, success=False, columns=new_cols, prev_rmsle=current_best_rmsle)
+
+        # CRITICAL FIX: Recompute SHAP on accumulated_df (not rejected features)
+        # This ensures next iteration's SHAP feedback only references existing columns
+        if use_feedback and accumulated_df is not None:
+            print("   Recomputing SHAP on accumulated features...")
+            X_current, _ = get_features_and_target(accumulated_df)
+            evaluator.recompute_shap_for_features(X_current, target)
+
         return current_best_rmsle, False
 
 
@@ -273,7 +284,8 @@ def main(
             evaluator=evaluator,
             memory=memory,
             current_best_rmsle=current_best_rmsle,
-            use_feedback=use_feedback
+            use_feedback=use_feedback,
+            accumulated_df=accumulated_df  # Pass for SHAP recompute after rejection
         )
 
         if is_success:

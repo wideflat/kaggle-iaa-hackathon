@@ -242,6 +242,22 @@ class FeatureEvaluator:
             'total_features': len(self.last_X.columns) if self.last_X is not None else 0
         }
 
+    def recompute_shap_for_features(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Retrain model on given features and update SHAP state.
+
+        This is used after a feature is rejected to ensure SHAP feedback
+        only references features that actually exist in the accumulated dataframe.
+
+        Args:
+            X: Feature matrix (should be the current accumulated features)
+            y: Target variable (original scale, will be log-transformed)
+        """
+        y_log = np.log1p(y)
+        self.last_X = X
+        self.last_model = lgb.LGBMRegressor(**self.model_params)
+        self.last_model.fit(X, y_log)
+
 
 def get_features_and_target(
     df: pd.DataFrame,
