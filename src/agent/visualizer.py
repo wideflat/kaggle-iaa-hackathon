@@ -169,10 +169,12 @@ class ProgressVisualizer:
             rows.append({
                 'Iteration': h['iteration'],
                 'Feature Summary': h.get('feature_summary', '(unknown)'),
+                'Feature Description': h.get('feature_description', ''),
+                'Feature Code': h.get('feature_code', ''),
                 'RMSLE': h['rmsle'],
                 'Delta': delta,
                 'Cumul. %': cumul,
-                'Status': 'Improved' if h['success'] else 'Failed'
+                'Status': 'Kept' if h['success'] else 'Rejected'
             })
 
             # Only update prev_rmsle if it was an improvement
@@ -303,12 +305,59 @@ class ProgressVisualizer:
         tr:hover {{
             background: #f9f9f9;
         }}
-        .status-improved {{
-            color: #4CAF50;
+        .status-kept {{
+            background-color: #e8f5e9;
+        }}
+        .status-kept .result {{
+            color: #2e7d32;
             font-weight: bold;
         }}
-        .status-failed {{
-            color: #f44336;
+        .status-rejected {{
+            background-color: #ffebee;
+        }}
+        .status-rejected .result {{
+            color: #c62828;
+            font-weight: bold;
+        }}
+        .description {{
+            font-size: 13px;
+            color: #555;
+        }}
+        .delta {{
+            font-family: monospace;
+        }}
+        .code-block {{
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            overflow-x: auto;
+            margin-top: 8px;
+            border: 1px solid #ddd;
+        }}
+        details summary {{
+            cursor: pointer;
+            color: #1976d2;
+        }}
+        details summary:hover {{
+            text-decoration: underline;
+        }}
+        .legend {{
+            background: #f9f9f9;
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }}
+        .legend li {{
+            margin: 8px 0;
+        }}
+        .legend-kept {{
+            color: #2e7d32;
+            font-weight: bold;
+        }}
+        .legend-rejected {{
+            color: #c62828;
+            font-weight: bold;
         }}
         .timestamp {{
             color: #999;
@@ -348,34 +397,83 @@ class ProgressVisualizer:
     <table>
         <thead>
             <tr>
-                <th>Iter</th>
-                <th>Feature Summary</th>
-                <th>RMSLE</th>
-                <th>Delta</th>
-                <th>Cumul. %</th>
-                <th>Status</th>
+                <th style="width: 50px;">Iter</th>
+                <th style="width: 150px;">Feature Name</th>
+                <th style="width: 300px;">Description</th>
+                <th style="width: 90px;">RMSLE</th>
+                <th style="width: 90px;">Change</th>
+                <th style="width: 80px;">Result</th>
             </tr>
         </thead>
         <tbody>
 """
         # Add table rows
         for _, row in df.iterrows():
-            status_class = 'status-improved' if row['Status'] == 'Improved' else 'status-failed' if row['Status'] == 'Failed' else ''
-            delta_str = f"{row['Delta']:+.5f}" if row['Delta'] is not None else '-'
-            cumul_str = f"{row['Cumul. %']:+.2f}%" if row['Cumul. %'] is not None else '-'
+            if row['Status'] == 'Kept':
+                status_class = 'status-kept'
+                status_icon = '✓'
+                result_text = 'KEPT'
+            elif row['Status'] == 'Rejected':
+                status_class = 'status-rejected'
+                status_icon = '✗'
+                result_text = 'REJECTED'
+            else:
+                status_class = ''
+                status_icon = ''
+                result_text = '-'
 
-            html += f"""            <tr>
+            delta_val = row['Delta']
+            if delta_val is not None and not pd.isna(delta_val):
+                delta_str = f"{delta_val:+.5f}"
+            else:
+                delta_str = '-'
+
+            # Get description or fallback
+            description = row.get('Feature Description', '')
+            if pd.isna(description) or not description:
+                if row['Feature Summary'] == '(baseline)':
+                    description = 'Initial model with 212 preprocessed features'
+                else:
+                    description = 'Feature transformation'
+
+            # Escape HTML in code
+            code = row.get('Feature Code', '')
+            # Handle NaN or non-string code
+            if pd.isna(code) or not isinstance(code, str):
+                code_escaped = ''
+            else:
+                code_escaped = code.replace('<', '&lt;').replace('>', '&gt;')
+
+            # Build feature cell with expandable code
+            if code_escaped and row['Feature Summary'] != '(baseline)':
+                feature_cell = f"""
+                    <details>
+                        <summary><strong>{row['Feature Summary']}</strong></summary>
+                        <pre class="code-block">{code_escaped}</pre>
+                    </details>"""
+            else:
+                feature_cell = f"<strong>{row['Feature Summary']}</strong>"
+
+            html += f"""            <tr class="{status_class}">
                 <td>{row['Iteration']}</td>
-                <td>{row['Feature Summary'][:50]}</td>
+                <td>{feature_cell}</td>
+                <td class="description">{description}</td>
                 <td>{row['RMSLE']:.5f}</td>
-                <td>{delta_str}</td>
-                <td>{cumul_str}</td>
-                <td class="{status_class}">{row['Status']}</td>
+                <td class="delta">{delta_str}</td>
+                <td class="result">{status_icon} {result_text}</td>
             </tr>
 """
 
         html += f"""        </tbody>
     </table>
+
+    <h2>Legend</h2>
+    <ul class="legend">
+        <li><span class="legend-kept">✓ KEPT</span> - Feature improved the model and was added to the pipeline</li>
+        <li><span class="legend-rejected">✗ REJECTED</span> - Feature did not improve the model and was discarded</li>
+        <li><strong>Change</strong> - Positive = improvement (lower RMSLE is better)</li>
+        <li>Click on feature names to expand and see the actual code</li>
+    </ul>
 
     <p class="timestamp">Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
 </body>

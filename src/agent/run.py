@@ -202,11 +202,11 @@ def run_iteration(
 
     if is_better:
         memory.add_successful_feature(generated_code, new_cols, new_rmsle, improvement)
-        memory.log_iteration(iteration, new_rmsle, generated_code, success=True, columns=new_cols)
+        memory.log_iteration(iteration, new_rmsle, generated_code, success=True, columns=new_cols, prev_rmsle=current_best_rmsle)
         return new_rmsle, True, new_df
     else:
         memory.add_failed_feature(generated_code, f"No improvement: {new_rmsle:.5f} vs {current_best_rmsle:.5f}")
-        memory.log_iteration(iteration, current_best_rmsle, generated_code, success=False, columns=new_cols)
+        memory.log_iteration(iteration, current_best_rmsle, generated_code, success=False, columns=new_cols, prev_rmsle=current_best_rmsle)
         return current_best_rmsle, False, df
 
 

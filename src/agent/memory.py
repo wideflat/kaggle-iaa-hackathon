@@ -118,7 +118,8 @@ class AgentMemory:
         rmsle: float,
         feature_code: str,
         success: bool,
-        columns: list[str] | None = None
+        columns: list[str] | None = None,
+        prev_rmsle: float | None = None
     ):
         """
         Log an iteration result
@@ -129,13 +130,20 @@ class AgentMemory:
             feature_code: The feature code attempted
             success: Whether the feature improved the model
             columns: List of new column names created (optional)
+            prev_rmsle: Previous best RMSLE (for delta calculation)
         """
         feature_summary = self._extract_feature_summary(feature_code, columns)
+        feature_description = self._extract_feature_description(feature_code)
+
         self.memory['iteration_history'].append({
             'iteration': iteration,
             'rmsle': rmsle,
             'success': success,
             'feature_summary': feature_summary,
+            'feature_description': feature_description,
+            'feature_code': feature_code,
+            'columns': columns or [],
+            'prev_rmsle': prev_rmsle,
             'timestamp': datetime.now().isoformat()
         })
         self.save()
@@ -176,6 +184,50 @@ class AgentMemory:
         # Last resort: first line of code
         first_line = code.strip().split('\n')[0][:50]
         return first_line if first_line else "(unknown)"
+
+    def _extract_feature_description(self, code: str) -> str:
+        """
+        Extract a human-readable description from feature code
+
+        Parses the code to explain what the feature does
+        """
+        if not code:
+            return "No code provided"
+
+        # Try to extract the formula from df['X'] = ...
+        match = re.search(r"df\['\w+'\]\s*=\s*(.+?)(?:\n|$)", code)
+        if match:
+            formula = match.group(1).strip()
+
+            # Clean up the formula for readability
+            # Replace df['X'] with just X
+            formula = re.sub(r"df\['(\w+)'\]", r"\1", formula)
+            # Remove .fillna(0) etc
+            formula = re.sub(r"\.fillna\([^)]+\)", "", formula)
+            # Simplify common patterns
+            formula = formula.replace(".replace(0, 1)", "")
+
+            # Detect operation type
+            if ' * ' in formula:
+                op_type = "Interaction"
+            elif ' / ' in formula:
+                op_type = "Ratio"
+            elif ' + ' in formula:
+                op_type = "Sum"
+            elif ' - ' in formula:
+                op_type = "Difference"
+            elif '** 2' in formula or '**2' in formula:
+                op_type = "Squared"
+            elif 'log' in formula.lower():
+                op_type = "Log transform"
+            elif '> 0' in formula or '== ' in formula or '!= ' in formula:
+                op_type = "Binary indicator"
+            else:
+                op_type = "Transform"
+
+            return f"{op_type}: {formula[:80]}"
+
+        return "Custom transformation"
 
     def log_shap_insights(
         self,
