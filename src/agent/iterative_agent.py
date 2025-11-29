@@ -51,6 +51,7 @@ from src.agent.gemini_client import GeminiClient
 from src.agent.code_executor import CodeExecutor
 from src.agent.evaluator import FeatureEvaluator, get_features_and_target
 from src.agent.memory import AgentMemory
+from src.agent.feature_transforms import preprocess_for_agent
 
 
 def run_iteration(
@@ -231,6 +232,17 @@ def main(
     target = train_df['SalePrice'].copy()
     train_processed = preprocessor.fit_transform(train_df)
     print(f"   Processed shape: {train_processed.shape}")
+
+    # Advanced preprocessing (outlier removal, skewness correction)
+    print("\n2b. Advanced preprocessing...")
+    train_processed = preprocess_for_agent(
+        train_processed,
+        remove_outliers_flag=True,
+        fix_skewness_flag=True
+    )
+    # Update target to match after outlier removal
+    target = target.loc[train_processed.index]
+    print(f"   Final shape: {train_processed.shape}")
 
     # Get baseline
     print("\n3. Calculating baseline RMSLE...")
