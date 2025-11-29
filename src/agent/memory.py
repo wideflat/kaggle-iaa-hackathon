@@ -4,6 +4,7 @@ Memory system for tracking feature engineering attempts
 
 import json
 import os
+import re
 from datetime import datetime
 from typing import Optional
 
@@ -115,7 +116,8 @@ class AgentMemory:
         iteration: int,
         rmsle: float,
         feature_code: str,
-        success: bool
+        success: bool,
+        columns: list[str] | None = None
     ):
         """
         Log an iteration result
@@ -125,14 +127,54 @@ class AgentMemory:
             rmsle: RMSLE at this iteration
             feature_code: The feature code attempted
             success: Whether the feature improved the model
+            columns: List of new column names created (optional)
         """
+        feature_summary = self._extract_feature_summary(feature_code, columns)
         self.memory['iteration_history'].append({
             'iteration': iteration,
             'rmsle': rmsle,
             'success': success,
+            'feature_summary': feature_summary,
             'timestamp': datetime.now().isoformat()
         })
         self.save()
+
+    def _extract_feature_summary(
+        self,
+        code: str,
+        columns: list[str] | None = None
+    ) -> str:
+        """
+        Extract a human-readable summary from feature code
+
+        Tries to extract "# Feature: XXX" comment, falls back to column names
+        """
+        if not code:
+            return "(no code)"
+
+        # Try to extract "# Feature: XXX" comment
+        match = re.search(r'#\s*Feature:\s*(.+)', code, re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+
+        # Try to extract column name from df['ColumnName'] = ...
+        match = re.search(r"df\['(\w+)'\]\s*=", code)
+        if match:
+            col_name = match.group(1)
+            # Try to get the right side of the assignment for context
+            rhs_match = re.search(r"df\['\w+'\]\s*=\s*(.+?)(?:\n|$)", code)
+            if rhs_match:
+                rhs = rhs_match.group(1).strip()[:50]  # Truncate
+                return f"{col_name} ({rhs})"
+            return col_name
+
+        # Fall back to column names if provided
+        if columns:
+            return ', '.join(columns)
+
+        # Last resort: first line of code
+        first_line = code.strip().split('\n')[0][:50]
+        return first_line if first_line else "(unknown)"
 
     def get_successful_codes(self) -> list[str]:
         """Get list of all successful feature codes"""

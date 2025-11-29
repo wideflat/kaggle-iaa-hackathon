@@ -3,12 +3,38 @@ Iterative Feature Engineering Agent
 Phase B4-B5: Memory system + iteration loop
 
 Usage:
-    python -m src.agent.iterative_agent [--iterations N] [--clear]
+    python -m src.agent.iterative_agent [OPTIONS]
+
+Arguments:
+    --iterations, -n INT    Number of iterations to run (default: 10)
+    --clear                 Clear previous memory and start fresh
+    --visualize, -v         Generate visualization after completion
+                            (plot, table, and HTML report)
+
+Examples:
+    # Run 10 iterations
+    python -m src.agent.iterative_agent
+
+    # Run 5 iterations with visualization
+    python -m src.agent.iterative_agent -n 5 --visualize
+
+    # Start fresh with 20 iterations
+    python -m src.agent.iterative_agent --iterations 20 --clear
+
+    # Quick test with visualization
+    python -m src.agent.iterative_agent -n 3 -v --clear
+
+Output:
+    - Memory saved to: outputs/logs/agent_memory.json
+    - Plot saved to: outputs/logs/progress_plot.png (with --visualize)
+    - Report saved to: outputs/logs/progress_report.html (with --visualize)
 """
 
 import os
 import sys
 import argparse
+
+import pandas as pd
 
 # Add project root to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -23,8 +49,8 @@ from src.agent.memory import AgentMemory
 
 def run_iteration(
     iteration: int,
-    df: 'pd.DataFrame',
-    target: 'pd.Series',
+    df: pd.DataFrame,
+    target: pd.Series,
     data_desc: str,
     column_info: str,
     gemini: GeminiClient,
@@ -73,7 +99,7 @@ def run_iteration(
     if error:
         print(f"   EXECUTION FAILED: {error[:100]}...")
         memory.add_failed_feature(generated_code, error)
-        memory.log_iteration(iteration, current_best_rmsle, generated_code, success=False)
+        memory.log_iteration(iteration, current_best_rmsle, generated_code, success=False, columns=None)
         return current_best_rmsle, False
 
     # Check new columns
@@ -81,7 +107,7 @@ def run_iteration(
     if not new_cols:
         print("   No new columns created (feature already exists)")
         memory.add_failed_feature(generated_code, "No new columns created")
-        memory.log_iteration(iteration, current_best_rmsle, generated_code, success=False)
+        memory.log_iteration(iteration, current_best_rmsle, generated_code, success=False, columns=None)
         return current_best_rmsle, False
 
     print(f"   New columns: {new_cols}")
@@ -102,16 +128,16 @@ def run_iteration(
     if is_better:
         print(f"   >>> IMPROVEMENT! +{improvement/current_best_rmsle*100:.2f}%")
         memory.add_successful_feature(generated_code, new_cols, new_rmsle, improvement)
-        memory.log_iteration(iteration, new_rmsle, generated_code, success=True)
+        memory.log_iteration(iteration, new_rmsle, generated_code, success=True, columns=new_cols)
         return new_rmsle, True
     else:
         print(f"   >>> No improvement")
         memory.add_failed_feature(generated_code, f"No improvement: {new_rmsle:.5f} vs {current_best_rmsle:.5f}")
-        memory.log_iteration(iteration, current_best_rmsle, generated_code, success=False)
+        memory.log_iteration(iteration, current_best_rmsle, generated_code, success=False, columns=new_cols)
         return current_best_rmsle, False
 
 
-def main(n_iterations: int = 10, clear_memory: bool = False):
+def main(n_iterations: int = 10, clear_memory: bool = False, visualize: bool = False):
     """Run iterative feature engineering agent"""
     print("=" * 60)
     print(f"Iterative Feature Engineering Agent")
@@ -224,6 +250,16 @@ def main(n_iterations: int = 10, clear_memory: bool = False):
 
     print("=" * 60)
 
+    # Generate visualization if requested
+    if visualize:
+        print("\nGenerating visualization...")
+        from src.agent.visualizer import ProgressVisualizer
+        viz = ProgressVisualizer()
+        viz.plot_progress()
+        viz.print_table()
+        viz.generate_report()
+        print("Visualization complete!")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run iterative feature engineering agent')
@@ -231,6 +267,8 @@ if __name__ == '__main__':
                         help='Number of iterations (default: 10)')
     parser.add_argument('--clear', action='store_true',
                         help='Clear previous memory and start fresh')
+    parser.add_argument('--visualize', '-v', action='store_true',
+                        help='Generate visualization after completion')
     args = parser.parse_args()
 
-    main(n_iterations=args.iterations, clear_memory=args.clear)
+    main(n_iterations=args.iterations, clear_memory=args.clear, visualize=args.visualize)
