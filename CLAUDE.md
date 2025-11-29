@@ -36,15 +36,15 @@ kaggle-iaa-hackathon/
 - Features: TotalSF, HouseAge, RemodAge, TotalBath, PorchArea
 - Ordinal encoding for quality features, one-hot for categoricals
 
-### Phase B (B0-B3 Complete)
+### Phase B (B0-B5 Complete)
 - Gemini 2.5-flash integration for feature generation
 - Safe code executor with sandboxed environment
 - CV-based evaluator comparing against baseline
-- Single-iteration agent working
+- Single-iteration agent (`simple_agent.py`)
+- Memory system for tracking tried features (`memory.py`)
+- Iterative agent with N iterations (`iterative_agent.py`)
 
-### Phase B (B4-B8 Pending)
-- B4: Memory system for tracking tried features
-- B5: Iterative loop (10+ iterations)
+### Phase B (B6-B8 Pending)
 - B6: Enhanced prompting with few-shot examples
 - B7: SHAP-based feedback loop
 - B8: Production CLI
@@ -57,6 +57,10 @@ venv/bin/python src/baseline/train.py --use-tuned
 
 # Run feature engineering agent (single iteration)
 venv/bin/python -m src.agent.simple_agent
+
+# Run iterative agent (multiple iterations with memory)
+venv/bin/python -m src.agent.iterative_agent --iterations 10
+venv/bin/python -m src.agent.iterative_agent --iterations 10 --clear  # Start fresh
 
 # Tune hyperparameters
 venv/bin/python src/baseline/tune_hyperparameters.py

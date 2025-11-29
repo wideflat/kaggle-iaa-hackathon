@@ -92,6 +92,13 @@ df['QualSF'] = df['OverallQual'] * df['GrLivArea']
 - Area aggregations (total outdoor space, total indoor space)
 - Ratios (e.g., basement finished ratio)
 - Binary indicators (has pool, has garage, etc.)
+
+## Features that ALREADY EXIST (do NOT recreate these):
+- TotalSF (TotalBsmtSF + 1stFlrSF + 2ndFlrSF)
+- HouseAge (YrSold - YearBuilt)
+- RemodAge (YrSold - YearRemodAdd)
+- TotalBath (FullBath + 0.5*HalfBath + BsmtFullBath + 0.5*BsmtHalfBath)
+- PorchArea (OpenPorchSF + EnclosedPorch + 3SsnPorch + ScreenPorch)
 """
 
         if existing_features:
