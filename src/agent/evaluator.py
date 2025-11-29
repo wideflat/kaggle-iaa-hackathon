@@ -168,8 +168,8 @@ def get_features_and_target(
 
     X = df.drop(cols_to_drop, axis=1)
 
-    # Select only numeric columns
-    X = X.select_dtypes(include=['int64', 'float64', 'int32', 'float32'])
+    # Select only numeric columns (including uint8/bool from one-hot encoding)
+    X = X.select_dtypes(include=['number', 'bool'])
 
     y = df[target_col] if target_col in df.columns else None
 
