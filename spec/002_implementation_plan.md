@@ -738,9 +738,37 @@ src/agent/
 └── iterative_agent.py    # Multi-iteration agent with memory
 ```
 
-### Next Phase: Visualization
+### Phase B6: Enhanced Prompting ✅
+
+**Completed Features**:
+1. **Few-Shot Examples**: Added 18+ examples organized by 6 strategies
+2. **Strategy Selection**: Random or explicit strategy per iteration
+3. **Strategy Hints**: Contextual guidance for each strategy type
+4. **Baseline Avoidance**: Explicit list of pre-existing features to avoid duplicates
+
+**Strategies Implemented**:
+- `interaction`: Multiplicative feature combinations (e.g., QualitySF, GarageScore)
+- `ratio`: Proportional/per-unit features (e.g., BsmtFinRatio, LivAreaPerRoom)
+- `aggregation`: Summed totals (e.g., TotalOutdoorSF, TotalQual)
+- `binary`: 0/1 indicators (e.g., HasPool, IsNew, HasFireplace)
+- `polynomial`: Squared/log transforms (e.g., QualSquared, LogLotArea)
+- `temporal`: Time-based calculations (e.g., YearsSinceRemod, GarageAge)
+
+**Files Updated**:
+- `src/agent/gemini_client.py` - Enhanced with FEW_SHOT_EXAMPLES and strategy system
+
+### Visualization ✅
 
 See `spec/004_visualization_plan.md` for details on:
 - Progress plot (iterations vs RMSLE)
 - Feature summary table
 - HTML report generation
+
+**Files Created**:
+- `src/agent/visualizer.py` - Plot, table, and HTML report generation
+- `scripts/visualize_progress.py` - Standalone CLI for visualization
+
+### Next Phases
+
+- **B7**: SHAP-based feedback loop (reflection system)
+- **B8**: Production CLI with argparse

@@ -1,16 +1,148 @@
 """
 Gemini API client for feature engineering code generation
+
+Enhanced with:
+- Multiple few-shot examples
+- Feature strategy selection
+- Better duplicate avoidance
 """
 
 import os
 import re
+import random
 from dotenv import load_dotenv
 import google.generativeai as genai
+
+
+# Few-shot examples organized by strategy
+FEW_SHOT_EXAMPLES = {
+    'interaction': [
+        {
+            'name': 'QualitySF',
+            'code': "df['QualitySF'] = df['OverallQual'] * df['GrLivArea']",
+            'rationale': 'Quality multiplied by size - high quality large homes are worth more than sum of parts'
+        },
+        {
+            'name': 'GarageScore',
+            'code': "df['GarageScore'] = df['GarageArea'].fillna(0) * df['GarageCars'].fillna(0)",
+            'rationale': 'Garage capacity interaction - larger garages with more car capacity add value'
+        },
+        {
+            'name': 'BsmtScore',
+            'code': "df['BsmtScore'] = df['TotalBsmtSF'].fillna(0) * df['BsmtQual'].fillna(0)",
+            'rationale': 'Basement quality-size interaction - finished basement quality matters'
+        },
+    ],
+    'ratio': [
+        {
+            'name': 'BsmtFinRatio',
+            'code': "df['BsmtFinRatio'] = df['BsmtFinSF1'].fillna(0) / (df['TotalBsmtSF'].fillna(1).replace(0, 1))",
+            'rationale': 'Ratio of finished basement - more finished = more usable space'
+        },
+        {
+            'name': 'LotDepth',
+            'code': "df['LotDepth'] = df['LotArea'] / (df['LotFrontage'].fillna(1).replace(0, 1))",
+            'rationale': 'Lot depth approximation - deep lots may have different value than wide lots'
+        },
+        {
+            'name': 'LivAreaPerRoom',
+            'code': "df['LivAreaPerRoom'] = df['GrLivArea'] / (df['TotRmsAbvGrd'].replace(0, 1))",
+            'rationale': 'Average room size - larger rooms indicate luxury'
+        },
+    ],
+    'aggregation': [
+        {
+            'name': 'TotalOutdoorSF',
+            'code': "df['TotalOutdoorSF'] = df['WoodDeckSF'].fillna(0) + df['OpenPorchSF'].fillna(0) + df['EnclosedPorch'].fillna(0) + df['PoolArea'].fillna(0)",
+            'rationale': 'Total outdoor living space - outdoor amenities add value'
+        },
+        {
+            'name': 'TotalQual',
+            'code': "df['TotalQual'] = df['OverallQual'] + df['OverallCond']",
+            'rationale': 'Combined quality and condition score'
+        },
+        {
+            'name': 'TotalFinishedSF',
+            'code': "df['TotalFinishedSF'] = df['BsmtFinSF1'].fillna(0) + df['BsmtFinSF2'].fillna(0) + df['1stFlrSF'] + df['2ndFlrSF'].fillna(0)",
+            'rationale': 'Total finished living space including basement'
+        },
+    ],
+    'binary': [
+        {
+            'name': 'HasPool',
+            'code': "df['HasPool'] = (df['PoolArea'].fillna(0) > 0).astype(int)",
+            'rationale': 'Binary indicator for pool presence - pools can add significant value'
+        },
+        {
+            'name': 'HasGarage',
+            'code': "df['HasGarage'] = (df['GarageArea'].fillna(0) > 0).astype(int)",
+            'rationale': 'Binary indicator for garage presence'
+        },
+        {
+            'name': 'IsNew',
+            'code': "df['IsNew'] = (df['YearBuilt'] == df['YrSold']).astype(int)",
+            'rationale': 'Binary indicator for new construction - new homes have premium'
+        },
+        {
+            'name': 'HasFireplace',
+            'code': "df['HasFireplace'] = (df['Fireplaces'].fillna(0) > 0).astype(int)",
+            'rationale': 'Binary indicator for fireplace presence'
+        },
+    ],
+    'polynomial': [
+        {
+            'name': 'QualSquared',
+            'code': "df['QualSquared'] = df['OverallQual'] ** 2",
+            'rationale': 'Squared quality - captures non-linear quality premium at high end'
+        },
+        {
+            'name': 'LogLotArea',
+            'code': "import numpy as np\ndf['LogLotArea'] = np.log1p(df['LotArea'])",
+            'rationale': 'Log-transformed lot area - diminishing returns for very large lots'
+        },
+        {
+            'name': 'GrLivAreaSq',
+            'code': "df['GrLivAreaSq'] = df['GrLivArea'] ** 2",
+            'rationale': 'Squared living area - non-linear size premium'
+        },
+    ],
+    'temporal': [
+        {
+            'name': 'YearsSinceRemod',
+            'code': "df['YearsSinceRemod'] = df['YrSold'] - df['YearRemodAdd']",
+            'rationale': 'Years since last remodel - recently remodeled homes worth more'
+        },
+        {
+            'name': 'GarageAge',
+            'code': "df['GarageAge'] = df['YrSold'] - df['GarageYrBlt'].fillna(df['YearBuilt'])",
+            'rationale': 'Age of garage - newer garages may add value'
+        },
+        {
+            'name': 'WasRemodeled',
+            'code': "df['WasRemodeled'] = (df['YearRemodAdd'] != df['YearBuilt']).astype(int)",
+            'rationale': 'Binary indicator if house was ever remodeled'
+        },
+    ],
+}
+
+# Features that already exist in baseline preprocessor
+BASELINE_FEATURES = [
+    'TotalSF (TotalBsmtSF + 1stFlrSF + 2ndFlrSF)',
+    'HouseAge (YrSold - YearBuilt)',
+    'RemodAge (YrSold - YearRemodAdd)',
+    'TotalBath (FullBath + 0.5*HalfBath + BsmtFullBath + 0.5*BsmtHalfBath)',
+    'PorchArea (OpenPorchSF + EnclosedPorch + 3SsnPorch + ScreenPorch)',
+]
 
 
 class GeminiClient:
     """
     Wrapper for Google Gemini API to generate feature engineering code
+
+    Features:
+    - Multiple few-shot examples organized by strategy
+    - Strategy-specific prompting
+    - Better duplicate avoidance
     """
 
     def __init__(self, model_name: str = 'gemini-2.5-flash'):
@@ -26,12 +158,14 @@ class GeminiClient:
 
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(model_name)
+        self.strategies = list(FEW_SHOT_EXAMPLES.keys())
 
     def generate_feature(
         self,
         data_description: str,
         column_info: str,
-        existing_features: list[str] | None = None
+        existing_features: list[str] | None = None,
+        strategy: str | None = None
     ) -> str:
         """
         Generate a new feature engineering code snippet
@@ -40,11 +174,18 @@ class GeminiClient:
             data_description: Content of data_description.txt
             column_info: Comma-separated list of column names
             existing_features: List of already tried feature codes to avoid
+            strategy: Optional strategy hint ('interaction', 'ratio', 'aggregation',
+                     'binary', 'polynomial', 'temporal'). If None, randomly selected.
 
         Returns:
             Python code string for creating a new feature
         """
-        prompt = self._build_prompt(data_description, column_info, existing_features)
+        prompt = self._build_prompt(
+            data_description,
+            column_info,
+            existing_features,
+            strategy
+        )
         response = self.model.generate_content(prompt)
         return self._extract_code(response.text)
 
@@ -52,63 +193,88 @@ class GeminiClient:
         self,
         data_description: str,
         column_info: str,
-        existing_features: list[str] | None = None
+        existing_features: list[str] | None = None,
+        strategy: str | None = None
     ) -> str:
-        """Build the prompt for feature generation"""
+        """Build the prompt for feature generation with few-shot examples"""
 
         # Truncate data description if too long
-        max_desc_len = 3000
+        max_desc_len = 2500
         if len(data_description) > max_desc_len:
             data_description = data_description[:max_desc_len] + "\n... (truncated)"
 
-        prompt = f"""You are an expert data scientist working on the Ames Housing dataset for house price prediction.
+        # Select strategy (random if not specified)
+        if strategy is None:
+            strategy = random.choice(self.strategies)
 
-## Data Description (partial):
+        # Get few-shot examples for this strategy
+        examples = FEW_SHOT_EXAMPLES.get(strategy, [])
+        example_text = self._format_examples(examples)
+
+        prompt = f"""You are an expert data scientist specializing in real estate valuation and the Ames Housing dataset.
+
+## Your Task
+Generate ONE new feature to improve house price prediction. Focus on {strategy.upper()} features.
+
+## Data Description
 {data_description}
 
-## Available Columns:
+## Available Columns
 {column_info}
 
-## Task:
-Generate ONE new feature that will help predict house sale prices (SalePrice).
-The feature should be meaningful for real estate valuation.
+## Few-Shot Examples ({strategy} features)
+{example_text}
 
-## Requirements:
+## Requirements
 1. Return ONLY executable Python code
-2. Assume the dataframe variable is named 'df'
-3. Handle potential NaN values with .fillna()
-4. The feature should have a clear semantic meaning
-5. Name the feature descriptively
+2. Use 'df' as the dataframe variable
+3. Handle NaN values with .fillna() to avoid errors
+4. Start with a comment: # Feature: <descriptive name>
+5. Create a NOVEL feature not in the existing list below
 
-## Example format:
-```python
-# Feature: Quality-Size Interaction
-df['QualSF'] = df['OverallQual'] * df['GrLivArea']
-```
-
-## Good feature ideas for housing:
-- Interactions between quality and size
-- Age-related calculations (year differences)
-- Area aggregations (total outdoor space, total indoor space)
-- Ratios (e.g., basement finished ratio)
-- Binary indicators (has pool, has garage, etc.)
-
-## Features that ALREADY EXIST (do NOT recreate these):
-- TotalSF (TotalBsmtSF + 1stFlrSF + 2ndFlrSF)
-- HouseAge (YrSold - YearBuilt)
-- RemodAge (YrSold - YearRemodAdd)
-- TotalBath (FullBath + 0.5*HalfBath + BsmtFullBath + 0.5*BsmtHalfBath)
-- PorchArea (OpenPorchSF + EnclosedPorch + 3SsnPorch + ScreenPorch)
+## Features that ALREADY EXIST (do NOT recreate):
+{chr(10).join('- ' + f for f in BASELINE_FEATURES)}
 """
 
         if existing_features:
+            # Show recent attempts to avoid
+            recent = existing_features[-15:]  # Last 15 attempts
             prompt += f"""
-## Already tried features (DO NOT repeat these):
-{chr(10).join(existing_features[-10:])}
+## Recently tried features (DO NOT repeat):
+{chr(10).join(recent)}
 """
 
-        prompt += "\n## Generate ONE new feature:\n"
+        prompt += f"""
+## Strategy Hint: {strategy.upper()}
+Think about {self._get_strategy_hint(strategy)}
+
+## Generate ONE new {strategy} feature:
+```python
+"""
         return prompt
+
+    def _format_examples(self, examples: list[dict]) -> str:
+        """Format few-shot examples for the prompt"""
+        formatted = []
+        for ex in examples:
+            formatted.append(
+                f"Example - {ex['name']}:\n"
+                f"```python\n# Feature: {ex['name']}\n{ex['code']}\n```\n"
+                f"Rationale: {ex['rationale']}\n"
+            )
+        return '\n'.join(formatted)
+
+    def _get_strategy_hint(self, strategy: str) -> str:
+        """Get a hint for the given strategy"""
+        hints = {
+            'interaction': 'multiplying related features that together capture value (quality × size, etc.)',
+            'ratio': 'dividing features to get proportions or per-unit metrics (finished ratio, per-room area)',
+            'aggregation': 'summing related features into totals (outdoor space, total quality scores)',
+            'binary': 'creating 0/1 indicators for presence/absence of features (has pool, is new, etc.)',
+            'polynomial': 'squared terms or log transforms to capture non-linear relationships',
+            'temporal': 'time-based calculations using year columns (age, years since remodel)',
+        }
+        return hints.get(strategy, 'creating meaningful features for house price prediction')
 
     def _extract_code(self, response: str) -> str:
         """
