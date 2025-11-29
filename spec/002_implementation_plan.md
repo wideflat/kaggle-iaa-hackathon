@@ -768,7 +768,77 @@ See `spec/004_visualization_plan.md` for details on:
 - `src/agent/visualizer.py` - Plot, table, and HTML report generation
 - `scripts/visualize_progress.py` - Standalone CLI for visualization
 
-### Next Phases
+### Phase B7: SHAP Feedback Loop ✅
 
-- **B7**: SHAP-based feedback loop (reflection system)
-- **B8**: Production CLI with argparse
+**Completed Features**:
+1. **SHAP Feature Importance**: Added `get_shap_importance()` and `get_shap_summary()` to evaluator
+2. **Feature Insights**: `get_feature_insights()` generates suggestions based on top features
+3. **Reflection Prompting**: New `generate_feature_with_feedback()` method in GeminiClient
+4. **Smart Strategy Selection**: `_suggest_strategy_from_insights()` picks strategies based on top features
+5. **CLI Integration**: `--feedback` / `-f` flag to enable SHAP feedback mode
+
+**How It Works**:
+1. After each evaluation, SHAP values are computed for the trained model
+2. Top important features are extracted and formatted
+3. Gemini receives the SHAP summary + suggestions in the prompt
+4. Strategy is auto-selected based on what types of features are important
+5. Generated features are guided to interact with/transform top features
+
+**Files Updated**:
+- `src/agent/evaluator.py` - Added SHAP methods (get_shap_importance, get_shap_summary, get_feature_insights)
+- `src/agent/gemini_client.py` - Added reflection prompt builder and smart strategy selection
+- `src/agent/iterative_agent.py` - Added `--feedback` flag and integration
+
+**Usage**:
+```bash
+# Run with SHAP feedback (recommended for better results)
+python -m src.agent.iterative_agent -n 10 --feedback
+
+# Combine with visualization
+python -m src.agent.iterative_agent -n 10 -f -v
+```
+
+### Phase B8: Production CLI ✅
+
+**Completed Features**:
+1. **YAML Config Files**: `config/default.yaml` with all settings
+2. **File Logging**: Timestamped logs to `outputs/logs/agent.log`
+3. **Colored Console Output**: Green for success, yellow for warnings, red for errors
+4. **Enhanced CLI Options**:
+   - `--config` / `-c`: Custom config file
+   - `--model`: Gemini model override
+   - `--log-level`: DEBUG, INFO, WARNING, ERROR
+   - `--output-dir`: Custom output directory
+   - `--dry-run`: Show config without running
+   - `--resume`: Resume from last session
+5. **Error Recovery**: Try/catch around iterations, graceful keyboard interrupt handling
+
+**Files Created**:
+- `config/default.yaml` - Default configuration
+- `src/agent/config.py` - Config loader with env var support
+- `src/agent/logger.py` - Logging with colors and file output
+- `src/agent/run.py` - Production CLI entry point
+
+**Usage**:
+```bash
+# Show config without running
+python -m src.agent.run --dry-run
+
+# Run with defaults from config
+python -m src.agent.run
+
+# Custom config and options
+python -m src.agent.run --config config/local.yaml -n 20 --log-level DEBUG
+
+# Full run with visualization
+python -m src.agent.run -n 10 --feedback --visualize
+```
+
+### All Phases Complete! 🎉
+
+The Feature Engineering Agent is now production-ready:
+- ✅ B0-B3: Core agent (Gemini, executor, evaluator)
+- ✅ B4-B5: Memory system + iterations
+- ✅ B6: Enhanced prompting (few-shot examples)
+- ✅ B7: SHAP feedback loop
+- ✅ B8: Production CLI

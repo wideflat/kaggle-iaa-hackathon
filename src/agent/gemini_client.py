@@ -276,6 +276,149 @@ Think about {self._get_strategy_hint(strategy)}
         }
         return hints.get(strategy, 'creating meaningful features for house price prediction')
 
+    def generate_feature_with_feedback(
+        self,
+        data_description: str,
+        column_info: str,
+        shap_summary: str,
+        feature_insights: dict,
+        existing_features: list[str] | None = None,
+        strategy: str | None = None
+    ) -> str:
+        """
+        Generate a new feature using SHAP-based feedback
+
+        This is the reflection-enhanced version that uses feature importance
+        insights to guide more targeted feature generation.
+
+        Args:
+            data_description: Content of data_description.txt
+            column_info: Comma-separated list of column names
+            shap_summary: Human-readable SHAP importance summary
+            feature_insights: Dictionary with top_features, suggestions, etc.
+            existing_features: List of already tried feature codes
+            strategy: Optional strategy hint
+
+        Returns:
+            Python code string for creating a new feature
+        """
+        prompt = self._build_reflection_prompt(
+            data_description,
+            column_info,
+            shap_summary,
+            feature_insights,
+            existing_features,
+            strategy
+        )
+        response = self.model.generate_content(prompt)
+        return self._extract_code(response.text)
+
+    def _build_reflection_prompt(
+        self,
+        data_description: str,
+        column_info: str,
+        shap_summary: str,
+        feature_insights: dict,
+        existing_features: list[str] | None = None,
+        strategy: str | None = None
+    ) -> str:
+        """Build a reflection prompt that uses SHAP insights"""
+
+        # Truncate data description if too long
+        max_desc_len = 2000
+        if len(data_description) > max_desc_len:
+            data_description = data_description[:max_desc_len] + "\n... (truncated)"
+
+        # Select strategy based on insights if not specified
+        if strategy is None:
+            strategy = self._suggest_strategy_from_insights(feature_insights)
+
+        # Get few-shot examples for this strategy
+        examples = FEW_SHOT_EXAMPLES.get(strategy, [])
+        example_text = self._format_examples(examples)
+
+        # Format top features
+        top_features = feature_insights.get('top_features', [])
+        suggestions = feature_insights.get('suggestions', [])
+
+        prompt = f"""You are an expert data scientist working on the Ames Housing dataset.
+You have access to SHAP-based feature importance analysis from the current model.
+
+## SHAP Analysis (What the model finds important)
+{shap_summary}
+
+## Key Insights
+- Top predictive features: {', '.join(top_features[:5])}
+- The model currently relies heavily on these features
+- Consider creating features that INTERACT with or TRANSFORM these important features
+
+## Suggestions Based on Analysis
+{chr(10).join('- ' + s for s in suggestions[:4])}
+
+## Data Description
+{data_description}
+
+## Available Columns
+{column_info}
+
+## Few-Shot Examples ({strategy} features)
+{example_text}
+
+## Requirements
+1. Return ONLY executable Python code
+2. Use 'df' as the dataframe variable
+3. Handle NaN values with .fillna() to avoid errors
+4. Start with a comment: # Feature: <descriptive name>
+5. CREATE A FEATURE THAT LEVERAGES THE TOP IMPORTANT FEATURES
+
+## Features that ALREADY EXIST (do NOT recreate):
+{chr(10).join('- ' + f for f in BASELINE_FEATURES)}
+"""
+
+        if existing_features:
+            recent = existing_features[-10:]
+            prompt += f"""
+## Recently tried features (DO NOT repeat):
+{chr(10).join(recent)}
+"""
+
+        prompt += f"""
+## Strategy: {strategy.upper()}
+Focus on {self._get_strategy_hint(strategy)}
+
+## IMPORTANT: Use insights from SHAP analysis!
+The top feature is '{top_features[0] if top_features else 'unknown'}'. Consider:
+- Interacting it with other features
+- Creating ratio or polynomial transforms
+- Combining related features
+
+## Generate ONE new feature:
+```python
+"""
+        return prompt
+
+    def _suggest_strategy_from_insights(self, feature_insights: dict) -> str:
+        """Suggest a strategy based on feature insights"""
+        top_features = feature_insights.get('top_features', [])
+
+        if not top_features:
+            return random.choice(self.strategies)
+
+        # Check what types of features are important
+        top_str = ' '.join(top_features).lower()
+
+        # Suggest strategy based on top features
+        if any(x in top_str for x in ['qual', 'cond', 'overall']):
+            return random.choice(['interaction', 'polynomial'])
+        elif any(x in top_str for x in ['sf', 'area', 'sqft']):
+            return random.choice(['ratio', 'aggregation'])
+        elif any(x in top_str for x in ['year', 'yr', 'age']):
+            return 'temporal'
+        elif any(x in top_str for x in ['garage', 'bsmt', 'pool', 'fireplace']):
+            return random.choice(['binary', 'interaction'])
+        else:
+            return random.choice(self.strategies)
+
     def _extract_code(self, response: str) -> str:
         """
         Extract Python code from LLM response

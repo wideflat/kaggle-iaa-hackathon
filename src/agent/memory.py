@@ -49,6 +49,7 @@ class AgentMemory:
             'successful_features': [],
             'failed_features': [],
             'iteration_history': [],
+            'shap_history': [],  # SHAP insights per iteration
             'baseline_rmsle': None,
             'best_rmsle': None,
             'session_start': datetime.now().isoformat()
@@ -176,6 +177,39 @@ class AgentMemory:
         first_line = code.strip().split('\n')[0][:50]
         return first_line if first_line else "(unknown)"
 
+    def log_shap_insights(
+        self,
+        iteration: int,
+        top_features: list[str],
+        importance_scores: dict[str, float],
+        total_features: int
+    ):
+        """
+        Log SHAP insights for an iteration
+
+        Args:
+            iteration: Iteration number
+            top_features: List of top feature names
+            importance_scores: Dict of feature name to SHAP importance
+            total_features: Total number of features in the model
+        """
+        # Ensure shap_history exists (for backwards compatibility)
+        if 'shap_history' not in self.memory:
+            self.memory['shap_history'] = []
+
+        self.memory['shap_history'].append({
+            'iteration': iteration,
+            'top_features': top_features,
+            'importance_scores': importance_scores,
+            'total_features': total_features,
+            'timestamp': datetime.now().isoformat()
+        })
+        self.save()
+
+    def get_shap_history(self) -> list[dict]:
+        """Get all SHAP history entries"""
+        return self.memory.get('shap_history', [])
+
     def get_successful_codes(self) -> list[str]:
         """Get list of all successful feature codes"""
         return [f['code'] for f in self.memory['successful_features']]
@@ -214,6 +248,7 @@ class AgentMemory:
             'successful_features': [],
             'failed_features': [],
             'iteration_history': [],
+            'shap_history': [],
             'baseline_rmsle': None,
             'best_rmsle': None,
             'session_start': datetime.now().isoformat()

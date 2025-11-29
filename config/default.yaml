@@ -1,0 +1,35 @@
+# Default configuration for the Feature Engineering Agent
+# Copy to config/local.yaml and customize for your setup
+
+# Agent settings
+agent:
+  iterations: 10
+  use_feedback: true  # Enable SHAP-based feedback (recommended)
+
+# Gemini settings
+gemini:
+  model: "gemini-2.5-flash"
+  # strategy: null  # Set to force a strategy: interaction, ratio, aggregation, binary, polynomial, temporal
+
+# Evaluation settings
+evaluation:
+  n_folds: 5
+  params_path: "outputs/models/best_lgbm_params.json"
+
+# Output settings
+output:
+  memory_path: "outputs/logs/agent_memory.json"
+  log_path: "outputs/logs/agent.log"
+  plot_path: "outputs/logs/progress_plot.png"
+  report_path: "outputs/logs/progress_report.html"
+
+# Logging settings
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  console: true
+  file: true
+
+# Visualization
+visualization:
+  auto_generate: false  # Generate plot/report after each run
+  show_plot: false      # Display plot interactively

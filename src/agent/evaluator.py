@@ -1,5 +1,7 @@
 """
 Feature evaluator for measuring improvement over baseline
+
+Enhanced with SHAP-based feature importance for feedback loop.
 """
 
 import os
@@ -7,6 +9,7 @@ import json
 import numpy as np
 import pandas as pd
 import lightgbm as lgb
+import shap
 from sklearn.model_selection import KFold
 from sklearn.metrics import mean_squared_error
 from typing import Dict, Optional
@@ -18,6 +21,8 @@ class FeatureEvaluator:
 
     Uses LightGBM with tuned hyperparameters (if available)
     Measures RMSLE on log-transformed target
+
+    Enhanced with SHAP-based feature importance for feedback loop.
     """
 
     def __init__(
@@ -35,6 +40,8 @@ class FeatureEvaluator:
         self.n_folds = n_folds
         self.model_params = self._load_params(params_path)
         self.kf = KFold(n_splits=n_folds, shuffle=True, random_state=42)
+        self.last_model = None
+        self.last_X = None
 
     def _load_params(self, params_path: str) -> dict:
         """Load tuned hyperparameters if available"""
@@ -112,6 +119,12 @@ class FeatureEvaluator:
         if verbose:
             print(f"      Mean RMSLE: {mean_rmsle:.5f} (± {np.std(cv_scores):.5f})")
 
+        # Store last model and data for SHAP computation
+        # Train a final model on full data for SHAP
+        self.last_X = X
+        self.last_model = lgb.LGBMRegressor(**self.model_params)
+        self.last_model.fit(X, y_log)
+
         return mean_rmsle
 
     def compare(
@@ -138,6 +151,95 @@ class FeatureEvaluator:
             'percent_change': percent_change,
             'baseline_rmsle': baseline_rmsle,
             'new_rmsle': new_rmsle
+        }
+
+    def get_shap_importance(
+        self,
+        top_n: int = 10,
+        sample_size: int = 100
+    ) -> Dict[str, float]:
+        """
+        Get SHAP-based feature importance from last evaluated model
+
+        Args:
+            top_n: Number of top features to return
+            sample_size: Number of samples to use for SHAP (for speed)
+
+        Returns:
+            Dictionary mapping feature names to mean absolute SHAP values
+        """
+        if self.last_model is None or self.last_X is None:
+            return {}
+
+        # Sample data for faster SHAP computation
+        if len(self.last_X) > sample_size:
+            X_sample = self.last_X.sample(n=sample_size, random_state=42)
+        else:
+            X_sample = self.last_X
+
+        # Compute SHAP values using TreeExplainer (fast for LightGBM)
+        explainer = shap.TreeExplainer(self.last_model)
+        shap_values = explainer.shap_values(X_sample)
+
+        # Get mean absolute SHAP values per feature
+        mean_abs_shap = np.abs(shap_values).mean(axis=0)
+
+        # Create feature importance dict
+        importance = dict(zip(self.last_X.columns, mean_abs_shap))
+
+        # Sort and return top N
+        sorted_importance = dict(
+            sorted(importance.items(), key=lambda x: x[1], reverse=True)[:top_n]
+        )
+
+        return sorted_importance
+
+    def get_shap_summary(self, top_n: int = 10) -> str:
+        """
+        Get human-readable summary of SHAP feature importance
+
+        Args:
+            top_n: Number of top features to include
+
+        Returns:
+            Formatted string summary for prompting
+        """
+        importance = self.get_shap_importance(top_n=top_n)
+
+        if not importance:
+            return "No feature importance available yet."
+
+        lines = ["Top Features by SHAP Importance:"]
+        for i, (feature, value) in enumerate(importance.items(), 1):
+            lines.append(f"  {i}. {feature}: {value:.4f}")
+
+        return "\n".join(lines)
+
+    def get_feature_insights(self, top_n: int = 5) -> Dict[str, any]:
+        """
+        Get insights about features for the feedback loop
+
+        Returns:
+            Dictionary with top features, their importance, and suggestions
+        """
+        importance = self.get_shap_importance(top_n=top_n)
+
+        if not importance:
+            return {'top_features': [], 'suggestions': []}
+
+        top_features = list(importance.keys())
+
+        # Generate suggestions based on top features
+        suggestions = []
+        for feature in top_features[:3]:
+            suggestions.append(f"Consider interactions with '{feature}'")
+            suggestions.append(f"Try polynomial transforms of '{feature}'")
+
+        return {
+            'top_features': top_features,
+            'importance_scores': importance,
+            'suggestions': suggestions,
+            'total_features': len(self.last_X.columns) if self.last_X is not None else 0
         }
 
 

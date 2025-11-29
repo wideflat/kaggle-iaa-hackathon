@@ -1,6 +1,7 @@
 """
 Iterative Feature Engineering Agent
 Phase B4-B5: Memory system + iteration loop
+Phase B7: SHAP-based feedback loop
 
 Usage:
     python -m src.agent.iterative_agent [OPTIONS]
@@ -10,6 +11,8 @@ Arguments:
     --clear                 Clear previous memory and start fresh
     --visualize, -v         Generate visualization after completion
                             (plot, table, and HTML report)
+    --feedback, -f          Enable SHAP-based feedback loop (B7)
+                            Uses feature importance to guide generation
 
 Examples:
     # Run 10 iterations
@@ -18,11 +21,14 @@ Examples:
     # Run 5 iterations with visualization
     python -m src.agent.iterative_agent -n 5 --visualize
 
-    # Start fresh with 20 iterations
-    python -m src.agent.iterative_agent --iterations 20 --clear
+    # Run with SHAP feedback (recommended)
+    python -m src.agent.iterative_agent -n 10 --feedback
 
-    # Quick test with visualization
-    python -m src.agent.iterative_agent -n 3 -v --clear
+    # Start fresh with 20 iterations and feedback
+    python -m src.agent.iterative_agent --iterations 20 --clear --feedback
+
+    # Quick test with visualization and feedback
+    python -m src.agent.iterative_agent -n 3 -v -f --clear
 
 Output:
     - Memory saved to: outputs/logs/agent_memory.json
@@ -57,30 +63,66 @@ def run_iteration(
     executor: CodeExecutor,
     evaluator: FeatureEvaluator,
     memory: AgentMemory,
-    current_best_rmsle: float
+    current_best_rmsle: float,
+    use_feedback: bool = False
 ) -> tuple[float, bool]:
     """
     Run a single iteration of feature generation
+
+    Args:
+        iteration: Current iteration number
+        df: Preprocessed dataframe
+        target: Target series (SalePrice)
+        data_desc: Data description text
+        column_info: Comma-separated column names
+        gemini: Gemini client instance
+        executor: Code executor instance
+        evaluator: Feature evaluator instance
+        memory: Agent memory instance
+        current_best_rmsle: Current best RMSLE score
+        use_feedback: If True, use SHAP-based feedback (B7)
 
     Returns:
         Tuple of (new_rmsle, is_improvement)
     """
     print(f"\n{'='*60}")
-    print(f"ITERATION {iteration}")
+    print(f"ITERATION {iteration}" + (" [SHAP Feedback]" if use_feedback else ""))
     print(f"{'='*60}")
 
     # Get already tried features to avoid duplicates
     tried_features = memory.get_all_tried_codes()
     print(f"   Previously tried features: {len(tried_features)}")
 
-    # Generate new feature
+    # Generate new feature (with or without SHAP feedback)
     print("   Generating feature with Gemini...")
     try:
-        generated_code = gemini.generate_feature(
-            data_desc,
-            column_info,
-            existing_features=tried_features
-        )
+        if use_feedback:
+            # Get SHAP insights from evaluator
+            shap_summary = evaluator.get_shap_summary(top_n=10)
+            feature_insights = evaluator.get_feature_insights(top_n=5)
+            print(f"   Using SHAP feedback (top feature: {feature_insights.get('top_features', ['N/A'])[0]})")
+
+            # Store SHAP insights in memory
+            memory.log_shap_insights(
+                iteration=iteration,
+                top_features=feature_insights.get('top_features', []),
+                importance_scores=feature_insights.get('importance_scores', {}),
+                total_features=feature_insights.get('total_features', 0)
+            )
+
+            generated_code = gemini.generate_feature_with_feedback(
+                data_desc,
+                column_info,
+                shap_summary=shap_summary,
+                feature_insights=feature_insights,
+                existing_features=tried_features
+            )
+        else:
+            generated_code = gemini.generate_feature(
+                data_desc,
+                column_info,
+                existing_features=tried_features
+            )
     except Exception as e:
         print(f"   ERROR calling Gemini: {e}")
         memory.add_failed_feature("", str(e))
@@ -137,11 +179,25 @@ def run_iteration(
         return current_best_rmsle, False
 
 
-def main(n_iterations: int = 10, clear_memory: bool = False, visualize: bool = False):
-    """Run iterative feature engineering agent"""
+def main(
+    n_iterations: int = 10,
+    clear_memory: bool = False,
+    visualize: bool = False,
+    use_feedback: bool = False
+):
+    """Run iterative feature engineering agent
+
+    Args:
+        n_iterations: Number of iterations to run
+        clear_memory: If True, clear previous memory and start fresh
+        visualize: If True, generate visualization after completion
+        use_feedback: If True, use SHAP-based feedback loop (B7)
+    """
     print("=" * 60)
     print(f"Iterative Feature Engineering Agent")
     print(f"Iterations: {n_iterations}")
+    if use_feedback:
+        print(f"Mode: SHAP Feedback Enabled (B7)")
     print("=" * 60)
 
     # Initialize memory
@@ -216,7 +272,8 @@ def main(n_iterations: int = 10, clear_memory: bool = False, visualize: bool = F
             executor=executor,
             evaluator=evaluator,
             memory=memory,
-            current_best_rmsle=current_best_rmsle
+            current_best_rmsle=current_best_rmsle,
+            use_feedback=use_feedback
         )
 
         if is_success:
@@ -269,6 +326,13 @@ if __name__ == '__main__':
                         help='Clear previous memory and start fresh')
     parser.add_argument('--visualize', '-v', action='store_true',
                         help='Generate visualization after completion')
+    parser.add_argument('--feedback', '-f', action='store_true',
+                        help='Enable SHAP-based feedback loop (B7)')
     args = parser.parse_args()
 
-    main(n_iterations=args.iterations, clear_memory=args.clear, visualize=args.visualize)
+    main(
+        n_iterations=args.iterations,
+        clear_memory=args.clear,
+        visualize=args.visualize,
+        use_feedback=args.feedback
+    )
