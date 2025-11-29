@@ -1,10 +1,13 @@
 """
-Phase A0: Minimal Baseline (Updated)
-Goal: Get a working end-to-end pipeline with proper CV and RMSLE metric.
-Minimum Requirements:
-- Use RMSLE (Root Mean Squared Logarithmic Error) metric
-- Use K-Fold Cross-Validation for robust evaluation
-- Log-transform target variable
+Phase A1: Standard Preprocessing
+Goal: Improve baseline with proper preprocessing and feature engineering
+Features:
+- RMSLE metric with log-transformed target
+- K-Fold Cross-Validation
+- Semantic imputation for missing values
+- Ordinal encoding for quality features
+- One-hot encoding for categorical features
+- Engineered features (TotalSF, HouseAge, RemodAge, TotalBath, etc.)
 """
 
 import pandas as pd
@@ -13,6 +16,15 @@ import lightgbm as lgb
 from sklearn.model_selection import KFold
 from sklearn.metrics import mean_squared_error, mean_squared_log_error
 import os
+import sys
+import json
+import argparse
+
+# Add src to path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+from src.baseline.data_loader import AmesDataLoader
+from src.baseline.preprocessor import AmesPreprocessor
 
 
 def rmsle(y_true, y_pred):
@@ -25,9 +37,19 @@ def rmse(y_true, y_pred):
     return np.sqrt(mean_squared_error(y_true, y_pred))
 
 
-def main():
+def load_tuned_params():
+    """Load tuned hyperparameters if available"""
+    params_path = 'outputs/models/best_lgbm_params.json'
+    if os.path.exists(params_path):
+        with open(params_path, 'r') as f:
+            return json.load(f)
+    return None
+
+
+def main(use_tuned=False):
+    phase = "A3" if use_tuned else "A1"
     print("=" * 60)
-    print("Phase A0: Minimal Baseline Training")
+    print(f"Phase {phase}: {'Hyperparameter Tuned' if use_tuned else 'Standard Preprocessing'} Training")
     print("=" * 60)
 
     # Define paths
@@ -36,8 +58,9 @@ def main():
 
     # Load data
     print("\n1. Loading data...")
-    train = pd.read_csv(os.path.join(data_dir, 'train.csv'))
-    test = pd.read_csv(os.path.join(data_dir, 'test.csv'))
+    loader = AmesDataLoader(data_dir)
+    train = loader.load_train()
+    test = loader.load_test()
     print(f"   Train shape: {train.shape}")
     print(f"   Test shape: {test.shape}")
 
@@ -55,32 +78,46 @@ def main():
     print(f"   - Mean: {target_log.mean():.4f}")
     print(f"   - Std: {target_log.std():.4f}")
 
-    # Minimal preprocessing: Select only numeric features
-    print("\n3. Preprocessing (minimal)...")
-    numeric_features = train.select_dtypes(include=['int64', 'float64']).columns
-    numeric_features = [f for f in numeric_features if f not in ['Id', 'SalePrice']]
-    print(f"   Found {len(numeric_features)} numeric features")
+    # Preprocessing with AmesPreprocessor
+    print("\n3. Preprocessing with feature engineering...")
+    preprocessor = AmesPreprocessor()
 
-    # Create feature matrices
-    X_train = train[numeric_features].copy()
-    X_test = test[numeric_features].copy()
+    # Separate features from target/ID
+    X_train_raw = train.drop(['Id', 'SalePrice'], axis=1)
+    X_test_raw = test.drop(['Id'], axis=1)
 
-    # Fill missing values with median
-    print("\n4. Handling missing values...")
-    missing_counts = X_train.isnull().sum()
-    features_with_missing = missing_counts[missing_counts > 0]
-    if len(features_with_missing) > 0:
-        print(f"   Features with missing values: {len(features_with_missing)}")
-        for feature, count in features_with_missing.head(5).items():
-            print(f"   - {feature}: {count} missing")
-        if len(features_with_missing) > 5:
-            print(f"   ... and {len(features_with_missing) - 5} more")
+    # Fit and transform training data
+    print("   - Fitting preprocessor on training data...")
+    X_train = preprocessor.fit_transform(X_train_raw)
+    print(f"   - Training data shape after preprocessing: {X_train.shape}")
 
-    # Fill with median
-    medians = X_train.median()
-    X_train = X_train.fillna(medians)
-    X_test = X_test.fillna(medians)
-    print(f"   Filled missing values with median")
+    # Transform test data
+    print("   - Transforming test data...")
+    X_test = preprocessor.transform(X_test_raw)
+    print(f"   - Test data shape after preprocessing: {X_test.shape}")
+
+    print(f"   - Total features after preprocessing: {X_train.shape[1]}")
+    print(f"   - Features include:")
+    print(f"     * Engineered: TotalSF, HouseAge, RemodAge, TotalBath, PorchArea")
+    print(f"     * Ordinal encoded quality features")
+    print(f"     * One-hot encoded categorical features")
+
+    # Model parameters
+    print("\n4. Configuring model parameters...")
+    if use_tuned:
+        tuned_params = load_tuned_params()
+        if tuned_params is None:
+            print("   ⚠ Warning: No tuned parameters found. Using defaults.")
+            print("   Run: venv/bin/python src/baseline/tune_hyperparameters.py")
+            model_params = {'n_estimators': 100, 'random_state': 42, 'verbosity': -1}
+        else:
+            model_params = tuned_params
+            print("   ✓ Using tuned hyperparameters from Optuna")
+            print(f"   Key params: n_estimators={model_params.get('n_estimators')}, "
+                  f"learning_rate={model_params.get('learning_rate', 'N/A'):.4f}")
+    else:
+        model_params = {'n_estimators': 100, 'random_state': 42, 'verbosity': -1}
+        print("   Using default parameters (Phase A1 baseline)")
 
     # Cross-Validation
     print("\n5. Running K-Fold Cross-Validation...")
@@ -102,12 +139,17 @@ def main():
         y_val_original = target.iloc[val_idx]
 
         # Train model on log-transformed target
-        model = lgb.LGBMRegressor(
-            n_estimators=100,
-            random_state=42,
-            verbosity=-1
-        )
-        model.fit(X_train_fold, y_train_fold)
+        model = lgb.LGBMRegressor(**model_params)
+
+        # With tuned params, use early stopping
+        if use_tuned and 'n_estimators' in model_params:
+            model.fit(
+                X_train_fold, y_train_fold,
+                eval_set=[(X_val_fold, y_val_fold)],
+                callbacks=[lgb.early_stopping(stopping_rounds=50, verbose=False)]
+            )
+        else:
+            model.fit(X_train_fold, y_train_fold)
         fold_models.append(model)
 
         # Predict (in log space)
@@ -140,11 +182,7 @@ def main():
 
     # Train final model on full training data
     print("\n6. Training final model on full training data...")
-    final_model = lgb.LGBMRegressor(
-        n_estimators=100,
-        random_state=42,
-        verbosity=-1
-    )
+    final_model = lgb.LGBMRegressor(**model_params)
     final_model.fit(X_train, target_log)
     print("   Final model trained successfully")
 
@@ -165,21 +203,29 @@ def main():
         'SalePrice': test_pred
     })
 
-    output_path = os.path.join(output_dir, 'baseline_phase_a0.csv')
+    output_filename = f'baseline_phase_{phase.lower()}.csv'
+    output_path = os.path.join(output_dir, output_filename)
     submission.to_csv(output_path, index=False)
     print(f"   Predictions saved to: {output_path}")
 
     # Summary
     print("\n" + "=" * 60)
-    print("PHASE A0 COMPLETE!")
+    print(f"PHASE {phase} COMPLETE!")
     print("=" * 60)
     print(f"Metric: RMSLE (Root Mean Squared Logarithmic Error)")
     print(f"Cross-Validation: {n_folds}-Fold")
     print(f"Mean CV RMSLE: {mean_rmsle:.5f} (± {std_rmsle:.5f})")
-    print(f"Features used: {len(numeric_features)} (numeric only)")
+    print(f"Features used: {X_train.shape[1]} (with preprocessing & engineering)")
+    if use_tuned:
+        print(f"Hyperparameters: Tuned with Optuna" if tuned_params else "Default")
     print(f"Predictions saved: {output_path}")
     print("=" * 60)
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='Train Ames Housing baseline model')
+    parser.add_argument('--use-tuned', action='store_true',
+                        help='Use tuned hyperparameters from Optuna')
+    args = parser.parse_args()
+
+    main(use_tuned=args.use_tuned)
