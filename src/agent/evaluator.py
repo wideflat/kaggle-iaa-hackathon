@@ -28,7 +28,8 @@ class FeatureEvaluator:
     def __init__(
         self,
         n_folds: int = 5,
-        params_path: str = 'outputs/models/best_lgbm_params.json'
+        params_path: str = 'outputs/models/best_lgbm_params.json',
+        use_tuned_params: bool = True
     ):
         """
         Initialize evaluator
@@ -36,9 +37,25 @@ class FeatureEvaluator:
         Args:
             n_folds: Number of CV folds
             params_path: Path to tuned hyperparameters JSON
+            use_tuned_params: If False, use large n_estimators with early stopping
         """
         self.n_folds = n_folds
-        self.model_params = self._load_params(params_path)
+        if use_tuned_params:
+            self.model_params = self._load_params(params_path)
+        else:
+            # Use large n_estimators with early stopping
+            self.model_params = {
+                'n_estimators': 10000,
+                'learning_rate': 0.05,
+                'max_depth': 6,
+                'num_leaves': 31,
+                'min_child_samples': 20,
+                'subsample': 0.8,
+                'colsample_bytree': 0.8,
+                'random_state': 42,
+                'verbosity': -1
+            }
+            print("   Using default params with early stopping (n_estimators=10000)")
         self.kf = KFold(n_splits=n_folds, shuffle=True, random_state=42)
         self.last_model = None
         self.last_X = None

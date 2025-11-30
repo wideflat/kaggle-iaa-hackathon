@@ -15,6 +15,7 @@ Arguments:
     --clear                 Clear previous memory and start fresh
     --dashboard, -d         Open real-time dashboard in browser
     --include-ames          Include AmesHousing.csv in training data
+    --no-tuned-params       Skip tuned params, use large n_estimators with early stopping
 
 Examples:
     # Run 10 iterations with 2 workers, batch size 5
@@ -60,7 +61,8 @@ class ParallelFeatureAgent:
         self,
         n_workers: int = 2,
         batch_size: int = 5,
-        memory: AgentMemory = None
+        memory: AgentMemory = None,
+        use_tuned_params: bool = True
     ):
         """
         Initialize parallel agent.
@@ -69,10 +71,12 @@ class ParallelFeatureAgent:
             n_workers: Number of parallel workers
             batch_size: Number of features to generate per Gemini batch
             memory: Agent memory instance
+            use_tuned_params: If False, use large n_estimators with early stopping
         """
         self.n_workers = n_workers
         self.batch_size = batch_size
         self.memory = memory or AgentMemory()
+        self.use_tuned_params = use_tuned_params
 
         # Will be set during run()
         self.shared_state: Optional[SharedState] = None
@@ -102,7 +106,7 @@ class ParallelFeatureAgent:
             Summary statistics
         """
         # Initialize shared state
-        evaluator = FeatureEvaluator(n_folds=5)
+        evaluator = FeatureEvaluator(n_folds=5, use_tuned_params=self.use_tuned_params)
         X_baseline, _ = get_features_and_target(train_df)
         baseline_rmsle = evaluator.evaluate(X_baseline, target, verbose=True)
 
@@ -285,7 +289,7 @@ class ParallelFeatureAgent:
             worker_id: Unique worker identifier
         """
         executor = CodeExecutor()
-        evaluator = FeatureEvaluator(n_folds=5)
+        evaluator = FeatureEvaluator(n_folds=5, use_tuned_params=self.use_tuned_params)
 
         self.shared_state.register_worker(worker_id)
 
@@ -432,7 +436,8 @@ def main(
     batch_size: int = 5,
     clear_memory: bool = False,
     dashboard: bool = False,
-    include_ames: bool = False
+    include_ames: bool = False,
+    no_tuned_params: bool = False
 ):
     """Run parallel feature engineering agent with batched API calls"""
 
@@ -500,7 +505,8 @@ def main(
     agent = ParallelFeatureAgent(
         n_workers=n_workers,
         batch_size=batch_size,
-        memory=memory
+        memory=memory,
+        use_tuned_params=not no_tuned_params
     )
 
     stats = agent.run(
@@ -547,6 +553,8 @@ if __name__ == '__main__':
                         help='Open real-time dashboard in browser')
     parser.add_argument('--include-ames', action='store_true',
                         help='Include AmesHousing.csv in training data')
+    parser.add_argument('--no-tuned-params', action='store_true',
+                        help='Skip tuned params, use large n_estimators with early stopping')
     args = parser.parse_args()
 
     main(
@@ -555,5 +563,6 @@ if __name__ == '__main__':
         batch_size=args.batch_size,
         clear_memory=args.clear,
         dashboard=args.dashboard,
-        include_ames=args.include_ames
+        include_ames=args.include_ames,
+        no_tuned_params=args.no_tuned_params
     )
