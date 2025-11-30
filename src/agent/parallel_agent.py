@@ -13,16 +13,12 @@ Arguments:
     --workers, -w INT       Number of parallel workers (default: 2)
     --batch-size, -b INT    Features per Gemini batch (default: 5)
     --clear                 Clear previous memory and start fresh
-    --dashboard, -d         Open real-time dashboard in browser
     --include-ames          Include AmesHousing.csv in training data
     --no-tuned-params       Skip tuned params, use large n_estimators with early stopping
 
 Examples:
     # Run 10 iterations with 2 workers, batch size 5
     python -m src.agent.parallel_agent -n 10 -w 2 -b 5
-
-    # Run with dashboard
-    python -m src.agent.parallel_agent -n 10 -w 2 --dashboard
 """
 
 import os
@@ -435,33 +431,30 @@ def main(
     n_workers: int = 2,
     batch_size: int = 5,
     clear_memory: bool = False,
-    dashboard: bool = False,
     include_ames: bool = False,
     no_tuned_params: bool = False
 ):
     """Run parallel feature engineering agent with batched API calls"""
 
-    # Start dashboard server if requested
-    if dashboard:
-        import webbrowser
-        from src.agent.dashboard_server import app
-        import uvicorn
+    # Start dashboard server
+    import webbrowser
+    from src.agent.dashboard_server import app
+    import uvicorn
 
-        def run_server():
-            uvicorn.run(app, host="0.0.0.0", port=8765, log_level="warning")
+    def run_server():
+        uvicorn.run(app, host="0.0.0.0", port=8765, log_level="warning")
 
-        dashboard_thread = threading.Thread(target=run_server, daemon=True)
-        dashboard_thread.start()
-        print("Dashboard started at http://localhost:8765")
-        webbrowser.open("http://localhost:8765")
+    dashboard_thread = threading.Thread(target=run_server, daemon=True)
+    dashboard_thread.start()
+    print("Dashboard started at http://localhost:8765")
+    webbrowser.open("http://localhost:8765")
 
     print("=" * 60)
     print(f"Parallel Feature Engineering Agent (Batched)")
     print(f"Workers: {n_workers}")
     print(f"Batch Size: {batch_size}")
     print(f"Iterations: {n_iterations}")
-    if dashboard:
-        print(f"Dashboard: http://localhost:8765")
+    print(f"Dashboard: http://localhost:8765")
     print("=" * 60)
 
     # Initialize memory
@@ -538,6 +531,18 @@ def main(
 
     print("=" * 60)
 
+    # Generate visualization
+    print("\nGenerating visualization...")
+    try:
+        from src.agent.visualizer import ProgressVisualizer
+        viz = ProgressVisualizer()
+        viz.plot_progress(show=False)
+        viz.generate_report()
+        print("   Plot saved to: outputs/logs/progress_plot.png")
+        print("   Report saved to: outputs/logs/progress_report.html")
+    except Exception as e:
+        print(f"   Visualization failed: {e}")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run parallel feature engineering agent')
@@ -549,8 +554,6 @@ if __name__ == '__main__':
                         help='Features per Gemini API batch (default: 5)')
     parser.add_argument('--clear', action='store_true',
                         help='Clear previous memory and start fresh')
-    parser.add_argument('--dashboard', '-d', action='store_true',
-                        help='Open real-time dashboard in browser')
     parser.add_argument('--include-ames', action='store_true',
                         help='Include AmesHousing.csv in training data')
     parser.add_argument('--no-tuned-params', action='store_true',
@@ -562,7 +565,6 @@ if __name__ == '__main__':
         n_workers=args.workers,
         batch_size=args.batch_size,
         clear_memory=args.clear,
-        dashboard=args.dashboard,
         include_ames=args.include_ames,
         no_tuned_params=args.no_tuned_params
     )
