@@ -15,9 +15,15 @@ kaggle-iaa-hackathon/
 │   ├── baseline/            # Phase A: Traditional ML pipeline
 │   │   ├── data_loader.py   # AmesDataLoader class
 │   │   ├── preprocessor.py  # AmesPreprocessor with feature engineering
+│   │   ├── minimal_preprocessor.py  # Ultra-minimal preprocessing for agent
 │   │   ├── model.py         # Model definitions
 │   │   ├── train.py         # Main training script
-│   │   └── tune_hyperparameters.py  # Optuna tuning
+│   │   ├── tune_hyperparameters.py  # Optuna tuning
+│   │   ├── outlier_remover.py      # Remove known Ames Housing outliers
+│   │   ├── model_stacker.py        # 5-model ensemble (Ridge, Lasso, XGB, LGB, etc.)
+│   │   ├── feature_selector.py     # Importance/correlation-based selection
+│   │   ├── hyperparameter_tuner.py # Optuna tuning for stacking models
+│   │   └── make_submission.py      # End-to-end submission pipeline
 │   └── agent/               # Phase B: LLM-powered agent
 │       ├── gemini_client.py # Gemini API wrapper with few-shot prompting
 │       ├── code_executor.py # Safe code execution sandbox
@@ -58,6 +64,17 @@ kaggle-iaa-hackathon/
 - **B6**: Enhanced prompting with 18+ few-shot examples across 6 strategies
 - **B7**: SHAP-based feedback loop for guided feature generation
 - **B8**: Production CLI with config files, logging, error recovery
+- **B9**: Batch mode + 15 strategies (including skewness_correction, frequency_encoding)
+
+### Phase C: Top Kaggle Improvements (Complete)
+Based on analysis of Top 1% Kaggle solutions:
+
+- **Outlier Removal**: Remove famous Ames outliers (GrLivArea > 4000 with low SalePrice)
+- **Model Stacking**: 5-model ensemble (Ridge, Lasso, ElasticNet, XGBoost, LightGBM)
+- **Feature Selection**: LightGBM importance-based filtering
+- **Hyperparameter Tuning**: Optuna-based tuning for LightGBM and XGBoost
+
+Expected RMSLE improvement: 0.02-0.04 reduction
 
 ---
 
@@ -283,9 +300,61 @@ When `--feedback` is enabled:
 - 5-fold CV for evaluation
 - Lower RMSLE = better model
 
+## Submission Workflow
+
+```bash
+# 1. Run agent to discover features
+./venv/bin/python -m src.agent.iterative_agent -n 20 --feedback --batch --clear
+
+# 2. (Optional) Tune hyperparameters for stacking models
+./venv/bin/python -m src.baseline.hyperparameter_tuner
+
+# 3. Generate final submission with model stacking
+./venv/bin/python -m src.baseline.make_submission
+
+# Options for make_submission:
+#   --skip-features    Skip applying agent features
+#   --skip-selection   Skip feature selection
+#   --output PATH      Custom output path
+```
+
+### Model Stacking Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     MODEL STACKER                            │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Linear Models (30% weight, scaled features):               │
+│  ┌─────────┐  ┌─────────┐  ┌─────────────┐                 │
+│  │  Ridge  │  │  Lasso  │  │  ElasticNet │                 │
+│  │  (10%)  │  │  (10%)  │  │    (10%)    │                 │
+│  └────┬────┘  └────┬────┘  └──────┬──────┘                 │
+│       │            │              │                         │
+│       └────────────┼──────────────┘                         │
+│                    │                                        │
+│  Tree Models (70% weight, raw features):                    │
+│  ┌───────────┐  ┌───────────┐                              │
+│  │  XGBoost  │  │  LightGBM │                              │
+│  │   (35%)   │  │   (35%)   │                              │
+│  └─────┬─────┘  └─────┬─────┘                              │
+│        │              │                                     │
+│        └──────┬───────┘                                     │
+│               │                                             │
+│               ▼                                             │
+│       ┌──────────────┐                                      │
+│       │   Weighted   │                                      │
+│       │    Blend     │                                      │
+│       └──────────────┘                                      │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
 ## Design Docs
 
 - `spec/001_Autonomous Feature Engineering Design.md` - Full architecture vision
 - `spec/002_implementation_plan.md` - Implementation roadmap with progress
 - `spec/003_kaggle_submission_plan.md` - Submission strategy
 - `spec/004_visualization_plan.md` - Visualization design
+- `spec/007_true_minimal_preprocessor.md` - Minimal preprocessing for agent
+- `spec/008_top_kaggle_improvements.md` - Model stacking, outlier removal, feature selection

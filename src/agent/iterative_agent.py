@@ -53,6 +53,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from src.baseline.data_loader import AmesDataLoader
 from src.baseline.minimal_preprocessor import MinimalPreprocessor
+from src.baseline.outlier_remover import OutlierRemover
 from src.agent.gemini_client import GeminiClient
 from src.agent.code_executor import CodeExecutor
 from src.agent.evaluator import FeatureEvaluator, get_features_and_target
@@ -352,8 +353,15 @@ def main(
     loader = AmesDataLoader()
     train_df = loader.load_train()
     data_desc = loader.load_description()
-    column_info = ', '.join(train_df.columns.tolist())
     print(f"   Train shape: {train_df.shape}")
+
+    # Remove outliers (famous Ames Housing outliers)
+    print("\n1b. Removing outliers...")
+    outlier_remover = OutlierRemover()
+    train_df = outlier_remover.remove_known_outliers(train_df)
+    print(f"   Train shape after outlier removal: {train_df.shape}")
+
+    column_info = ', '.join(train_df.columns.tolist())
 
     # Preprocess (ultra-minimal: impute + label encode only)
     print("\n2. Preprocessing (ultra-minimal mode)...")
