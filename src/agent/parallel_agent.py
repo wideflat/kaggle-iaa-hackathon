@@ -15,6 +15,7 @@ Arguments:
     --clear                 Clear previous memory and start fresh
     --include-ames          Include AmesHousing.csv in training data
     --no-tuned-params       Skip tuned params, use large n_estimators with early stopping
+    --tune                  Run hyperparameter tuning after feature engineering
 
 Examples:
     # Run 10 iterations with 2 workers, batch size 5
@@ -432,7 +433,8 @@ def main(
     batch_size: int = 5,
     clear_memory: bool = False,
     include_ames: bool = False,
-    no_tuned_params: bool = False
+    no_tuned_params: bool = False,
+    tune: bool = False
 ):
     """Run parallel feature engineering agent with batched API calls"""
 
@@ -543,6 +545,48 @@ def main(
     except Exception as e:
         print(f"   Visualization failed: {e}")
 
+    # Hyperparameter tuning (if requested)
+    if tune:
+        print("\n" + "=" * 60)
+        print("HYPERPARAMETER TUNING")
+        print("=" * 60)
+
+        try:
+            import numpy as np
+            from src.baseline.hyperparameter_tuner import HyperparameterTuner
+            from src.agent.code_executor import CodeExecutor
+
+            # Apply all successful features to get final dataset
+            print("\n1. Applying successful features to dataset...")
+            executor = CodeExecutor()
+            final_df = train_processed.copy()
+
+            successful_codes = memory.get_successful_codes()
+            for code in successful_codes:
+                result_df, error = executor.execute(code, final_df)
+                if not error:
+                    final_df = result_df
+
+            X_final, _ = get_features_and_target(final_df)
+            y_final = np.log1p(target)  # Log-transform target
+
+            print(f"   Final feature count: {X_final.shape[1]}")
+
+            # Run tuning
+            print("\n2. Tuning LightGBM hyperparameters (30 trials)...")
+            tuner = HyperparameterTuner(n_folds=5, verbose=True)
+            best_params = tuner.tune_lightgbm(X_final, y_final, n_trials=30)
+
+            print("\n3. Tuning XGBoost hyperparameters (30 trials)...")
+            tuner.tune_xgboost(X_final, y_final, n_trials=30)
+
+            print("\n" + "=" * 60)
+            print("Tuning complete! Params saved to outputs/models/")
+            print("=" * 60)
+
+        except Exception as e:
+            print(f"   Tuning failed: {e}")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run parallel feature engineering agent')
@@ -558,6 +602,8 @@ if __name__ == '__main__':
                         help='Include AmesHousing.csv in training data')
     parser.add_argument('--no-tuned-params', action='store_true',
                         help='Skip tuned params, use large n_estimators with early stopping')
+    parser.add_argument('--tune', action='store_true',
+                        help='Run hyperparameter tuning after feature engineering')
     args = parser.parse_args()
 
     main(
@@ -566,5 +612,6 @@ if __name__ == '__main__':
         batch_size=args.batch_size,
         clear_memory=args.clear,
         include_ames=args.include_ames,
-        no_tuned_params=args.no_tuned_params
+        no_tuned_params=args.no_tuned_params,
+        tune=args.tune
     )

@@ -211,6 +211,7 @@ def get_inline_dashboard() -> str:
         let totalIterations = 0;
         let successCount = 0;
         let totalCount = 0;
+        let bestRmsle = null;
 
         // Initialize chart
         const ctx = document.getElementById('rmsle-chart').getContext('2d');
@@ -219,12 +220,22 @@ def get_inline_dashboard() -> str:
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'RMSLE',
+                    label: 'Actual RMSLE',
                     data: [],
                     borderColor: '#00d4ff',
-                    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                    backgroundColor: 'transparent',
+                    borderDash: [5, 5],
                     tension: 0,
-                    fill: true
+                    fill: false,
+                    pointRadius: 3
+                }, {
+                    label: 'Best RMSLE',
+                    data: [],
+                    borderColor: '#00ff88',
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    tension: 0,
+                    fill: true,
+                    pointRadius: 0
                 }]
             },
             options: {
@@ -268,7 +279,8 @@ def get_inline_dashboard() -> str:
                     document.getElementById('status').textContent = 'Starting...';
                     document.getElementById('status').className = 'status-value running';
                     if (data.baseline_rmsle) {
-                        addRmslePoint(0, data.baseline_rmsle);
+                        bestRmsle = data.baseline_rmsle;
+                        addRmslePoints(0, data.baseline_rmsle, data.baseline_rmsle);
                         document.getElementById('best-rmsle').textContent = data.baseline_rmsle.toFixed(5);
                     }
                     break;
@@ -293,7 +305,8 @@ def get_inline_dashboard() -> str:
                 case 'feature_accepted':
                     successCount++;
                     totalCount++;
-                    addRmslePoint(currentIteration, data.new_rmsle);
+                    bestRmsle = data.new_rmsle;
+                    addRmslePoints(currentIteration, data.new_rmsle, data.new_rmsle);
                     document.getElementById('best-rmsle').textContent = data.new_rmsle.toFixed(5);
                     addFeature(data, true);
                     updateSuccessRate();
@@ -302,6 +315,10 @@ def get_inline_dashboard() -> str:
 
                 case 'feature_rejected':
                     totalCount++;
+                    // Add actual RMSLE (if evaluated) and current best RMSLE
+                    if (data.rmsle && currentIteration > 0) {
+                        addRmslePoints(currentIteration, data.rmsle, bestRmsle);
+                    }
                     addFeature(data, false);
                     updateSuccessRate();
                     document.getElementById('current-code-container').style.display = 'none';
@@ -314,9 +331,10 @@ def get_inline_dashboard() -> str:
             }
         }
 
-        function addRmslePoint(iteration, rmsle) {
+        function addRmslePoints(iteration, actualRmsle, bestRmsle) {
             chart.data.labels.push(iteration.toString());
-            chart.data.datasets[0].data.push(rmsle);
+            chart.data.datasets[0].data.push(actualRmsle);  // Actual RMSLE (dotted)
+            chart.data.datasets[1].data.push(bestRmsle);     // Best RMSLE (solid)
             chart.update();
         }
 

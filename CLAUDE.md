@@ -289,6 +289,7 @@ python -m src.agent.parallel_agent -n 20 -w 2 --no-tuned-params
 | `-d, --dashboard` | Open real-time dashboard in browser |
 | `--include-ames` | Include AmesHousing.csv in training data (2930 extra rows) |
 | `--no-tuned-params` | Skip tuned params, use n_estimators=10000 with early stopping |
+| `--tune` | Run hyperparameter tuning after feature engineering (30 trials) |
 
 ### run.py (Legacy)
 
@@ -327,13 +328,10 @@ python -m src.agent.parallel_agent -n 20 -w 2 --no-tuned-params
 ## Submission Workflow
 
 ```bash
-# 1. Run parallel agent to discover features
-python -m src.agent.parallel_agent -n 50 -w 2 -b 5 --dashboard --clear
+# 1. Run parallel agent to discover features + tune hyperparameters
+python -m src.agent.parallel_agent -n 50 -w 2 -b 5 --dashboard --clear --tune
 
-# 2. (Optional) Tune hyperparameters for stacking models
-python -m src.baseline.hyperparameter_tuner
-
-# 3. Generate final submission with model stacking
+# 2. Generate final submission with model stacking
 python -m src.baseline.make_submission
 
 # Options for make_submission:
@@ -341,6 +339,9 @@ python -m src.baseline.make_submission
 #   --skip-selection   Skip feature selection
 #   --include-ames     Include AmesHousing.csv in training data
 #   --output PATH      Custom output path
+
+# Alternative: separate tuning step (if not using --tune)
+# python -m src.baseline.hyperparameter_tuner
 ```
 
 ### Model Stacking Architecture
