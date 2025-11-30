@@ -426,10 +426,16 @@ class ModelStacker:
 
         # ===== Prepare return values =====
         layer_predictions = {
+            # Test predictions
             'layer1': predictions,
             'layer2_weighted': weighted_pred,
             'layer2_stacking': stacking_pred,
-            'layer3_final': final_pred
+            'layer3_final': final_pred,
+            # OOF predictions
+            'oof_layer1': self.oof_predictions,
+            'oof_layer2_weighted': weighted_oof,
+            'oof_layer2_stacking': stacking_oof,
+            'oof_layer3_final': final_oof if self.enable_stacking else weighted_oof
         }
 
         return final_pred, layer_predictions, oof_scores

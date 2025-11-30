@@ -24,6 +24,8 @@ import os
 import sys
 import argparse
 import json
+import shutil
+from datetime import datetime
 import numpy as np
 import pandas as pd
 
@@ -122,7 +124,7 @@ def main(
     print(f"   Train shape: {train_df.shape}")
     print(f"   Test shape: {test_df.shape}")
 
-    # Store test IDs for submission
+    # Store test IDs for output files
     test_ids = test_df['Id'].values
 
     # 2. Remove outliers from training
@@ -130,6 +132,9 @@ def main(
     outlier_remover = OutlierRemover()
     train_df = outlier_remover.remove_known_outliers(train_df)
     print(f"   Train shape after outlier removal: {train_df.shape}")
+
+    # Store train IDs after outlier removal (for OOF predictions)
+    train_ids = train_df['Id'].values
 
     # 3. Preprocess
     print("\n3. Preprocessing...")
@@ -216,23 +221,79 @@ def main(
     # Clip negative predictions (shouldn't happen, but just in case)
     predictions = np.maximum(predictions, 0)
 
-    # 8. Create submission
+    # 8. Create submission and save all outputs
     print("\n8. Creating submission...")
+
+    # Create timestamped output folder
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    output_dir = f"outputs/submissions/{timestamp}"
+    os.makedirs(output_dir, exist_ok=True)
+    print(f"   Output folder: {output_dir}")
+
+    # Save submission.csv
     submission = pd.DataFrame({
         'Id': test_ids,
         'SalePrice': predictions
     })
+    submission.to_csv(f"{output_dir}/submission.csv", index=False)
+    print(f"   Saved: submission.csv")
 
-    # Ensure output directory exists
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    # Save OOF predictions - Layer 1
+    oof_layer1 = pd.DataFrame({'Id': train_ids})
+    for model_name, oof_pred in layer_preds['oof_layer1'].items():
+        oof_layer1[model_name] = oof_pred
+    oof_layer1.to_csv(f"{output_dir}/oof_layer1.csv", index=False)
+    print(f"   Saved: oof_layer1.csv (5 base models)")
 
+    # Save OOF predictions - Layer 2 & 3
+    oof_layer2 = pd.DataFrame({
+        'Id': train_ids,
+        'weighted': layer_preds['oof_layer2_weighted'],
+        'stacking': layer_preds['oof_layer2_stacking'],
+        'final': layer_preds['oof_layer3_final']
+    })
+    oof_layer2.to_csv(f"{output_dir}/oof_layer2.csv", index=False)
+    print(f"   Saved: oof_layer2.csv (weighted, stacking, final)")
+
+    # Save test predictions - Layer 1
+    test_layer1 = pd.DataFrame({'Id': test_ids})
+    for model_name, test_pred in layer_preds['layer1'].items():
+        test_layer1[model_name] = test_pred
+    test_layer1.to_csv(f"{output_dir}/test_layer1.csv", index=False)
+    print(f"   Saved: test_layer1.csv (5 base models)")
+
+    # Save test predictions - Layer 2 & 3
+    test_layer2 = pd.DataFrame({
+        'Id': test_ids,
+        'weighted': layer_preds['layer2_weighted'],
+        'stacking': layer_preds['layer2_stacking'],
+        'final': layer_preds['layer3_final']
+    })
+    test_layer2.to_csv(f"{output_dir}/test_layer2.csv", index=False)
+    print(f"   Saved: test_layer2.csv (weighted, stacking, final)")
+
+    # Copy supporting files
+    files_to_copy = [
+        ('outputs/models/best_lgbm_params.json', 'best_lgbm_params.json'),
+        ('outputs/models/best_xgb_params.json', 'best_xgb_params.json'),
+        ('outputs/logs/agent_memory.json', 'agent_memory.json'),
+        ('outputs/logs/agent.log', 'agent.log'),
+        ('outputs/logs/progress_plot.png', 'progress_plot.png'),
+    ]
+
+    for src, dst in files_to_copy:
+        if os.path.exists(src):
+            shutil.copy2(src, f"{output_dir}/{dst}")
+            print(f"   Copied: {dst}")
+
+    # Also save to the legacy output path for compatibility
     submission.to_csv(output_path, index=False)
-    print(f"   Submission saved to: {output_path}")
 
     # Summary statistics
     print("\n" + "=" * 60)
     print("Summary")
     print("=" * 60)
+    print(f"   Output folder: {output_dir}")
     print(f"   Predictions: {len(predictions)}")
     print(f"   Mean: ${predictions.mean():,.0f}")
     print(f"   Median: ${np.median(predictions):,.0f}")
