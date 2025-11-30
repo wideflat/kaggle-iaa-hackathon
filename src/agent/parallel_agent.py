@@ -16,6 +16,7 @@ Arguments:
     --include-ames          Include AmesHousing.csv in training data
     --no-tuned-params       Skip tuned params, use large n_estimators with early stopping
     --tune                  Run hyperparameter tuning after feature engineering
+    --feedback, -f          Enable SHAP-based feedback to guide feature generation
 
 Examples:
     # Run 10 iterations with 2 workers, batch size 5
@@ -59,7 +60,8 @@ class ParallelFeatureAgent:
         n_workers: int = 2,
         batch_size: int = 5,
         memory: AgentMemory = None,
-        use_tuned_params: bool = True
+        use_tuned_params: bool = True,
+        use_feedback: bool = False
     ):
         """
         Initialize parallel agent.
@@ -69,11 +71,13 @@ class ParallelFeatureAgent:
             batch_size: Number of features to generate per Gemini batch
             memory: Agent memory instance
             use_tuned_params: If False, use large n_estimators with early stopping
+            use_feedback: If True, use SHAP-based feedback to guide feature generation
         """
         self.n_workers = n_workers
         self.batch_size = batch_size
         self.memory = memory or AgentMemory()
         self.use_tuned_params = use_tuned_params
+        self.use_feedback = use_feedback
 
         # Will be set during run()
         self.shared_state: Optional[SharedState] = None
@@ -82,6 +86,7 @@ class ParallelFeatureAgent:
         self.target: pd.Series = None
         self.total_iterations: int = 0
         self.gemini: Optional[GeminiClient] = None
+        self.evaluator: Optional[FeatureEvaluator] = None
 
     def run(
         self,
@@ -103,9 +108,9 @@ class ParallelFeatureAgent:
             Summary statistics
         """
         # Initialize shared state
-        evaluator = FeatureEvaluator(n_folds=5, use_tuned_params=self.use_tuned_params)
+        self.evaluator = FeatureEvaluator(n_folds=5, use_tuned_params=self.use_tuned_params)
         X_baseline, _ = get_features_and_target(train_df)
-        baseline_rmsle = evaluator.evaluate(X_baseline, target, verbose=True)
+        baseline_rmsle = self.evaluator.evaluate(X_baseline, target, verbose=True)
 
         print(f"\n   >>> Baseline RMSLE: {baseline_rmsle:.5f}")
         self.memory.set_baseline(baseline_rmsle)
@@ -124,7 +129,7 @@ class ParallelFeatureAgent:
         # Recalculate best RMSLE with previously successful features
         if successful_codes:
             X_current, _ = get_features_and_target(accumulated_df)
-            current_rmsle = evaluator.evaluate(X_current, target, verbose=False)
+            current_rmsle = self.evaluator.evaluate(X_current, target, verbose=False)
             print(f"   Current best RMSLE: {current_rmsle:.5f}")
         else:
             current_rmsle = baseline_rmsle
@@ -234,18 +239,33 @@ class ParallelFeatureAgent:
                 'queue_size': self.shared_state.get_queue_size()
             })
 
-            print(f"\n[Producer] Generating batch of {current_batch_size} features...")
+            feedback_msg = " [SHAP]" if self.use_feedback else ""
+            print(f"\n[Producer] Generating batch of {current_batch_size} features...{feedback_msg}")
 
             try:
                 # Get tried features for deduplication
                 tried_features = self.shared_state.get_tried_codes()
+
+                # Get SHAP summary if feedback is enabled
+                shap_summary = None
+                if self.use_feedback:
+                    try:
+                        # Get current accumulated dataframe
+                        current_df = self.shared_state.get_current_df()
+                        X_current, _ = get_features_and_target(current_df)
+                        # Refit evaluator on current data and get SHAP summary
+                        self.evaluator.evaluate(X_current, self.target, verbose=False)
+                        shap_summary = self.evaluator.get_shap_summary(top_n=10)
+                    except Exception as e:
+                        print(f"[Producer] SHAP feedback failed: {e}")
 
                 # Generate batch of features
                 batch = self.gemini.generate_feature_batch(
                     self.data_desc,
                     self.column_info,
                     existing_features=tried_features,
-                    n_features=current_batch_size
+                    n_features=current_batch_size,
+                    shap_summary=shap_summary
                 )
 
                 print(f"[Producer] Generated {len(batch)} features, adding to queue")
@@ -434,7 +454,8 @@ def main(
     clear_memory: bool = False,
     include_ames: bool = False,
     no_tuned_params: bool = False,
-    tune: bool = False
+    tune: bool = False,
+    use_feedback: bool = False
 ):
     """Run parallel feature engineering agent with batched API calls"""
 
@@ -497,11 +518,15 @@ def main(
 
     # Initialize and run parallel agent
     print("\n4. Initializing parallel agent...")
+    feedback_msg = " with SHAP feedback" if use_feedback else ""
+    print(f"   Workers: {n_workers}, Batch size: {batch_size}{feedback_msg}")
+
     agent = ParallelFeatureAgent(
         n_workers=n_workers,
         batch_size=batch_size,
         memory=memory,
-        use_tuned_params=not no_tuned_params
+        use_tuned_params=not no_tuned_params,
+        use_feedback=use_feedback
     )
 
     stats = agent.run(
@@ -572,13 +597,13 @@ def main(
 
             print(f"   Final feature count: {X_final.shape[1]}")
 
-            # Run tuning
-            print("\n2. Tuning LightGBM hyperparameters (30 trials)...")
+            # Run tuning (15 trials with early stopping)
+            print("\n2. Tuning LightGBM hyperparameters (15 trials)...")
             tuner = HyperparameterTuner(n_folds=5, verbose=True)
-            best_params = tuner.tune_lightgbm(X_final, y_final, n_trials=30)
+            best_params = tuner.tune_lightgbm(X_final, y_final, n_trials=15)
 
-            print("\n3. Tuning XGBoost hyperparameters (30 trials)...")
-            tuner.tune_xgboost(X_final, y_final, n_trials=30)
+            print("\n3. Tuning XGBoost hyperparameters (15 trials)...")
+            tuner.tune_xgboost(X_final, y_final, n_trials=15)
 
             print("\n" + "=" * 60)
             print("Tuning complete! Params saved to outputs/models/")
@@ -604,6 +629,8 @@ if __name__ == '__main__':
                         help='Skip tuned params, use large n_estimators with early stopping')
     parser.add_argument('--tune', action='store_true',
                         help='Run hyperparameter tuning after feature engineering')
+    parser.add_argument('--feedback', '-f', action='store_true',
+                        help='Enable SHAP-based feedback to guide feature generation')
     args = parser.parse_args()
 
     main(
@@ -613,5 +640,6 @@ if __name__ == '__main__':
         clear_memory=args.clear,
         include_ames=args.include_ames,
         no_tuned_params=args.no_tuned_params,
-        tune=args.tune
+        tune=args.tune,
+        use_feedback=args.feedback
     )

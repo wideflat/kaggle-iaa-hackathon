@@ -275,6 +275,43 @@ def main(
     test_layer2.to_csv(f"{output_dir}/test_layer2.csv", index=False)
     print(f"   Saved: test_layer2.csv (weighted, stacking, final)")
 
+    # Save pipeline metadata as JSON
+    pipeline_info = {
+        'timestamp': timestamp,
+        'data': {
+            'train_shape': list(train_df.shape),
+            'test_shape': list(test_df.shape),
+            'outliers_removed': len(train_ids) - len(train_df) if 'train_ids' in dir() else 0,
+            'features_count': len(common_cols),
+            'selected_features_count': X_train.shape[1]
+        },
+        'agent_features': {
+            'count': len(engineered_in_final) if 'engineered_in_final' in dir() else 0,
+            'names': sorted(engineered_in_final) if 'engineered_in_final' in dir() else []
+        },
+        'scores': {
+            'layer1': {name: float(score) for name, score in oof_scores['layer1'].items()},
+            'layer2_weighted': float(oof_scores['layer2_weighted']),
+            'layer2_stacking': float(oof_scores['layer2_stacking']),
+            'layer3_final': float(oof_scores['layer3_final'])
+        },
+        'predictions': {
+            'count': len(predictions),
+            'mean': float(predictions.mean()),
+            'median': float(np.median(predictions)),
+            'min': float(predictions.min()),
+            'max': float(predictions.max())
+        },
+        'options': {
+            'skip_features': skip_features,
+            'skip_selection': skip_selection,
+            'include_ames': include_ames
+        }
+    }
+    with open(f"{output_dir}/pipeline_info.json", 'w') as f:
+        json.dump(pipeline_info, f, indent=2)
+    print(f"   Saved: pipeline_info.json")
+
     # Copy supporting files
     files_to_copy = [
         ('outputs/models/best_lgbm_params.json', 'best_lgbm_params.json'),

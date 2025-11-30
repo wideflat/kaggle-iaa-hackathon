@@ -5,7 +5,7 @@ set -e  # Exit on error
 # Kaggle Submission Script
 # ============================================================
 # Configuration
-ITERATIONS=20
+ITERATIONS=4
 WORKERS=2
 BATCH_SIZE=5
 
@@ -23,6 +23,7 @@ python -m src.agent.parallel_agent \
     -n $ITERATIONS \
     -w $WORKERS \
     -b $BATCH_SIZE \
+    --feedback \
     --clear \
     --tune
 

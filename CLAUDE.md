@@ -289,7 +289,8 @@ python -m src.agent.parallel_agent -n 20 -w 2 --no-tuned-params
 | `-d, --dashboard` | Open real-time dashboard in browser |
 | `--include-ames` | Include AmesHousing.csv in training data (2930 extra rows) |
 | `--no-tuned-params` | Skip tuned params, use n_estimators=10000 with early stopping |
-| `--tune` | Run hyperparameter tuning after feature engineering (30 trials) |
+| `--tune` | Run hyperparameter tuning after feature engineering (15 trials) |
+| `-f, --feedback` | Enable SHAP-based feedback to guide feature generation |
 
 ### run.py (Legacy)
 

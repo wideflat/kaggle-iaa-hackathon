@@ -11,7 +11,8 @@ import numpy as np
 from typing import Dict, Optional
 import optuna
 from optuna.samplers import TPESampler
-from sklearn.model_selection import cross_val_score
+from optuna.pruners import MedianPruner
+from sklearn.model_selection import cross_val_score, KFold
 import lightgbm as lgb
 import xgboost as xgb
 import pandas as pd
@@ -52,27 +53,29 @@ class HyperparameterTuner:
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        n_trials: int = 100,
+        n_trials: int = 15,
         output_path: str = 'outputs/models/best_lgbm_params.json'
     ) -> Dict:
         """
-        Tune LightGBM hyperparameters.
+        Tune LightGBM hyperparameters using native CV with early stopping.
 
         Args:
             X: Feature matrix
             y: Target variable (log-transformed)
-            n_trials: Number of Optuna trials
+            n_trials: Number of Optuna trials (default: 15)
             output_path: Path to save best params
 
         Returns:
             Best parameters dict
         """
+        train_data = lgb.Dataset(X, label=y)
+
         def objective(trial):
             params = {
-                'n_estimators': trial.suggest_int('n_estimators', 500, 5000),
-                'learning_rate': trial.suggest_float(
-                    'learning_rate', 0.005, 0.1, log=True
-                ),
+                'objective': 'regression',
+                'metric': 'rmse',
+                'boosting_type': 'gbdt',
+                'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.1, log=True),
                 'max_depth': trial.suggest_int('max_depth', 3, 10),
                 'num_leaves': trial.suggest_int('num_leaves', 15, 127),
                 'min_child_samples': trial.suggest_int('min_child_samples', 5, 100),
@@ -84,20 +87,33 @@ class HyperparameterTuner:
                 'verbosity': -1
             }
 
-            model = lgb.LGBMRegressor(**params)
-            scores = cross_val_score(
-                model, X, y,
-                cv=self.n_folds,
-                scoring='neg_root_mean_squared_error'
+            # Use native LightGBM CV with early stopping
+            # Use KFold (not stratified) for regression
+            folds = KFold(n_splits=self.n_folds, shuffle=True, random_state=self.random_state)
+            cv_results = lgb.cv(
+                params,
+                train_data,
+                num_boost_round=10000,
+                folds=folds.split(X, y),
+                callbacks=[lgb.early_stopping(50, verbose=False)],
+                return_cvbooster=False
             )
-            return -scores.mean()
+
+            best_score = cv_results['valid rmse-mean'][-1]
+            best_iter = len(cv_results['valid rmse-mean'])
+
+            # Store best iteration for later use
+            trial.set_user_attr('best_iteration', best_iter)
+
+            return best_score
 
         if self.verbose:
-            print(f"\nTuning LightGBM ({n_trials} trials)...")
+            print(f"\nTuning LightGBM ({n_trials} trials, early stopping)...")
 
         study = optuna.create_study(
             direction='minimize',
-            sampler=TPESampler(seed=self.random_state)
+            sampler=TPESampler(seed=self.random_state),
+            pruner=MedianPruner(n_warmup_steps=5)
         )
         study.optimize(
             objective,
@@ -105,7 +121,9 @@ class HyperparameterTuner:
             show_progress_bar=self.verbose
         )
 
-        best_params = study.best_params
+        # Build final params
+        best_params = study.best_params.copy()
+        best_params['n_estimators'] = study.best_trial.user_attrs.get('best_iteration', 1000)
         best_params['random_state'] = self.random_state
         best_params['verbosity'] = -1
 
@@ -114,6 +132,7 @@ class HyperparameterTuner:
 
         if self.verbose:
             print(f"   Best LightGBM RMSE: {study.best_value:.5f}")
+            print(f"   Best n_estimators: {best_params['n_estimators']}")
             print(f"   Params saved to: {output_path}")
 
         return best_params
@@ -122,27 +141,28 @@ class HyperparameterTuner:
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        n_trials: int = 100,
+        n_trials: int = 15,
         output_path: str = 'outputs/models/best_xgb_params.json'
     ) -> Dict:
         """
-        Tune XGBoost hyperparameters.
+        Tune XGBoost hyperparameters using CV with early stopping.
 
         Args:
             X: Feature matrix
             y: Target variable (log-transformed)
-            n_trials: Number of Optuna trials
+            n_trials: Number of Optuna trials (default: 15)
             output_path: Path to save best params
 
         Returns:
             Best parameters dict
         """
+        dtrain = xgb.DMatrix(X, label=y)
+
         def objective(trial):
             params = {
-                'n_estimators': trial.suggest_int('n_estimators', 500, 5000),
-                'learning_rate': trial.suggest_float(
-                    'learning_rate', 0.005, 0.1, log=True
-                ),
+                'objective': 'reg:squarederror',
+                'eval_metric': 'rmse',
+                'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.1, log=True),
                 'max_depth': trial.suggest_int('max_depth', 3, 10),
                 'min_child_weight': trial.suggest_int('min_child_weight', 1, 10),
                 'subsample': trial.suggest_float('subsample', 0.5, 1.0),
@@ -153,20 +173,33 @@ class HyperparameterTuner:
                 'verbosity': 0
             }
 
-            model = xgb.XGBRegressor(**params)
-            scores = cross_val_score(
-                model, X, y,
-                cv=self.n_folds,
-                scoring='neg_root_mean_squared_error'
+            # Use native XGBoost CV with early stopping
+            # Use KFold (not stratified) for regression
+            folds = KFold(n_splits=self.n_folds, shuffle=True, random_state=self.random_state)
+            cv_results = xgb.cv(
+                params,
+                dtrain,
+                num_boost_round=10000,
+                folds=list(folds.split(X, y)),
+                early_stopping_rounds=50,
+                verbose_eval=False
             )
-            return -scores.mean()
+
+            best_score = cv_results['test-rmse-mean'].iloc[-1]
+            best_iter = len(cv_results)
+
+            # Store best iteration
+            trial.set_user_attr('best_iteration', best_iter)
+
+            return best_score
 
         if self.verbose:
-            print(f"\nTuning XGBoost ({n_trials} trials)...")
+            print(f"\nTuning XGBoost ({n_trials} trials, early stopping)...")
 
         study = optuna.create_study(
             direction='minimize',
-            sampler=TPESampler(seed=self.random_state)
+            sampler=TPESampler(seed=self.random_state),
+            pruner=MedianPruner(n_warmup_steps=5)
         )
         study.optimize(
             objective,
@@ -174,7 +207,9 @@ class HyperparameterTuner:
             show_progress_bar=self.verbose
         )
 
-        best_params = study.best_params
+        # Build final params
+        best_params = study.best_params.copy()
+        best_params['n_estimators'] = study.best_trial.user_attrs.get('best_iteration', 1000)
         best_params['random_state'] = self.random_state
         best_params['verbosity'] = 0
 
@@ -183,6 +218,7 @@ class HyperparameterTuner:
 
         if self.verbose:
             print(f"   Best XGBoost RMSE: {study.best_value:.5f}")
+            print(f"   Best n_estimators: {best_params['n_estimators']}")
             print(f"   Params saved to: {output_path}")
 
         return best_params
