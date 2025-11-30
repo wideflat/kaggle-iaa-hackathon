@@ -53,7 +53,7 @@ class FeatureEvaluator:
         else:
             print(f"   Using default params (moderate strength for feature discovery)")
             return {
-                'n_estimators': 300,
+                'n_estimators': 1000,
                 'learning_rate': 0.05,
                 'max_depth': 6,
                 'num_leaves': 31,
@@ -273,6 +273,9 @@ def get_features_and_target(
     """
     Extract features and target from preprocessed dataframe
 
+    Handles both numeric and categorical (pd.Categorical) columns.
+    Categorical columns are converted to integer codes for LightGBM.
+
     Args:
         df: Preprocessed dataframe
         target_col: Name of target column
@@ -292,7 +295,12 @@ def get_features_and_target(
 
     X = df.drop(cols_to_drop, axis=1)
 
-    # Select only numeric columns (including uint8/bool from one-hot encoding)
+    # Convert categorical columns to integer codes for LightGBM
+    # This preserves the original categories while making data numeric
+    for col in X.select_dtypes(include=['category']).columns:
+        X[col] = X[col].cat.codes  # -1 for unknown/missing categories
+
+    # Select numeric columns (including converted categoricals, uint8/bool)
     X = X.select_dtypes(include=['number', 'bool'])
 
     y = df[target_col] if target_col in df.columns else None

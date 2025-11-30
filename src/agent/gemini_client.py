@@ -184,6 +184,97 @@ FEW_SHOT_EXAMPLES = {
             'rationale': 'Squared living area - non-linear size premium'
         },
     ],
+    'presence_detection': [
+        {
+            'name': 'HasGarage',
+            'code': "df['HasGarage'] = (df['GarageArea'] > 0).astype(int)",
+            'rationale': 'Detect garage presence - NaN filled with 0, so >0 means has garage'
+        },
+        {
+            'name': 'HasPool',
+            'code': "df['HasPool'] = (df['PoolQC'] != 'None').astype(int)",
+            'rationale': 'Detect pool presence from quality column (None = no pool)'
+        },
+        {
+            'name': 'HasBasement',
+            'code': "df['HasBasement'] = (df['TotalBsmtSF'] > 0).astype(int)",
+            'rationale': 'Detect basement presence - 0 SF means no basement'
+        },
+        {
+            'name': 'Has2ndFloor',
+            'code': "df['Has2ndFloor'] = (df['2ndFlrSF'] > 0).astype(int)",
+            'rationale': 'Detect second floor presence'
+        },
+        {
+            'name': 'HasFireplace',
+            'code': "df['HasFireplace'] = (df['Fireplaces'] > 0).astype(int)",
+            'rationale': 'Detect fireplace presence'
+        },
+    ],
+    'ordinal_from_description': [
+        {
+            'name': 'ExterQual_Ord',
+            'code': "df['ExterQual_Ord'] = df['ExterQual'].map({'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1, 'None': 0}).fillna(0).astype(int)",
+            'rationale': 'Ordinal from data_description: Ex=Excellent, Gd=Good, TA=Typical, Fa=Fair, Po=Poor'
+        },
+        {
+            'name': 'KitchenQual_Ord',
+            'code': "df['KitchenQual_Ord'] = df['KitchenQual'].map({'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1, 'None': 0}).fillna(0).astype(int)",
+            'rationale': 'Kitchen quality ordinal - kitchens are key selling point'
+        },
+        {
+            'name': 'BsmtQual_Ord',
+            'code': "df['BsmtQual_Ord'] = df['BsmtQual'].map({'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1, 'None': 0}).fillna(0).astype(int)",
+            'rationale': 'Basement quality ordinal - finished basements add value'
+        },
+        {
+            'name': 'BsmtExposure_Ord',
+            'code': "df['BsmtExposure_Ord'] = df['BsmtExposure'].map({'Gd': 4, 'Av': 3, 'Mn': 2, 'No': 1, 'None': 0}).fillna(0).astype(int)",
+            'rationale': 'Basement exposure: Gd=Good, Av=Average, Mn=Minimum, No=No Exposure'
+        },
+        {
+            'name': 'GarageFinish_Ord',
+            'code': "df['GarageFinish_Ord'] = df['GarageFinish'].map({'Fin': 3, 'RFn': 2, 'Unf': 1, 'None': 0}).fillna(0).astype(int)",
+            'rationale': 'Garage finish: Fin=Finished, RFn=Rough Finished, Unf=Unfinished'
+        },
+    ],
+    'grouped_features': [
+        {
+            'name': 'LotFrontage_NeighMed',
+            'code': "df['LotFrontage_NeighMed'] = df.groupby('Neighborhood')['LotFrontage'].transform('median')",
+            'rationale': 'Neighborhood median LotFrontage - useful for comparison'
+        },
+        {
+            'name': 'GrLivArea_NeighMed',
+            'code': "df['GrLivArea_NeighMed'] = df.groupby('Neighborhood')['GrLivArea'].transform('median')",
+            'rationale': 'Neighborhood median living area - compare house to neighbors'
+        },
+        {
+            'name': 'OverallQual_NeighMean',
+            'code': "df['OverallQual_NeighMean'] = df.groupby('Neighborhood')['OverallQual'].transform('mean')",
+            'rationale': 'Neighborhood average quality - location quality proxy'
+        },
+        {
+            'name': 'LotArea_NeighMed',
+            'code': "df['LotArea_NeighMed'] = df.groupby('Neighborhood')['LotArea'].transform('median')",
+            'rationale': 'Neighborhood median lot size - compare lot to neighborhood'
+        },
+        {
+            'name': 'YearBuilt_NeighMed',
+            'code': "df['YearBuilt_NeighMed'] = df.groupby('Neighborhood')['YearBuilt'].transform('median')",
+            'rationale': 'Neighborhood median year built - is this an old or new neighborhood?'
+        },
+        {
+            'name': 'GrLivArea_Deviation',
+            'code': "df['GrLivArea_Deviation'] = df['GrLivArea'] - df.groupby('Neighborhood')['GrLivArea'].transform('median')",
+            'rationale': 'How much larger/smaller than neighborhood median - relative size'
+        },
+        {
+            'name': 'LotArea_Deviation',
+            'code': "df['LotArea_Deviation'] = df['LotArea'] - df.groupby('Neighborhood')['LotArea'].transform('median')",
+            'rationale': 'How much larger/smaller lot than neighborhood median'
+        },
+    ],
     'temporal': [
         {
             'name': 'YearsSinceRemod',
@@ -199,6 +290,55 @@ FEW_SHOT_EXAMPLES = {
             'name': 'WasRemodeled',
             'code': "df['WasRemodeled'] = (df['YearRemodAdd'] != df['YearBuilt']).astype(int)",
             'rationale': 'Binary indicator if house was ever remodeled'
+        },
+    ],
+    'skewness_correction': [
+        {
+            'name': 'LogLotArea',
+            'code': "df['LogLotArea'] = np.log1p(df['LotArea'])",
+            'rationale': 'LotArea is highly right-skewed. Log transform normalizes distribution.'
+        },
+        {
+            'name': 'LogGrLivArea',
+            'code': "df['LogGrLivArea'] = np.log1p(df['GrLivArea'])",
+            'rationale': 'Living area has long tail. Log reduces impact of outliers.'
+        },
+        {
+            'name': 'SqrtTotalBsmtSF',
+            'code': "df['SqrtTotalBsmtSF'] = np.sqrt(df['TotalBsmtSF'])",
+            'rationale': 'Square root is gentler than log for basement size.'
+        },
+        {
+            'name': 'BoxCoxLotArea',
+            'code': "df['BoxCoxLotArea'] = boxcox1p(df['LotArea'], 0.15)",
+            'rationale': 'Box-Cox with lambda=0.15 (from top Kaggle solutions) for skewed features.'
+        },
+        {
+            'name': 'BoxCoxGrLivArea',
+            'code': "df['BoxCoxGrLivArea'] = boxcox1p(df['GrLivArea'], 0.15)",
+            'rationale': 'Box-Cox transform for living area - standard Kaggle approach.'
+        },
+    ],
+    'frequency_encoding': [
+        {
+            'name': 'Neighborhood_Count',
+            'code': "df['Neighborhood_Count'] = df.groupby('Neighborhood')['Neighborhood'].transform('count')",
+            'rationale': 'Number of houses in each neighborhood - popularity/size indicator'
+        },
+        {
+            'name': 'MSSubClass_Freq',
+            'code': "df['MSSubClass_Freq'] = df.groupby('MSSubClass')['MSSubClass'].transform('count')",
+            'rationale': 'Frequency of dwelling type - common vs rare house types'
+        },
+        {
+            'name': 'Exterior1st_Freq',
+            'code': "df['Exterior1st_Freq'] = df.groupby('Exterior1st')['Exterior1st'].transform('count')",
+            'rationale': 'Frequency of exterior material - popular vs unusual choices'
+        },
+        {
+            'name': 'SaleType_Freq',
+            'code': "df['SaleType_Freq'] = df.groupby('SaleType')['SaleType'].transform('count')",
+            'rationale': 'Frequency of sale type - normal sales vs unusual transactions'
         },
     ],
 }
@@ -301,13 +441,46 @@ Generate ONE new feature to improve house price prediction. Focus on {strategy.u
 ## Few-Shot Examples ({strategy} features)
 {example_text}
 
+## IMPORTANT: Understanding Categorical Values
+The data_description.txt explains what categorical values mean:
+- Quality features (ExterQual, KitchenQual, BsmtQual, etc.): Ex=Excellent(5), Gd=Good(4), TA=Typical(3), Fa=Fair(2), Po=Poor(1)
+- Missing values are filled with 'None' string - this often means ABSENCE (no pool, no garage, etc.)
+- Use this knowledge to create meaningful ordinal encodings with .map({{'Ex': 5, 'Gd': 4, ...}})
+
+## Numeric columns with 0 = absent
+GarageArea=0, PoolArea=0, TotalBsmtSF=0 often mean the feature is ABSENT.
+Create binary indicators: df['HasX'] = (df['X'] > 0).astype(int)
+
+## WARNING: Target Leakage
+Do NOT use SalePrice in feature engineering - this causes data leakage!
+BAD: df.groupby('Neighborhood')['SalePrice'].transform('median')
+GOOD: df.groupby('Neighborhood')['OverallQual'].transform('mean')
+
+## Skewness and Transformations
+Features like LotArea and GrLivArea are highly right-skewed.
+Apply transformations to normalize:
+- np.log1p(x) for log transform (handles zeros)
+- np.sqrt(x) for gentler transform
+- boxcox1p(x, 0.15) for Box-Cox (lambda=0.15 from top Kaggle solutions)
+
+## Frequency/Count Encoding
+For categorical columns, count-based encoding captures popularity:
+df['Neigh_Count'] = df.groupby('Neighborhood')['Neighborhood'].transform('count')
+Popular neighborhoods may have different pricing dynamics than rare ones.
+
+## Deviation from Neighborhood
+Compare individual house to neighborhood median:
+df['GrLivArea_Dev'] = df['GrLivArea'] - df.groupby('Neighborhood')['GrLivArea'].transform('median')
+Positive = larger than typical, Negative = smaller than typical
+
 ## Requirements
 1. Return ONLY executable Python code
 2. Use 'df' as the dataframe variable
 3. Handle NaN values with .fillna() to avoid errors
 4. Start with a comment: # Feature: <descriptive name>
 5. Create a NOVEL feature not in the existing list below
-6. DO NOT use import statements - 'np' (numpy) and 'pd' (pandas) are already available
+6. DO NOT use import statements - 'np', 'pd', 'boxcox1p', and 'skew' are already available
+7. For categorical columns, use .map() with explicit value mappings
 
 ## Features that ALREADY EXIST (do NOT recreate):
 {chr(10).join('- ' + f for f in BASELINE_FEATURES)}
@@ -354,6 +527,11 @@ Think about {self._get_strategy_hint(strategy)}
             'binary': 'creating 0/1 indicators for presence/absence of features (has pool, is new, etc.)',
             'polynomial': 'squared terms or log transforms to capture non-linear relationships',
             'temporal': 'time-based calculations using year columns (age, years since remodel)',
+            'presence_detection': 'creating binary indicators from NaN patterns - numeric 0 or categorical "None" often means ABSENT (no garage, no pool). Use (df["X"] > 0) or (df["X"] != "None")',
+            'ordinal_from_description': 'converting categorical quality columns to ordinal numbers using data_description meanings: Ex=5, Gd=4, TA=3, Fa=2, Po=1. Use .map() with explicit mappings',
+            'grouped_features': 'computing neighborhood-level statistics using groupby().transform() - median lot size, mean quality, deviation from median. Compare individual houses to their neighborhood',
+            'skewness_correction': 'applying log, sqrt, or Box-Cox transforms to highly skewed features like LotArea, GrLivArea. Use np.log1p(), np.sqrt(), or boxcox1p(x, 0.15) to normalize distributions and reduce outlier impact',
+            'frequency_encoding': 'encoding categorical variables by their count/frequency using groupby().transform("count"). Popular neighborhoods or common house types may have different pricing dynamics than rare ones',
         }
         return hints.get(strategy, 'creating meaningful features for house price prediction')
 
@@ -445,14 +623,47 @@ You have access to SHAP-based feature importance analysis from the current model
 ## Few-Shot Examples ({strategy} features)
 {example_text}
 
+## IMPORTANT: Understanding Categorical Values
+The data_description.txt explains what categorical values mean:
+- Quality features (ExterQual, KitchenQual, BsmtQual, etc.): Ex=Excellent(5), Gd=Good(4), TA=Typical(3), Fa=Fair(2), Po=Poor(1)
+- Missing values are filled with 'None' string - this often means ABSENCE (no pool, no garage, etc.)
+- Use this knowledge to create meaningful ordinal encodings with .map({{'Ex': 5, 'Gd': 4, ...}})
+
+## Numeric columns with 0 = absent
+GarageArea=0, PoolArea=0, TotalBsmtSF=0 often mean the feature is ABSENT.
+Create binary indicators: df['HasX'] = (df['X'] > 0).astype(int)
+
+## WARNING: Target Leakage
+Do NOT use SalePrice in feature engineering - this causes data leakage!
+BAD: df.groupby('Neighborhood')['SalePrice'].transform('median')
+GOOD: df.groupby('Neighborhood')['OverallQual'].transform('mean')
+
+## Skewness and Transformations
+Features like LotArea and GrLivArea are highly right-skewed.
+Apply transformations to normalize:
+- np.log1p(x) for log transform (handles zeros)
+- np.sqrt(x) for gentler transform
+- boxcox1p(x, 0.15) for Box-Cox (lambda=0.15 from top Kaggle solutions)
+
+## Frequency/Count Encoding
+For categorical columns, count-based encoding captures popularity:
+df['Neigh_Count'] = df.groupby('Neighborhood')['Neighborhood'].transform('count')
+Popular neighborhoods may have different pricing dynamics than rare ones.
+
+## Deviation from Neighborhood
+Compare individual house to neighborhood median:
+df['GrLivArea_Dev'] = df['GrLivArea'] - df.groupby('Neighborhood')['GrLivArea'].transform('median')
+Positive = larger than typical, Negative = smaller than typical
+
 ## Requirements
 1. Return ONLY executable Python code
 2. Use 'df' as the dataframe variable
 3. Handle NaN values with .fillna() to avoid errors
 4. Start with a comment: # Feature: <descriptive name>
 5. CREATE A FEATURE THAT LEVERAGES THE TOP IMPORTANT FEATURES
-6. DO NOT use import statements - 'np' (numpy) and 'pd' (pandas) are already available
+6. DO NOT use import statements - 'np', 'pd', 'boxcox1p', and 'skew' are already available
 7. ONLY use columns that exist in the Available Columns list above
+8. For categorical columns, use .map() with explicit value mappings
 
 ## Features that ALREADY EXIST (do NOT recreate):
 {chr(10).join('- ' + f for f in BASELINE_FEATURES)}
