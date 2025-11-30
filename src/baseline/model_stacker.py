@@ -142,7 +142,7 @@ class ModelStacker:
         Returns:
             Tuple of (final_predictions, individual_predictions_dict)
         """
-        # Scale features for linear models
+        # Convert to arrays for scaling (linear models only)
         X_train_arr = X_train.values if hasattr(X_train, 'values') else X_train
         X_test_arr = X_test.values if hasattr(X_test, 'values') else X_test
 
@@ -156,13 +156,14 @@ class ModelStacker:
             if self.verbose:
                 print(f"   Training {name}...")
 
-            # Use scaled data for linear models, raw for tree models
+            # Use scaled arrays for linear models, DataFrames for tree models
             if name in ['ridge', 'lasso', 'elasticnet']:
                 train_data = X_train_scaled
                 test_data = X_test_scaled
             else:
-                train_data = X_train_arr
-                test_data = X_test_arr
+                # Keep as DataFrame to preserve feature names
+                train_data = X_train
+                test_data = X_test
 
             # Fit with CV and predict
             test_pred, oof_pred = self._fit_predict_cv(
@@ -196,18 +197,18 @@ class ModelStacker:
     def _fit_predict_cv(
         self,
         model,
-        X: np.ndarray,
+        X,
         y: pd.Series,
-        X_test: np.ndarray
+        X_test
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Fit model with CV, generate OOF and test predictions.
 
         Args:
             model: sklearn-compatible model
-            X: Training features
+            X: Training features (DataFrame or ndarray)
             y: Training target
-            X_test: Test features
+            X_test: Test features (DataFrame or ndarray)
 
         Returns:
             Tuple of (test_predictions, oof_predictions)
@@ -219,8 +220,16 @@ class ModelStacker:
 
         y_arr = y.values if hasattr(y, 'values') else y
 
+        # Check if X is DataFrame or array
+        is_dataframe = isinstance(X, pd.DataFrame)
+
         for fold, (train_idx, val_idx) in enumerate(kf.split(X), 1):
-            X_tr, X_val = X[train_idx], X[val_idx]
+            # Use iloc for DataFrames, direct indexing for arrays
+            if is_dataframe:
+                X_tr, X_val = X.iloc[train_idx], X.iloc[val_idx]
+            else:
+                X_tr, X_val = X[train_idx], X[val_idx]
+
             y_tr, y_val = y_arr[train_idx], y_arr[val_idx]
 
             # Clone model for each fold

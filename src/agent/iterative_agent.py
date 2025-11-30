@@ -16,6 +16,7 @@ Arguments:
                             Uses feature importance to guide generation
     --batch, -b             Enable batch mode (generate multiple features per iteration)
     --batch-size INT        Number of features per batch (default: 5)
+    --dashboard, -d         Open real-time dashboard in browser
 
 Examples:
     # Run 10 iterations (single feature mode)
@@ -26,6 +27,9 @@ Examples:
 
     # Run with SHAP feedback (recommended)
     python -m src.agent.iterative_agent -n 10 --feedback
+
+    # Run with real-time dashboard
+    python -m src.agent.iterative_agent -n 10 --feedback --dashboard
 
     # Batch mode: 3 batches x 5 features = 15 features total
     python -m src.agent.iterative_agent -n 3 --batch --clear
@@ -40,6 +44,7 @@ Output:
     - Memory saved to: outputs/logs/agent_memory.json
     - Plot saved to: outputs/logs/progress_plot.png (with --visualize)
     - Report saved to: outputs/logs/progress_report.html (with --visualize)
+    - Dashboard at: http://localhost:8765 (with --dashboard)
 """
 
 import os
@@ -58,6 +63,7 @@ from src.agent.gemini_client import GeminiClient
 from src.agent.code_executor import CodeExecutor
 from src.agent.evaluator import FeatureEvaluator, get_features_and_target
 from src.agent.memory import AgentMemory
+from src.agent.event_emitter import emit
 
 
 def run_iteration(
@@ -98,6 +104,9 @@ def run_iteration(
     print(f"\n{'='*60}")
     print(f"ITERATION {iteration}" + (" [SHAP Feedback]" if use_feedback else ""))
     print(f"{'='*60}")
+
+    # Emit iteration start event
+    emit('iteration_start', {'iteration': iteration})
 
     # Get already tried features to avoid duplicates
     tried_features = memory.get_all_tried_codes()
@@ -144,6 +153,9 @@ def run_iteration(
     if len(generated_code.split('\n')) > 5:
         print(f"      ...")
 
+    # Emit feature generated event
+    emit('feature_generated', {'code': generated_code})
+
     # Execute the code
     print("   Executing code...")
     new_df, error = executor.execute(generated_code, df)
@@ -181,11 +193,25 @@ def run_iteration(
         print(f"   >>> IMPROVEMENT! +{improvement/current_best_rmsle*100:.2f}%")
         memory.add_successful_feature(generated_code, new_cols, new_rmsle, improvement)
         memory.log_iteration(iteration, new_rmsle, generated_code, success=True, columns=new_cols, prev_rmsle=current_best_rmsle)
+        # Emit feature accepted event
+        emit('feature_accepted', {
+            'columns': new_cols,
+            'code': generated_code,
+            'new_rmsle': new_rmsle,
+            'improvement': improvement
+        })
         return new_rmsle, True
     else:
         print(f"   >>> No improvement")
         memory.add_failed_feature(generated_code, f"No improvement: {new_rmsle:.5f} vs {current_best_rmsle:.5f}")
         memory.log_iteration(iteration, current_best_rmsle, generated_code, success=False, columns=new_cols, prev_rmsle=current_best_rmsle)
+        # Emit feature rejected event
+        emit('feature_rejected', {
+            'columns': new_cols,
+            'code': generated_code,
+            'rmsle': new_rmsle,
+            'reason': f"No improvement: {new_rmsle:.5f} vs {current_best_rmsle:.5f}"
+        })
 
         # CRITICAL FIX: Recompute SHAP on accumulated_df (not rejected features)
         # This ensures next iteration's SHAP feedback only references existing columns
@@ -320,7 +346,8 @@ def main(
     visualize: bool = False,
     use_feedback: bool = False,
     batch_mode: bool = False,
-    batch_size: int = 5
+    batch_size: int = 5,
+    dashboard: bool = False
 ):
     """Run iterative feature engineering agent
 
@@ -331,7 +358,24 @@ def main(
         use_feedback: If True, use SHAP-based feedback loop (B7)
         batch_mode: If True, generate multiple features per iteration
         batch_size: Number of features per batch (only used in batch mode)
+        dashboard: If True, start real-time dashboard server
     """
+    # Start dashboard server if requested
+    dashboard_thread = None
+    if dashboard:
+        import threading
+        import webbrowser
+        from src.agent.dashboard_server import app
+        import uvicorn
+
+        def run_server():
+            uvicorn.run(app, host="0.0.0.0", port=8765, log_level="warning")
+
+        dashboard_thread = threading.Thread(target=run_server, daemon=True)
+        dashboard_thread.start()
+        print("Dashboard started at http://localhost:8765")
+        webbrowser.open("http://localhost:8765")
+
     print("=" * 60)
     print(f"Iterative Feature Engineering Agent")
     if batch_mode:
@@ -340,6 +384,8 @@ def main(
         print(f"Iterations: {n_iterations}")
     if use_feedback:
         print(f"SHAP Feedback: Enabled")
+    if dashboard:
+        print(f"Dashboard: http://localhost:8765")
     print("=" * 60)
 
     # Initialize memory
@@ -379,6 +425,14 @@ def main(
     print(f"\n   >>> Baseline RMSLE: {baseline_rmsle:.5f}")
 
     memory.set_baseline(baseline_rmsle)
+
+    # Emit agent start event
+    emit('agent_start', {
+        'total_iterations': n_iterations,
+        'baseline_rmsle': baseline_rmsle,
+        'batch_mode': batch_mode,
+        'batch_size': batch_size if batch_mode else 1
+    })
 
     # Initialize Gemini
     print("\n4. Initializing Gemini client...")
@@ -487,6 +541,15 @@ def main(
 
     print("=" * 60)
 
+    # Emit agent complete event
+    emit('agent_complete', {
+        'final_rmsle': current_best_rmsle,
+        'baseline_rmsle': baseline_rmsle,
+        'total_improvement': baseline_rmsle - current_best_rmsle,
+        'successes': successes,
+        'failures': failures
+    })
+
     # Generate visualization if requested
     if visualize:
         print("\nGenerating visualization...")
@@ -512,6 +575,8 @@ if __name__ == '__main__':
                         help='Enable batch mode (generate multiple features per iteration)')
     parser.add_argument('--batch-size', type=int, default=5,
                         help='Number of features per batch (default: 5, only used with --batch)')
+    parser.add_argument('--dashboard', '-d', action='store_true',
+                        help='Open real-time dashboard in browser')
     args = parser.parse_args()
 
     main(
@@ -520,5 +585,6 @@ if __name__ == '__main__':
         visualize=args.visualize,
         use_feedback=args.feedback,
         batch_mode=args.batch,
-        batch_size=args.batch_size
+        batch_size=args.batch_size,
+        dashboard=args.dashboard
     )
