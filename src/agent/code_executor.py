@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import traceback
 from typing import Tuple, Optional
+from scipy.special import boxcox1p
+from scipy.stats import skew
 
 
 class CodeExecutor:
@@ -21,10 +23,12 @@ class CodeExecutor:
 
     def __init__(self):
         """Initialize executor with safe globals"""
-        # Define safe globals - only pandas and numpy
+        # Define safe globals - pandas, numpy, and scipy transforms
         self.safe_globals = {
             'pd': pd,
             'np': np,
+            'boxcox1p': boxcox1p,  # Box-Cox transform for skewed features
+            'skew': skew,          # Calculate skewness of distributions
             # Restrict builtins to prevent dangerous operations
             '__builtins__': {
                 'len': len,
