@@ -5,7 +5,7 @@ set -e  # Exit on error
 # Kaggle Submission Script
 # ============================================================
 # Configuration
-ITERATIONS=4
+ITERATIONS=10
 WORKERS=2
 BATCH_SIZE=5
 

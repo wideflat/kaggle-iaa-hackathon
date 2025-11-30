@@ -75,6 +75,7 @@ class HyperparameterTuner:
                 'objective': 'regression',
                 'metric': 'rmse',
                 'boosting_type': 'gbdt',
+                'feature_pre_filter': False,  # Allow min_child_samples to change across trials
                 'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.1, log=True),
                 'max_depth': trial.suggest_int('max_depth', 3, 10),
                 'num_leaves': trial.suggest_int('num_leaves', 15, 127),
