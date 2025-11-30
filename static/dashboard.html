@@ -3,153 +3,381 @@
 <head>
     <title>Agent Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-tertiary: #f3f4f6;
+            --border: #e5e7eb;
+            --border-hover: #d1d5db;
+            --text-primary: #111827;
+            --text-secondary: #4b5563;
+            --text-muted: #9ca3af;
+            --accent: #f97316;
+            --accent-hover: #ea580c;
+            --success: #16a34a;
+            --error: #dc2626;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #eee;
-            padding: 20px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 32px;
             min-height: 100vh;
+            line-height: 1.6;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1400px; margin: 0 auto; }
         h1 {
-            color: #00d4ff;
-            margin-bottom: 20px;
+            color: var(--text-primary);
+            margin-bottom: 32px;
+            font-size: 24px;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
+        h1 span { font-size: 28px; }
         .status-bar {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 16px;
+            margin-bottom: 24px;
         }
         .status-card {
-            background: rgba(22, 33, 62, 0.8);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid rgba(0, 212, 255, 0.2);
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            transition: border-color 0.2s ease;
         }
-        .status-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-        .status-value { font-size: 28px; font-weight: bold; margin-top: 5px; }
-        .status-value.running { color: #00d4ff; animation: pulse 1.5s infinite; }
-        .status-value.success { color: #00ff88; }
-        .status-value.idle { color: #888; }
+        .status-card:hover {
+            border-color: var(--border-hover);
+        }
+        .status-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+        .status-value {
+            font-size: 32px;
+            font-weight: 600;
+            margin-top: 8px;
+            color: var(--text-primary);
+        }
+        .status-value.running {
+            color: var(--accent);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        .status-value.success { color: var(--success); }
+        .status-value.idle { color: var(--text-muted); }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
+            50% { opacity: 0.5; }
         }
         .main-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
-            gap: 20px;
+            gap: 24px;
         }
         .chart-container {
-            background: rgba(22, 33, 62, 0.8);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid rgba(0, 212, 255, 0.2);
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
         }
         .features-container {
-            background: rgba(22, 33, 62, 0.8);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid rgba(0, 212, 255, 0.2);
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
             max-height: 500px;
             overflow-y: auto;
         }
+        .features-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .features-container::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+        }
+        .features-container::-webkit-scrollbar-thumb {
+            background: var(--border-hover);
+            border-radius: 3px;
+        }
         .features-container h3 {
-            color: #00d4ff;
-            margin-bottom: 15px;
-            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            font-weight: 500;
         }
         .feature {
-            padding: 12px;
+            padding: 14px 16px;
             margin-bottom: 8px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            font-family: 'SF Mono', Monaco, monospace;
-            font-size: 12px;
-            transition: all 0.3s ease;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
         }
         .feature:hover {
-            background: rgba(0, 0, 0, 0.4);
+            border-color: var(--border-hover);
         }
-        .feature.success { border-left: 3px solid #00ff88; }
-        .feature.failed { border-left: 3px solid #ff4444; opacity: 0.6; }
-        .feature-header { display: flex; justify-content: space-between; align-items: center; }
-        .feature-name { color: #fff; font-weight: 500; }
-        .feature-code { color: #888; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .improvement { color: #00ff88; font-weight: bold; }
-        .no-improvement { color: #ff4444; }
+        .feature.success { border-left: 3px solid var(--success); }
+        .feature.failed { border-left: 3px solid var(--error); opacity: 0.7; }
+        .feature-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+        .feature-name {
+            color: var(--text-primary);
+            font-weight: 500;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 12px;
+        }
+        .feature-code {
+            color: var(--text-muted);
+            margin-top: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 11px;
+        }
+        .improvement {
+            color: var(--success);
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .no-improvement {
+            color: var(--error);
+            font-size: 12px;
+        }
         .current-code {
-            background: rgba(15, 52, 96, 0.8);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            font-family: 'SF Mono', Monaco, monospace;
-            border: 1px solid rgba(0, 212, 255, 0.3);
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 20px rgba(249, 115, 22, 0.1);
         }
         .current-code .label {
             font-size: 12px;
-            color: #00d4ff;
+            color: var(--accent);
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
         }
         .current-code pre {
             white-space: pre-wrap;
-            color: #eee;
+            color: var(--text-primary);
             font-size: 13px;
-            line-height: 1.5;
+            line-height: 1.7;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
         }
         .feature-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #00ff88;
-            margin-bottom: 12px;
-            border-bottom: 1px solid rgba(0, 255, 136, 0.3);
-            padding-bottom: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
         }
         .code-comment {
-            color: #666;
-            font-style: italic;
+            color: var(--text-muted);
         }
         .code-main {
-            color: #00d4ff;
-            font-weight: 500;
+            color: var(--text-primary);
         }
         .connection-status {
             position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 5px 10px;
-            border-radius: 20px;
+            top: 16px;
+            right: 16px;
+            padding: 8px 16px;
+            border-radius: 100px;
             font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
-        .connection-status.connected { background: #00ff88; color: #000; }
-        .connection-status.disconnected { background: #ff4444; color: #fff; }
+        .connection-status.connected {
+            background: var(--success);
+            color: #000;
+        }
+        .connection-status.disconnected {
+            background: var(--error);
+            color: #fff;
+        }
         .empty-state {
             text-align: center;
-            color: #888;
-            padding: 40px;
+            color: var(--text-muted);
+            padding: 48px 24px;
+            font-size: 14px;
         }
         .spinner {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #00d4ff;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--accent);
             border-radius: 50%;
             border-top-color: transparent;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
             margin-right: 10px;
         }
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+        .section-title {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+        .workers-section {
+            margin-bottom: 24px;
+        }
+        .workers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        .worker-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 20px;
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .worker-card.active {
+            border-color: var(--worker-color, var(--accent));
+            animation: cardGlow 2s ease-in-out infinite;
+        }
+        .worker-card.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(249, 115, 22, 0.1),
+                transparent
+            );
+            animation: shimmer 2s infinite;
+        }
+        @keyframes cardGlow {
+            0%, 100% { box-shadow: 0 0 15px color-mix(in srgb, var(--worker-color) 30%, transparent); }
+            50% { box-shadow: 0 0 30px color-mix(in srgb, var(--worker-color) 50%, transparent); }
+        }
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        .worker-card.done {
+            opacity: 0.5;
+            border-color: var(--success);
+        }
+        .worker-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .worker-name {
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .worker-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--worker-color, var(--accent));
+            transition: all 0.3s ease;
+        }
+        .worker-icon.active {
+            animation: botBounce 0.8s ease-in-out infinite;
+        }
+        .worker-icon.generating {
+            animation: botThink 1s ease-in-out infinite;
+        }
+        .worker-icon.evaluating {
+            animation: botProcess 0.6s ease-in-out infinite;
+        }
+        @keyframes botBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        @keyframes botThink {
+            0%, 100% { transform: rotate(0deg); opacity: 1; }
+            25% { transform: rotate(-5deg); opacity: 0.8; }
+            75% { transform: rotate(5deg); opacity: 0.8; }
+        }
+        @keyframes botProcess {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .worker-status {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .worker-status.evaluating {
+            color: var(--accent);
+        }
+        .worker-status.generating {
+            color: #3b82f6;
+        }
+        .worker-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+        }
+        .worker-spinner.active {
+            display: inline-block;
+        }
+        .worker-spinner svg {
+            width: 100%;
+            height: 100%;
+        }
+        .worker-code {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 11px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            background: var(--bg-tertiary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            min-height: 32px;
+        }
+        .worker-colors {
+            --worker-0: #f97316;
+            --worker-1: #3b82f6;
+            --worker-2: #8b5cf6;
+            --worker-3: #10b981;
         }
     </style>
 </head>
@@ -157,10 +385,7 @@
     <div class="connection-status disconnected" id="connection-status">Disconnected</div>
 
     <div class="container">
-        <h1>
-            <span>🤖</span>
-            Feature Engineering Agent
-        </h1>
+        <h1>Feature Engineering Agent</h1>
 
         <div class="status-bar">
             <div class="status-card">
@@ -181,10 +406,11 @@
             </div>
         </div>
 
-        <div class="current-code" id="current-code-container" style="display: none;">
-            <div class="label"><span class="spinner"></span>Currently Evaluating</div>
-            <div class="feature-title" id="feature-title"></div>
-            <pre id="current-code"></pre>
+        <div class="workers-section" id="workers-section" style="display: none;">
+            <h3 class="section-title">Workers</h3>
+            <div class="workers-grid" id="workers-grid">
+                <!-- Worker cards will be dynamically added -->
+            </div>
         </div>
 
         <div class="main-grid">
@@ -210,6 +436,124 @@
         let baselineRmsle = null;
         let currentBestRmsle = null;
         let pointColors = [];
+        let nWorkers = 1;
+        let workers = {}; // Track worker states
+
+        const WORKER_COLORS = ['#f97316', '#3b82f6', '#8b5cf6', '#10b981'];
+
+        // Worker management functions
+        function initWorkers(n) {
+            nWorkers = n;
+            workers = {};
+            const grid = document.getElementById('workers-grid');
+            grid.innerHTML = '';
+
+            if (n > 1) {
+                document.getElementById('workers-section').style.display = 'block';
+                for (let i = 0; i < n; i++) {
+                    workers[i] = { status: 'idle', code: '' };
+                    const card = createWorkerCard(i);
+                    grid.appendChild(card);
+                }
+                // Initialize Lucide icons for the new worker cards
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            } else {
+                document.getElementById('workers-section').style.display = 'none';
+            }
+        }
+
+        function createWorkerCard(workerId) {
+            const color = WORKER_COLORS[workerId % WORKER_COLORS.length];
+            const card = document.createElement('div');
+            card.className = 'worker-card';
+            card.id = `worker-${workerId}`;
+            card.style.setProperty('--worker-color', color);
+            card.innerHTML = `
+                <div class="worker-header">
+                    <div class="worker-name">
+                        <i data-lucide="bot" class="worker-icon" id="worker-icon-${workerId}"></i>
+                        Worker ${workerId + 1}
+                    </div>
+                    <div class="worker-status" id="worker-status-${workerId}">
+                        <span class="worker-spinner" id="worker-spinner-${workerId}">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <rect width="6" height="14" x="1" y="4" opacity=".4">
+                                    <animate attributeName="opacity" dur="0.75s" values="1;.2;1" repeatCount="indefinite" begin="0s"/>
+                                    <animate attributeName="height" dur="0.75s" values="22;14;22" repeatCount="indefinite" begin="0s"/>
+                                    <animate attributeName="y" dur="0.75s" values="1;5;1" repeatCount="indefinite" begin="0s"/>
+                                </rect>
+                                <rect width="6" height="14" x="9" y="4" opacity=".4">
+                                    <animate attributeName="opacity" dur="0.75s" values="1;.2;1" repeatCount="indefinite" begin="0.15s"/>
+                                    <animate attributeName="height" dur="0.75s" values="22;14;22" repeatCount="indefinite" begin="0.15s"/>
+                                    <animate attributeName="y" dur="0.75s" values="1;5;1" repeatCount="indefinite" begin="0.15s"/>
+                                </rect>
+                                <rect width="6" height="14" x="17" y="4" opacity=".4">
+                                    <animate attributeName="opacity" dur="0.75s" values="1;.2;1" repeatCount="indefinite" begin="0.3s"/>
+                                    <animate attributeName="height" dur="0.75s" values="22;14;22" repeatCount="indefinite" begin="0.3s"/>
+                                    <animate attributeName="y" dur="0.75s" values="1;5;1" repeatCount="indefinite" begin="0.3s"/>
+                                </rect>
+                            </svg>
+                        </span>
+                        <span id="worker-status-text-${workerId}">Idle</span>
+                    </div>
+                </div>
+                <div class="worker-code" id="worker-code-${workerId}">Waiting for task...</div>
+            `;
+            return card;
+        }
+
+        function updateWorker(workerId, status, code = null) {
+            if (workerId === undefined) return;
+
+            const card = document.getElementById(`worker-${workerId}`);
+            const statusEl = document.getElementById(`worker-status-${workerId}`);
+            const statusTextEl = document.getElementById(`worker-status-text-${workerId}`);
+            const spinnerEl = document.getElementById(`worker-spinner-${workerId}`);
+            const codeEl = document.getElementById(`worker-code-${workerId}`);
+            const iconEl = document.getElementById(`worker-icon-${workerId}`);
+
+            if (!card) return;
+
+            workers[workerId] = { status, code: code || workers[workerId]?.code || '' };
+
+            // Update status text
+            if (statusTextEl) {
+                statusTextEl.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+            }
+            statusEl.className = `worker-status ${status}`;
+
+            // Show/hide spinner based on status
+            if (spinnerEl) {
+                if (status === 'generating' || status === 'evaluating') {
+                    spinnerEl.classList.add('active');
+                } else {
+                    spinnerEl.classList.remove('active');
+                }
+            }
+
+            // Update card state
+            card.className = `worker-card ${status === 'idle' || status === 'done' ? '' : 'active'}`;
+            if (status === 'done') card.classList.add('done');
+
+            // Update icon animation based on status
+            if (iconEl) {
+                iconEl.className = 'worker-icon';
+                if (status === 'generating') {
+                    iconEl.classList.add('generating');
+                } else if (status === 'evaluating') {
+                    iconEl.classList.add('evaluating');
+                }
+            }
+
+            // Update code preview
+            if (code) {
+                const { featureName, formattedCode } = formatCode(code);
+                const preview = code.split('\n').find(l => l.includes("df[")) || code.split('\n')[0] || '';
+                codeEl.textContent = featureName || preview;
+            }
+        }
 
         // Helper functions
         function escapeHtml(text) {
@@ -256,24 +600,26 @@
                     {
                         label: 'RMSLE',
                         data: [],
-                        borderColor: '#00d4ff',
-                        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                        borderColor: '#f97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
                         tension: 0.3,
                         fill: false,
                         pointBackgroundColor: pointColors,
-                        pointBorderColor: '#fff',
+                        pointBorderColor: '#ffffff',
                         pointRadius: 6,
-                        pointHoverRadius: 8
+                        pointHoverRadius: 8,
+                        borderWidth: 2
                     },
                     {
                         label: 'Best RMSLE',
                         data: [],
-                        borderColor: '#00ff88',
+                        borderColor: '#22c55e',
                         backgroundColor: 'transparent',
                         tension: 0.1,
                         borderDash: [5, 5],
                         pointRadius: 0,
-                        fill: false
+                        fill: false,
+                        borderWidth: 2
                     }
                 ]
             },
@@ -283,14 +629,14 @@
                 scales: {
                     y: {
                         beginAtZero: false,
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: { color: '#888' },
-                        title: { display: true, text: 'RMSLE', color: '#888' }
+                        grid: { color: '#e5e7eb' },
+                        ticks: { color: '#6b7280' },
+                        title: { display: true, text: 'RMSLE', color: '#6b7280' }
                     },
                     x: {
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        ticks: { color: '#888' },
-                        title: { display: true, text: 'Iteration', color: '#888' }
+                        grid: { color: '#e5e7eb' },
+                        ticks: { color: '#6b7280' },
+                        title: { display: true, text: 'Iteration', color: '#6b7280' }
                     }
                 },
                 plugins: {
@@ -329,76 +675,97 @@
 
         function handleEvent(event) {
             const { event_type, data } = event;
+            const workerId = data.worker_id;
 
             switch (event_type) {
                 case 'agent_start':
                     totalIterations = data.total_iterations || 0;
-                    baselineRmsle = data.baseline_rmsle;
-                    currentBestRmsle = data.baseline_rmsle;
+                    baselineRmsle = data.baseline_rmsle || data.current_rmsle;
+                    currentBestRmsle = data.current_rmsle || data.baseline_rmsle;
                     pointColors = [];
-                    document.getElementById('status').textContent = 'Starting...';
+
+                    // Initialize workers if parallel mode
+                    if (data.n_workers && data.n_workers > 1) {
+                        initWorkers(data.n_workers);
+                    }
+
+                    document.getElementById('status').textContent = 'Running';
                     document.getElementById('status').className = 'status-value running';
-                    if (data.baseline_rmsle) {
-                        // Add baseline as first point (green, it's our starting point)
-                        addRmslePoint('Baseline', data.baseline_rmsle, true);
-                        document.getElementById('best-rmsle').textContent = data.baseline_rmsle.toFixed(5);
+                    if (currentBestRmsle) {
+                        addRmslePoint('Start', currentBestRmsle, true);
+                        document.getElementById('best-rmsle').textContent = currentBestRmsle.toFixed(5);
                     }
                     // Clear features list
                     document.getElementById('features-list').innerHTML = '';
                     break;
 
                 case 'iteration_start':
-                    currentIteration = data.iteration;
-                    document.getElementById('status').textContent = 'Generating...';
+                    currentIteration = Math.max(currentIteration, data.iteration);
+                    document.getElementById('status').textContent = 'Running';
                     document.getElementById('status').className = 'status-value running';
                     document.getElementById('iteration').textContent = `${currentIteration} / ${totalIterations}`;
+
+                    // Update worker status
+                    updateWorker(workerId, 'generating');
                     break;
 
                 case 'feature_generated':
-                    document.getElementById('status').textContent = 'Evaluating...';
-                    const { featureName, formattedCode } = formatCode(data.code);
-                    document.getElementById('feature-title').textContent = featureName || 'New Feature';
-                    document.getElementById('current-code').innerHTML = formattedCode;
-                    document.getElementById('current-code-container').style.display = 'block';
+                    // Update worker with code
+                    updateWorker(workerId, 'evaluating', data.code);
                     break;
 
                 case 'feature_accepted':
                     successCount++;
                     totalCount++;
-                    addRmslePoint(currentIteration.toString(), data.new_rmsle, true);
+                    currentBestRmsle = data.new_rmsle;
+                    addRmslePoint(data.iteration?.toString() || currentIteration.toString(), data.new_rmsle, true, workerId);
                     document.getElementById('best-rmsle').textContent = data.new_rmsle.toFixed(5);
-                    addFeature(data, true);
+                    addFeature(data, true, workerId);
                     updateSuccessRate();
-                    document.getElementById('current-code-container').style.display = 'none';
+
+                    // Update worker status
+                    updateWorker(workerId, 'idle');
                     break;
 
                 case 'feature_rejected':
                     totalCount++;
-                    addRmslePoint(currentIteration.toString(), data.rmsle, false);
-                    addFeature(data, false);
+                    addRmslePoint(data.iteration?.toString() || currentIteration.toString(), data.rmsle, false, workerId);
+                    addFeature(data, false, workerId);
                     updateSuccessRate();
-                    document.getElementById('current-code-container').style.display = 'none';
+
+                    // Update worker status
+                    updateWorker(workerId, 'idle');
                     break;
 
                 case 'agent_complete':
                     document.getElementById('status').textContent = 'Complete ✓';
                     document.getElementById('status').className = 'status-value success';
-                    document.getElementById('current-code-container').style.display = 'none';
+
+                    // Mark all workers as done
+                    for (let i = 0; i < nWorkers; i++) {
+                        updateWorker(i, 'done');
+                    }
                     break;
             }
         }
 
-        function addRmslePoint(label, rmsle, isImprovement) {
+        function addRmslePoint(label, rmsle, isImprovement, workerId = null) {
             chart.data.labels.push(label);
 
-            // Add point with color based on success
-            const pointColor = isImprovement ? '#00ff88' : '#ff4444';
+            // Add point with color based on success or worker
+            let pointColor;
+            if (workerId !== null && workerId !== undefined && nWorkers > 1) {
+                // Use worker color with opacity for rejected
+                pointColor = isImprovement ? WORKER_COLORS[workerId % WORKER_COLORS.length] : '#ef4444';
+            } else {
+                pointColor = isImprovement ? '#22c55e' : '#ef4444';
+            }
             pointColors.push(pointColor);
             chart.data.datasets[0].data.push(rmsle);
             chart.data.datasets[0].pointBackgroundColor = pointColors;
 
             // Update best line
-            if (isImprovement || currentBestRmsle === null) {
+            if (isImprovement) {
                 currentBestRmsle = rmsle;
             }
             chart.data.datasets[1].data.push(currentBestRmsle);
@@ -406,7 +773,7 @@
             chart.update('none');
         }
 
-        function addFeature(data, success) {
+        function addFeature(data, success, workerId = null) {
             const list = document.getElementById('features-list');
 
             // Remove empty state if present
@@ -423,9 +790,14 @@
                 : '<span class="no-improvement">No improvement</span>';
             const code = (data.code || '').split('\n').find(l => l.includes("df[")) || data.code?.split('\n')[0] || '';
 
+            // Add worker badge if in parallel mode
+            const workerBadge = (workerId !== null && workerId !== undefined && nWorkers > 1)
+                ? `<span class="worker-badge" style="background: ${WORKER_COLORS[workerId % WORKER_COLORS.length]}20; color: ${WORKER_COLORS[workerId % WORKER_COLORS.length]}; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 6px;">W${workerId + 1}</span>`
+                : '';
+
             div.innerHTML = `
                 <div class="feature-header">
-                    <span class="feature-name">${icon} ${name}</span>
+                    <span class="feature-name">${workerBadge}${icon} ${name}</span>
                     ${delta}
                 </div>
                 <div class="feature-code">${code}</div>
