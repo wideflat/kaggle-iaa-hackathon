@@ -16,6 +16,50 @@ import google.generativeai as genai
 
 # Few-shot examples organized by strategy
 FEW_SHOT_EXAMPLES = {
+    'foundational': [
+        {
+            'name': 'TotalSF',
+            'code': "df['TotalSF'] = df['TotalBsmtSF'].fillna(0) + df['1stFlrSF'] + df['2ndFlrSF'].fillna(0)",
+            'rationale': 'Total square footage - the most important size metric for house value'
+        },
+        {
+            'name': 'HouseAge',
+            'code': "df['HouseAge'] = df['YrSold'] - df['YearBuilt']",
+            'rationale': 'Age of house at time of sale - older houses typically worth less'
+        },
+        {
+            'name': 'TotalBath',
+            'code': "df['TotalBath'] = df['FullBath'] + 0.5*df['HalfBath'] + df['BsmtFullBath'].fillna(0) + 0.5*df['BsmtHalfBath'].fillna(0)",
+            'rationale': 'Total bathroom count (half baths weighted 0.5) - key amenity metric'
+        },
+        {
+            'name': 'TotalPorchSF',
+            'code': "df['TotalPorchSF'] = df['OpenPorchSF'].fillna(0) + df['EnclosedPorch'].fillna(0) + df['3SsnPorch'].fillna(0) + df['ScreenPorch'].fillna(0)",
+            'rationale': 'Total porch area - outdoor living space adds value'
+        },
+        {
+            'name': 'RemodAge',
+            'code': "df['RemodAge'] = df['YrSold'] - df['YearRemodAdd']",
+            'rationale': 'Years since remodel - recently remodeled homes worth more'
+        },
+    ],
+    'quality_interactions': [
+        {
+            'name': 'OverallQual_ExterQual',
+            'code': "df['OverallQual_ExterQual'] = df['OverallQual'] * df['ExterQual']",
+            'rationale': 'Interaction between overall and exterior quality - both matter for curb appeal'
+        },
+        {
+            'name': 'KitchenQual_GrLivArea',
+            'code': "df['KitchenQual_GrLivArea'] = df['KitchenQual'] * df['GrLivArea']",
+            'rationale': 'Kitchen quality weighted by living area - good kitchens in big houses worth more'
+        },
+        {
+            'name': 'TotalQualScore',
+            'code': "df['TotalQualScore'] = df['OverallQual'] + df['ExterQual'] + df['KitchenQual'] + df['BsmtQual']",
+            'rationale': 'Combined quality score across all quality dimensions'
+        },
+    ],
     'quality_tiers': [
         {
             'name': 'QualityTier',
@@ -160,12 +204,10 @@ FEW_SHOT_EXAMPLES = {
 }
 
 # Features that already exist in baseline preprocessor
+# NOTE: With ultra-minimal preprocessing, NONE of these exist yet!
+# The agent should CREATE these foundational features.
 BASELINE_FEATURES = [
-    'TotalSF (TotalBsmtSF + 1stFlrSF + 2ndFlrSF)',
-    'HouseAge (YrSold - YearBuilt)',
-    'RemodAge (YrSold - YearRemodAdd)',
-    'TotalBath (FullBath + 0.5*HalfBath + BsmtFullBath + 0.5*BsmtHalfBath)',
-    'PorchArea (OpenPorchSF + EnclosedPorch + 3SsnPorch + ScreenPorch)',
+    # Empty - agent discovers everything in ultra-minimal mode
 ]
 
 
@@ -302,6 +344,8 @@ Think about {self._get_strategy_hint(strategy)}
     def _get_strategy_hint(self, strategy: str) -> str:
         """Get a hint for the given strategy"""
         hints = {
+            'foundational': 'creating essential aggregate features like TotalSF, TotalBath, HouseAge - the basics that every good model needs',
+            'quality_interactions': 'combining quality scores (OverallQual, ExterQual, KitchenQual are already 0-5 ordinal) with other features',
             'quality_tiers': 'binning quality scores into meaningful tiers (low/medium/high/luxury)',
             'size_efficiency': 'calculating ratios that measure space efficiency (SF per room, finished ratios)',
             'interaction': 'multiplying related features that together capture value (quality × size, etc.)',

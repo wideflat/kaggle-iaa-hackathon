@@ -54,14 +54,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 import pandas as pd
 
 from src.baseline.data_loader import AmesDataLoader
-from src.baseline.preprocessor import AmesPreprocessor
+from src.baseline.minimal_preprocessor import MinimalPreprocessor
 from src.agent.gemini_client import GeminiClient
 from src.agent.code_executor import CodeExecutor
 from src.agent.evaluator import FeatureEvaluator, get_features_and_target
 from src.agent.memory import AgentMemory
 from src.agent.config import Config
 from src.agent.logger import AgentLogger
-from src.agent.feature_transforms import preprocess_for_agent
 
 
 def parse_args():
@@ -273,23 +272,13 @@ def main():
     column_info = ', '.join(train_df.columns.tolist())
     logger.info(f"Train shape: {train_df.shape}")
 
-    # Preprocess
-    logger.info("Preprocessing...")
-    preprocessor = AmesPreprocessor()
+    # Preprocess (ultra-minimal: impute + label encode only)
+    logger.info("Preprocessing (ultra-minimal mode)...")
+    preprocessor = MinimalPreprocessor()
     target = train_df['SalePrice'].copy()
     train_processed = preprocessor.fit_transform(train_df)
     logger.info(f"Processed shape: {train_processed.shape}")
-
-    # Advanced preprocessing (outlier removal, skewness correction)
-    logger.info("Advanced preprocessing (outlier removal, skewness)...")
-    train_processed = preprocess_for_agent(
-        train_processed,
-        remove_outliers_flag=True,
-        fix_skewness_flag=True
-    )
-    # Update target to match after outlier removal
-    target = target.loc[train_processed.index]
-    logger.info(f"Final shape: {train_processed.shape}")
+    logger.info("NO advanced preprocessing - agent will discover features")
 
     # Get baseline
     logger.info("Calculating baseline RMSLE...")

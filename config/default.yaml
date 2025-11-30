@@ -14,7 +14,9 @@ gemini:
 # Evaluation settings
 evaluation:
   n_folds: 5
-  params_path: "outputs/models/best_lgbm_params.json"
+  # Use empty string for default (weak) params - gives agent more room to improve
+  # Set to "outputs/models/best_lgbm_params.json" for tuned params
+  params_path: ""
 
 # Output settings
 output:

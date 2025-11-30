@@ -51,9 +51,15 @@ class FeatureEvaluator:
                 print(f"   Loaded tuned params from {params_path}")
                 return params
         else:
-            print(f"   Using default params (no tuned params found)")
+            print(f"   Using default params (moderate strength for feature discovery)")
             return {
-                'n_estimators': 100,
+                'n_estimators': 300,
+                'learning_rate': 0.05,
+                'max_depth': 6,
+                'num_leaves': 31,
+                'min_child_samples': 20,
+                'subsample': 0.8,
+                'colsample_bytree': 0.8,
                 'random_state': 42,
                 'verbosity': -1
             }
