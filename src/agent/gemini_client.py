@@ -16,6 +16,40 @@ import google.generativeai as genai
 
 # Few-shot examples organized by strategy
 FEW_SHOT_EXAMPLES = {
+    'quality_tiers': [
+        {
+            'name': 'QualityTier',
+            'code': "df['QualityTier'] = pd.cut(df['OverallQual'], bins=[0, 4, 6, 8, 10], labels=[1, 2, 3, 4]).astype(int)",
+            'rationale': 'Categorize quality into tiers - captures non-linear quality bands'
+        },
+        {
+            'name': 'IsHighEnd',
+            'code': "df['IsHighEnd'] = (df['OverallQual'] >= 8).astype(int)",
+            'rationale': 'Binary indicator for high-end homes (quality 8+) - luxury premium'
+        },
+        {
+            'name': 'QualCondProduct',
+            'code': "df['QualCondProduct'] = df['OverallQual'] * df['OverallCond']",
+            'rationale': 'Quality-condition product - both matter for value'
+        },
+    ],
+    'size_efficiency': [
+        {
+            'name': 'SFPerBedroom',
+            'code': "df['SFPerBedroom'] = df['GrLivArea'] / (df['BedroomAbvGr'].replace(0, 1))",
+            'rationale': 'Square feet per bedroom - larger bedrooms indicate luxury'
+        },
+        {
+            'name': 'BasementRatio',
+            'code': "df['BasementRatio'] = df['TotalBsmtSF'].fillna(0) / (df['GrLivArea'].replace(0, 1))",
+            'rationale': 'Basement to living area ratio - more basement = more value'
+        },
+        {
+            'name': 'FinishedRatio',
+            'code': "df['FinishedRatio'] = (df['BsmtFinSF1'].fillna(0) + df['BsmtFinSF2'].fillna(0)) / (df['TotalBsmtSF'].fillna(1).replace(0, 1))",
+            'rationale': 'Finished basement percentage - finished space worth more'
+        },
+    ],
     'interaction': [
         {
             'name': 'QualitySF',
@@ -268,6 +302,8 @@ Think about {self._get_strategy_hint(strategy)}
     def _get_strategy_hint(self, strategy: str) -> str:
         """Get a hint for the given strategy"""
         hints = {
+            'quality_tiers': 'binning quality scores into meaningful tiers (low/medium/high/luxury)',
+            'size_efficiency': 'calculating ratios that measure space efficiency (SF per room, finished ratios)',
             'interaction': 'multiplying related features that together capture value (quality × size, etc.)',
             'ratio': 'dividing features to get proportions or per-unit metrics (finished ratio, per-room area)',
             'aggregation': 'summing related features into totals (outdoor space, total quality scores)',
@@ -422,6 +458,102 @@ The top feature is '{top_features[0] if top_features else 'unknown'}'. Consider:
         else:
             return random.choice(self.strategies)
 
+    def generate_feature_batch(
+        self,
+        data_description: str,
+        column_info: str,
+        existing_features: list[str] | None = None,
+        n_features: int = 5
+    ) -> list[str]:
+        """
+        Generate multiple features in a single prompt.
+
+        This is more efficient than generating one at a time and allows
+        the model to create diverse features across different strategies.
+
+        Args:
+            data_description: Content of data_description.txt
+            column_info: Comma-separated list of column names
+            existing_features: List of already tried feature codes to avoid
+            n_features: Number of features to generate (default: 5)
+
+        Returns:
+            List of Python code strings, each creating one feature
+        """
+        prompt = self._build_batch_prompt(
+            data_description,
+            column_info,
+            existing_features,
+            n_features
+        )
+        response = self.model.generate_content(prompt)
+        return self._extract_multiple_codes(response.text)
+
+    def _build_batch_prompt(
+        self,
+        data_description: str,
+        column_info: str,
+        existing_features: list[str] | None = None,
+        n_features: int = 5
+    ) -> str:
+        """Build prompt for batch feature generation"""
+
+        # Truncate data description if too long
+        max_desc_len = 2000
+        if len(data_description) > max_desc_len:
+            data_description = data_description[:max_desc_len] + "\n... (truncated)"
+
+        # Select diverse strategies
+        strategies_to_use = random.sample(self.strategies, min(n_features, len(self.strategies)))
+
+        # Get one example per strategy
+        example_text = ""
+        for strategy in strategies_to_use[:3]:
+            examples = FEW_SHOT_EXAMPLES.get(strategy, [])
+            if examples:
+                ex = random.choice(examples)
+                example_text += f"\n{strategy.upper()} Example:\n```python\n# Feature: {ex['name']}\n{ex['code']}\n```\n"
+
+        prompt = f"""You are an expert data scientist specializing in the Ames Housing dataset.
+
+## Your Task
+Generate {n_features} DIFFERENT features to improve house price prediction.
+Each feature should use a DIFFERENT strategy from: {', '.join(strategies_to_use)}
+
+## Data Description
+{data_description}
+
+## Available Columns
+{column_info}
+
+## Example Features
+{example_text}
+
+## Requirements
+1. Generate EXACTLY {n_features} features, each in a SEPARATE code block
+2. Use 'df' as the dataframe variable
+3. Handle NaN values with .fillna() to avoid errors
+4. Start each feature with: # Feature: <descriptive name>
+5. Each feature must be UNIQUE and use a different approach
+6. DO NOT use import statements - 'np' (numpy) and 'pd' (pandas) are already available
+
+## Features that ALREADY EXIST (do NOT recreate):
+{chr(10).join('- ' + f for f in BASELINE_FEATURES)}
+"""
+
+        if existing_features:
+            recent = existing_features[-10:]
+            prompt += f"""
+## Recently tried features (DO NOT repeat):
+{chr(10).join(recent)}
+"""
+
+        prompt += f"""
+
+## Generate {n_features} features (each in its own ```python block):
+"""
+        return prompt
+
     def _extract_code(self, response: str) -> str:
         """
         Extract Python code from LLM response
@@ -452,3 +584,25 @@ The top feature is '{top_features[0] if top_features else 'unknown'}'. Consider:
             code = '\n'.join(code_lines) if code_lines else response.strip()
 
         return code
+
+    def _extract_multiple_codes(self, response: str) -> list[str]:
+        """
+        Extract multiple Python code blocks from LLM response.
+
+        Args:
+            response: Raw LLM response text
+
+        Returns:
+            List of code strings, one per feature
+        """
+        code_block_pattern = r'```(?:python)?\s*(.*?)```'
+        matches = re.findall(code_block_pattern, response, re.DOTALL)
+
+        codes = []
+        for match in matches:
+            code = match.strip()
+            # Only include if it looks like feature code
+            if 'df[' in code or '# Feature' in code:
+                codes.append(code)
+
+        return codes

@@ -61,6 +61,7 @@ from src.agent.evaluator import FeatureEvaluator, get_features_and_target
 from src.agent.memory import AgentMemory
 from src.agent.config import Config
 from src.agent.logger import AgentLogger
+from src.agent.feature_transforms import preprocess_for_agent
 
 
 def parse_args():
@@ -120,10 +121,14 @@ def run_iteration(
     memory: AgentMemory,
     logger: AgentLogger,
     current_best_rmsle: float,
-    use_feedback: bool = False
+    use_feedback: bool = False,
+    accumulated_df: pd.DataFrame = None
 ) -> tuple[float, bool, pd.DataFrame]:
     """
     Run a single iteration of feature generation
+
+    Args:
+        accumulated_df: The original accumulated df (used to recompute SHAP after rejection)
 
     Returns:
         Tuple of (new_rmsle, is_improvement, updated_df)
@@ -207,6 +212,14 @@ def run_iteration(
     else:
         memory.add_failed_feature(generated_code, f"No improvement: {new_rmsle:.5f} vs {current_best_rmsle:.5f}")
         memory.log_iteration(iteration, current_best_rmsle, generated_code, success=False, columns=new_cols, prev_rmsle=current_best_rmsle)
+
+        # CRITICAL FIX: Recompute SHAP on accumulated_df (not rejected features)
+        # This ensures next iteration's SHAP feedback only references existing columns
+        if use_feedback and accumulated_df is not None:
+            logger.debug("Recomputing SHAP on accumulated features...")
+            X_current, _ = get_features_and_target(accumulated_df)
+            evaluator.recompute_shap_for_features(X_current, target)
+
         return current_best_rmsle, False, df
 
 
@@ -267,6 +280,17 @@ def main():
     train_processed = preprocessor.fit_transform(train_df)
     logger.info(f"Processed shape: {train_processed.shape}")
 
+    # Advanced preprocessing (outlier removal, skewness correction)
+    logger.info("Advanced preprocessing (outlier removal, skewness)...")
+    train_processed = preprocess_for_agent(
+        train_processed,
+        remove_outliers_flag=True,
+        fix_skewness_flag=True
+    )
+    # Update target to match after outlier removal
+    target = target.loc[train_processed.index]
+    logger.info(f"Final shape: {train_processed.shape}")
+
     # Get baseline
     logger.info("Calculating baseline RMSLE...")
     evaluator = FeatureEvaluator(
@@ -326,7 +350,8 @@ def main():
                 memory=memory,
                 logger=logger,
                 current_best_rmsle=current_best_rmsle,
-                use_feedback=use_feedback
+                use_feedback=use_feedback,
+                accumulated_df=accumulated_df
             )
 
             if is_success:

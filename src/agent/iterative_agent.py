@@ -2,20 +2,23 @@
 Iterative Feature Engineering Agent
 Phase B4-B5: Memory system + iteration loop
 Phase B7: SHAP-based feedback loop
+Phase B9: Batch mode + advanced strategies
 
 Usage:
     python -m src.agent.iterative_agent [OPTIONS]
 
 Arguments:
-    --iterations, -n INT    Number of iterations to run (default: 10)
+    --iterations, -n INT    Number of iterations/batches to run (default: 10)
     --clear                 Clear previous memory and start fresh
     --visualize, -v         Generate visualization after completion
                             (plot, table, and HTML report)
     --feedback, -f          Enable SHAP-based feedback loop (B7)
                             Uses feature importance to guide generation
+    --batch, -b             Enable batch mode (generate multiple features per iteration)
+    --batch-size INT        Number of features per batch (default: 5)
 
 Examples:
-    # Run 10 iterations
+    # Run 10 iterations (single feature mode)
     python -m src.agent.iterative_agent
 
     # Run 5 iterations with visualization
@@ -24,11 +27,14 @@ Examples:
     # Run with SHAP feedback (recommended)
     python -m src.agent.iterative_agent -n 10 --feedback
 
-    # Start fresh with 20 iterations and feedback
-    python -m src.agent.iterative_agent --iterations 20 --clear --feedback
+    # Batch mode: 3 batches x 5 features = 15 features total
+    python -m src.agent.iterative_agent -n 3 --batch --clear
 
-    # Quick test with visualization and feedback
-    python -m src.agent.iterative_agent -n 3 -v -f --clear
+    # Batch mode with custom size: 2 batches x 10 features = 20 features
+    python -m src.agent.iterative_agent -n 2 --batch --batch-size 10
+
+    # Full featured run
+    python -m src.agent.iterative_agent -n 5 -v -f --batch --clear
 
 Output:
     - Memory saved to: outputs/logs/agent_memory.json
@@ -191,25 +197,149 @@ def run_iteration(
         return current_best_rmsle, False
 
 
+def run_batch_iteration(
+    batch_num: int,
+    df: pd.DataFrame,
+    target: pd.Series,
+    data_desc: str,
+    column_info: str,
+    gemini: GeminiClient,
+    executor: CodeExecutor,
+    evaluator: FeatureEvaluator,
+    memory: AgentMemory,
+    current_best_rmsle: float,
+    accumulated_df: pd.DataFrame,
+    batch_size: int = 5
+) -> tuple[float, int, pd.DataFrame]:
+    """
+    Run a batch iteration: generate multiple features, evaluate each, keep all that improve.
+
+    Args:
+        batch_num: Current batch number
+        df: Preprocessed dataframe
+        target: Target series (SalePrice)
+        data_desc: Data description text
+        column_info: Comma-separated column names
+        gemini: Gemini client instance
+        executor: Code executor instance
+        evaluator: Feature evaluator instance
+        memory: Agent memory instance
+        current_best_rmsle: Current best RMSLE score
+        accumulated_df: Current accumulated dataframe
+        batch_size: Number of features to generate per batch
+
+    Returns:
+        Tuple of (new_best_rmsle, num_successes, updated_accumulated_df)
+    """
+    print(f"\n{'='*60}")
+    print(f"BATCH {batch_num} [Generating {batch_size} features]")
+    print(f"{'='*60}")
+
+    # Get already tried features to avoid duplicates
+    tried_features = memory.get_all_tried_codes()
+    print(f"   Previously tried features: {len(tried_features)}")
+
+    # Generate batch of features
+    print(f"   Generating {batch_size} features with Gemini...")
+    try:
+        feature_codes = gemini.generate_feature_batch(
+            data_desc,
+            column_info,
+            existing_features=tried_features,
+            n_features=batch_size
+        )
+        print(f"   Generated {len(feature_codes)} features")
+    except Exception as e:
+        print(f"   ERROR calling Gemini: {e}")
+        return current_best_rmsle, 0, accumulated_df
+
+    # Evaluate each feature independently
+    successes = 0
+    best_rmsle = current_best_rmsle
+    current_df = accumulated_df.copy()
+
+    for i, code in enumerate(feature_codes, 1):
+        print(f"\n   --- Feature {i}/{len(feature_codes)} ---")
+
+        # Show first few lines of code
+        code_preview = code.split('\n')[0]
+        print(f"   Code: {code_preview}")
+
+        # Execute the code
+        new_df, error = executor.execute(code, current_df)
+
+        if error:
+            print(f"   FAILED: {error[:80]}...")
+            memory.add_failed_feature(code, error)
+            continue
+
+        # Check new columns
+        new_cols = executor.get_new_columns(current_df, new_df)
+        if not new_cols:
+            print("   FAILED: No new columns created")
+            memory.add_failed_feature(code, "No new columns created")
+            continue
+
+        print(f"   New columns: {new_cols}")
+
+        # Evaluate
+        X_new, _ = get_features_and_target(new_df)
+        new_rmsle = evaluator.evaluate(X_new, target, verbose=False)
+
+        # Compare against current best
+        improvement = best_rmsle - new_rmsle
+        is_better = improvement > 0
+
+        print(f"   RMSLE: {new_rmsle:.5f} (delta: {improvement:+.5f})")
+
+        if is_better:
+            print(f"   >>> KEPT! Improvement: {improvement/best_rmsle*100:.2f}%")
+            memory.add_successful_feature(code, new_cols, new_rmsle, improvement)
+            memory.log_iteration(
+                batch_num * 100 + i,  # Unique iteration ID
+                new_rmsle,
+                code,
+                success=True,
+                columns=new_cols,
+                prev_rmsle=best_rmsle
+            )
+            best_rmsle = new_rmsle
+            current_df = new_df
+            successes += 1
+        else:
+            print(f"   >>> Rejected")
+            memory.add_failed_feature(code, f"No improvement: {new_rmsle:.5f} vs {best_rmsle:.5f}")
+
+    print(f"\n   Batch {batch_num} complete: {successes}/{len(feature_codes)} features kept")
+    return best_rmsle, successes, current_df
+
+
 def main(
     n_iterations: int = 10,
     clear_memory: bool = False,
     visualize: bool = False,
-    use_feedback: bool = False
+    use_feedback: bool = False,
+    batch_mode: bool = False,
+    batch_size: int = 5
 ):
     """Run iterative feature engineering agent
 
     Args:
-        n_iterations: Number of iterations to run
+        n_iterations: Number of iterations (or batches in batch mode) to run
         clear_memory: If True, clear previous memory and start fresh
         visualize: If True, generate visualization after completion
         use_feedback: If True, use SHAP-based feedback loop (B7)
+        batch_mode: If True, generate multiple features per iteration
+        batch_size: Number of features per batch (only used in batch mode)
     """
     print("=" * 60)
     print(f"Iterative Feature Engineering Agent")
-    print(f"Iterations: {n_iterations}")
+    if batch_mode:
+        print(f"Mode: BATCH ({batch_size} features x {n_iterations} batches)")
+    else:
+        print(f"Iterations: {n_iterations}")
     if use_feedback:
-        print(f"Mode: SHAP Feedback Enabled (B7)")
+        print(f"SHAP Feedback: Enabled")
     print("=" * 60)
 
     # Initialize memory
@@ -283,33 +413,58 @@ def main(
     print("\n5. Running iterations...")
     successes = 0
     failures = 0
+    total_features = 0
 
-    for i in range(1, n_iterations + 1):
-        new_rmsle, is_success = run_iteration(
-            iteration=i,
-            df=accumulated_df,
-            target=target,
-            data_desc=data_desc,
-            column_info=column_info,
-            gemini=gemini,
-            executor=executor,
-            evaluator=evaluator,
-            memory=memory,
-            current_best_rmsle=current_best_rmsle,
-            use_feedback=use_feedback,
-            accumulated_df=accumulated_df  # Pass for SHAP recompute after rejection
-        )
-
-        if is_success:
+    if batch_mode:
+        # Batch mode: generate multiple features per iteration
+        for batch_num in range(1, n_iterations + 1):
+            new_rmsle, batch_successes, accumulated_df = run_batch_iteration(
+                batch_num=batch_num,
+                df=accumulated_df,
+                target=target,
+                data_desc=data_desc,
+                column_info=column_info,
+                gemini=gemini,
+                executor=executor,
+                evaluator=evaluator,
+                memory=memory,
+                current_best_rmsle=current_best_rmsle,
+                accumulated_df=accumulated_df,
+                batch_size=batch_size
+            )
             current_best_rmsle = new_rmsle
-            successes += 1
-            # Apply successful feature to accumulated df for next iteration
-            successful_code = memory.memory['successful_features'][-1]['code']
-            result_df, _ = executor.execute(successful_code, accumulated_df)
-            if result_df is not None:
-                accumulated_df = result_df
-        else:
-            failures += 1
+            successes += batch_successes
+            total_features += batch_size
+            failures = total_features - successes
+    else:
+        # Single feature mode
+        total_features = n_iterations
+        for i in range(1, n_iterations + 1):
+            new_rmsle, is_success = run_iteration(
+                iteration=i,
+                df=accumulated_df,
+                target=target,
+                data_desc=data_desc,
+                column_info=column_info,
+                gemini=gemini,
+                executor=executor,
+                evaluator=evaluator,
+                memory=memory,
+                current_best_rmsle=current_best_rmsle,
+                use_feedback=use_feedback,
+                accumulated_df=accumulated_df  # Pass for SHAP recompute after rejection
+            )
+
+            if is_success:
+                current_best_rmsle = new_rmsle
+                successes += 1
+                # Apply successful feature to accumulated df for next iteration
+                successful_code = memory.memory['successful_features'][-1]['code']
+                result_df, _ = executor.execute(successful_code, accumulated_df)
+                if result_df is not None:
+                    accumulated_df = result_df
+            else:
+                failures += 1
 
     # Final summary
     print("\n" + "=" * 60)
@@ -318,10 +473,14 @@ def main(
     memory.print_summary()
 
     print(f"\nThis session:")
-    print(f"   Iterations run:    {n_iterations}")
+    if batch_mode:
+        print(f"   Batches run:       {n_iterations}")
+        print(f"   Features tried:    {total_features}")
+    else:
+        print(f"   Iterations run:    {n_iterations}")
     print(f"   Successful:        {successes}")
     print(f"   Failed:            {failures}")
-    print(f"   Success rate:      {successes/n_iterations*100:.1f}%")
+    print(f"   Success rate:      {successes/total_features*100:.1f}%")
 
     # Show successful features
     if memory.memory['successful_features']:
@@ -345,18 +504,24 @@ def main(
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run iterative feature engineering agent')
     parser.add_argument('--iterations', '-n', type=int, default=10,
-                        help='Number of iterations (default: 10)')
+                        help='Number of iterations or batches (default: 10)')
     parser.add_argument('--clear', action='store_true',
                         help='Clear previous memory and start fresh')
     parser.add_argument('--visualize', '-v', action='store_true',
                         help='Generate visualization after completion')
     parser.add_argument('--feedback', '-f', action='store_true',
                         help='Enable SHAP-based feedback loop (B7)')
+    parser.add_argument('--batch', '-b', action='store_true',
+                        help='Enable batch mode (generate multiple features per iteration)')
+    parser.add_argument('--batch-size', type=int, default=5,
+                        help='Number of features per batch (default: 5, only used with --batch)')
     args = parser.parse_args()
 
     main(
         n_iterations=args.iterations,
         clear_memory=args.clear,
         visualize=args.visualize,
-        use_feedback=args.feedback
+        use_feedback=args.feedback,
+        batch_mode=args.batch,
+        batch_size=args.batch_size
     )
