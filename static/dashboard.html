@@ -1,603 +1,206 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agent Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(214.3 31.8% 91.4%)",
+                        input: "hsl(214.3 31.8% 91.4%)",
+                        ring: "hsl(222.2 84% 4.9%)",
+                        background: "hsl(0 0% 100%)",
+                        foreground: "hsl(222.2 84% 4.9%)",
+                        primary: {
+                            DEFAULT: "hsl(222.2 47.4% 11.2%)",
+                            foreground: "hsl(210 40% 98%)",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(210 40% 96.1%)",
+                            foreground: "hsl(222.2 47.4% 11.2%)",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(210 40% 96.1%)",
+                            foreground: "hsl(215.4 16.3% 46.9%)",
+                        },
+                        accent: {
+                            DEFAULT: "hsl(210 40% 96.1%)",
+                            foreground: "hsl(222.2 47.4% 11.2%)",
+                        },
+                        destructive: {
+                            DEFAULT: "hsl(0 84.2% 60.2%)",
+                            foreground: "hsl(210 40% 98%)",
+                        },
+                        success: "hsl(142.1 76.2% 36.3%)",
+                        chart: {
+                            1: "hsl(12 76% 61%)",
+                            2: "hsl(173 58% 39%)",
+                            3: "hsl(197 37% 24%)",
+                            4: "hsl(43 74% 66%)",
+                            5: "hsl(27 87% 67%)",
+                        },
+                    },
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f9fafb;
-            --bg-tertiary: #f3f4f6;
-            --border: #e5e7eb;
-            --border-hover: #d1d5db;
-            --text-primary: #111827;
-            --text-secondary: #4b5563;
-            --text-muted: #9ca3af;
-            --accent: #f97316;
-            --accent-hover: #ea580c;
-            --success: #16a34a;
-            --error: #dc2626;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            padding: 16px;
-            height: 100vh;
-            overflow: hidden;
-            line-height: 1.5;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        h1 {
-            color: var(--text-primary);
-            margin-bottom: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .status-bar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-        .status-card {
-            background: var(--bg-secondary);
-            border-radius: 10px;
-            padding: 10px 16px;
-            border: 1px solid var(--border);
-            transition: border-color 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .status-card:hover {
-            border-color: var(--border-hover);
-        }
-        .status-label {
-            font-size: 10px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 500;
-        }
-        .status-value {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .status-value.running {
-            color: var(--accent);
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-        .status-value.success { color: var(--success); }
-        .status-value.idle { color: var(--text-muted); }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-        .main-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 16px;
-            flex: 1;
-            min-height: 0;
-        }
-        .chart-container {
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            padding: 16px;
-            border: 1px solid var(--border);
-            min-height: 0;
-            display: flex;
-            flex-direction: column;
-        }
-        .chart-container canvas {
-            flex: 1;
-            min-height: 0;
-        }
-        .features-container {
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            padding: 12px;
-            border: 1px solid var(--border);
-            flex: 1;
-            min-height: 0;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-        .features-container::-webkit-scrollbar {
-            width: 6px;
-        }
-        .features-container::-webkit-scrollbar-track {
-            background: var(--bg-tertiary);
-            border-radius: 3px;
-        }
-        .features-container::-webkit-scrollbar-thumb {
-            background: var(--border-hover);
-            border-radius: 3px;
-        }
-        .features-container h3 {
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 500;
-        }
-        .feature {
-            padding: 10px 12px;
-            margin-bottom: 6px;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            font-size: 12px;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
-        }
-        .feature:hover {
-            border-color: var(--border-hover);
-        }
-        .feature.success { border-left: 3px solid var(--success); }
-        .feature.failed { border-left: 3px solid var(--error); opacity: 0.7; }
-        .feature-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-        }
-        .feature-name {
-            color: var(--text-primary);
-            font-weight: 500;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-            font-size: 12px;
-        }
-        .feature-code {
-            color: var(--text-muted);
-            margin-top: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-            font-size: 10px;
-        }
-        .improvement {
-            color: var(--success);
-            font-weight: 600;
-            font-size: 12px;
-        }
-        .no-improvement {
-            color: var(--error);
-            font-size: 12px;
-        }
-        .current-code {
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
-            border: 1px solid var(--accent);
-            box-shadow: 0 0 20px rgba(249, 115, 22, 0.1);
-        }
-        .current-code .label {
-            font-size: 12px;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 16px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-        }
-        .current-code pre {
-            white-space: pre-wrap;
-            color: var(--text-primary);
-            font-size: 13px;
-            line-height: 1.7;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-        }
-        .feature-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--accent);
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border);
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-        }
-        .code-comment {
-            color: var(--text-muted);
-        }
-        .code-main {
-            color: var(--text-primary);
-        }
-        .connection-status {
-            position: fixed;
-            top: 16px;
-            right: 16px;
-            padding: 8px 16px;
-            border-radius: 100px;
-            font-size: 12px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-        .connection-status.connected {
-            background: var(--success);
-            color: #000;
-        }
-        .connection-status.disconnected {
-            background: var(--error);
-            color: #fff;
-        }
-        .empty-state {
-            text-align: center;
-            color: var(--text-muted);
-            padding: 48px 24px;
-            font-size: 14px;
-        }
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--accent);
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 0.8s linear infinite;
-            margin-right: 10px;
-        }
         @keyframes spin {
             to { transform: rotate(360deg); }
-        }
-        .section-title {
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 500;
-        }
-        .workers-section {
-            margin-bottom: 12px;
-        }
-        .workers-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 12px;
-            max-height: 180px;
-            overflow-y: auto;
-        }
-        .workers-grid::-webkit-scrollbar {
-            width: 6px;
-        }
-        .workers-grid::-webkit-scrollbar-track {
-            background: var(--bg-tertiary);
-            border-radius: 3px;
-        }
-        .workers-grid::-webkit-scrollbar-thumb {
-            background: var(--border-hover);
-            border-radius: 3px;
-        }
-        .worker-card {
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            padding: 14px;
-            border: 2px solid var(--border);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .worker-card.active {
-            border-color: var(--worker-color, var(--accent));
-            animation: cardGlow 2s ease-in-out infinite;
-        }
-        .worker-card.active::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(249, 115, 22, 0.1),
-                transparent
-            );
-            animation: shimmer 2s infinite;
-        }
-        @keyframes cardGlow {
-            0%, 100% { box-shadow: 0 0 15px color-mix(in srgb, var(--worker-color) 30%, transparent); }
-            50% { box-shadow: 0 0 30px color-mix(in srgb, var(--worker-color) 50%, transparent); }
         }
         @keyframes shimmer {
             0% { left: -100%; }
             100% { left: 100%; }
         }
-        .worker-card.done {
-            opacity: 0.5;
-            border-color: var(--success);
+        .animate-pulse-slow {
+            animation: pulse 1.5s ease-in-out infinite;
         }
-        .worker-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
+        .animate-spin {
+            animation: spin 1s linear infinite;
         }
-        .worker-name {
-            font-weight: 600;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        /* Bars scale fade spinner */
+        .spinner-bars rect {
+            animation: bars-scale-fade 0.75s ease-in-out infinite;
         }
-        .worker-icon {
-            width: 24px;
-            height: 24px;
-            color: var(--worker-color, var(--accent));
-            transition: all 0.3s ease;
+        .spinner-bars rect:nth-child(1) {
+            animation-delay: 0s;
         }
-        .worker-icon.active {
-            animation: botBounce 0.8s ease-in-out infinite;
+        .spinner-bars rect:nth-child(2) {
+            animation-delay: 0.15s;
         }
-        .worker-icon.generating {
-            animation: botThink 1s ease-in-out infinite;
+        .spinner-bars rect:nth-child(3) {
+            animation-delay: 0.3s;
         }
-        .worker-icon.evaluating {
-            animation: botProcess 0.6s ease-in-out infinite;
+        @keyframes bars-scale-fade {
+            0%, 100% {
+                opacity: 1;
+                height: 22px;
+                y: 1px;
+            }
+            50% {
+                opacity: 0.2;
+                height: 14px;
+                y: 5px;
+            }
         }
-        @keyframes botBounce {
+        /* Bot icon animations */
+        @keyframes bot-bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-4px); }
         }
-        @keyframes botThink {
+        @keyframes bot-think {
             0%, 100% { transform: rotate(0deg); opacity: 1; }
-            25% { transform: rotate(-5deg); opacity: 0.8; }
-            75% { transform: rotate(5deg); opacity: 0.8; }
+            25% { transform: rotate(-8deg); opacity: 0.8; }
+            75% { transform: rotate(8deg); opacity: 0.8; }
         }
-        @keyframes botProcess {
+        @keyframes bot-process {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            50% { transform: scale(1.15); }
         }
-        .worker-status {
-            font-size: 12px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .bot-icon-generating {
+            animation: bot-think 1s ease-in-out infinite;
         }
-        .worker-status.evaluating {
-            color: var(--accent);
+        .bot-icon-evaluating {
+            animation: bot-process 0.6s ease-in-out infinite;
         }
-        .worker-status.generating {
-            color: #3b82f6;
-        }
-        .worker-spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
-        }
-        .worker-spinner.active {
-            display: inline-block;
-        }
-        .worker-spinner svg {
-            width: 100%;
-            height: 100%;
-        }
-        .worker-code {
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-            font-size: 11px;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            background: var(--bg-tertiary);
-            padding: 8px 12px;
-            border-radius: 8px;
-            min-height: 32px;
-        }
-        .worker-colors {
-            --worker-0: #f97316;
-            --worker-1: #3b82f6;
-            --worker-2: #8b5cf6;
-            --worker-3: #10b981;
-        }
-        .producer-status {
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-        }
-        .producer-status.generating {
-            border-color: var(--accent);
-            animation: cardGlow 2s ease-in-out infinite;
-            --worker-color: var(--accent);
-        }
-        .producer-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .producer-icon {
-            width: 18px;
-            height: 18px;
-            color: var(--accent);
-        }
-        .producer-status.generating .producer-icon {
-            animation: spin 1s linear infinite;
-        }
-        .producer-label {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 500;
-        }
-        .producer-state {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-left: auto;
-        }
-        .producer-state.generating {
-            color: var(--accent);
-        }
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            min-height: 0;
-            overflow: hidden;
-        }
-        .queue-panel {
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            padding: 12px;
-            border: 1px solid var(--border);
-            flex-shrink: 0;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        .queue-panel::-webkit-scrollbar {
-            width: 6px;
-        }
-        .queue-panel::-webkit-scrollbar-track {
-            background: var(--bg-tertiary);
-            border-radius: 3px;
-        }
-        .queue-panel::-webkit-scrollbar-thumb {
-            background: var(--border-hover);
-            border-radius: 3px;
-        }
-        .queue-panel h3 {
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 500;
-        }
-        .queue-progress {
-            color: var(--text-muted);
-            font-weight: 400;
-        }
-        .queue-list {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .queue-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 10px;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            transition: all 0.2s ease;
-        }
-        .queue-item.active {
-            background: color-mix(in srgb, var(--worker-color, var(--accent)) 15%, var(--bg-tertiary));
-            border-left: 3px solid var(--worker-color, var(--accent));
-        }
-        .queue-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .queue-item.pending .queue-dot {
-            border: 1.5px solid var(--accent);
-            background: transparent;
-        }
-        .queue-item.active .queue-dot {
-            background: var(--worker-color, var(--accent));
-            border: none;
-        }
-        .queue-code {
-            flex: 1;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-            font-size: 11px;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .queue-worker-badge {
-            font-size: 9px;
-            padding: 2px 5px;
-            border-radius: 4px;
-            font-weight: 600;
-            flex-shrink: 0;
+        .bot-icon-active {
+            animation: bot-bounce 0.8s ease-in-out infinite;
         }
     </style>
 </head>
-<body>
-    <div class="connection-status disconnected" id="connection-status">Disconnected</div>
+<body class="bg-background p-4 h-screen overflow-hidden font-sans">
+    <!-- Connection Status -->
+    <div id="connection-status" class="fixed top-4 right-4 px-4 py-2 rounded-full text-xs font-medium bg-destructive text-white">
+        Disconnected
+    </div>
 
-    <div class="container">
-        <h1>Feature Engineering Agent</h1>
+    <div class="max-w-7xl mx-auto h-full flex flex-col gap-4">
+        <!-- Header -->
+        <h1 class="text-xl font-semibold text-foreground">Feature Engineering Agent</h1>
 
-        <div class="status-bar">
-            <div class="status-card">
-                <div class="status-label">Status</div>
-                <div class="status-value idle" id="status">Waiting...</div>
+        <!-- Status Bar -->
+        <div class="flex gap-3">
+            <div class="flex-1 bg-card border border-border rounded-lg p-3 hover:border-gray-300 transition-colors">
+                <div class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1">Status</div>
+                <div id="status" class="text-lg font-semibold text-muted-foreground">Waiting...</div>
             </div>
-            <div class="status-card">
-                <div class="status-label">Iteration</div>
-                <div class="status-value" id="iteration">0 / 0</div>
+            <div class="flex-1 bg-card border border-border rounded-lg p-3 hover:border-gray-300 transition-colors">
+                <div class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1">Iteration</div>
+                <div id="iteration" class="text-lg font-semibold">0 / 0</div>
             </div>
-            <div class="status-card">
-                <div class="status-label">Features Adopted</div>
-                <div class="status-value success" id="features-adopted">0</div>
+            <div class="flex-1 bg-card border border-border rounded-lg p-3 hover:border-gray-300 transition-colors">
+                <div class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1">Features Adopted</div>
+                <div id="features-adopted" class="text-lg font-semibold text-success">0</div>
             </div>
-            <div class="status-card">
-                <div class="status-label">Best RMSLE</div>
-                <div class="status-value success" id="best-rmsle">--</div>
+            <div class="flex-1 bg-card border border-border rounded-lg p-3 hover:border-gray-300 transition-colors">
+                <div class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1">Best RMSLE</div>
+                <div class="flex items-baseline gap-1">
+                    <span id="best-rmsle" class="text-lg font-semibold text-success">--</span>
+                    <span id="rmsle-improvement" class="text-xs text-green-500 font-medium"></span>
+                </div>
             </div>
-            <div class="status-card">
-                <div class="status-label">Success Rate</div>
-                <div class="status-value" id="success-rate">--</div>
+            <div class="flex-1 bg-card border border-border rounded-lg p-3 hover:border-gray-300 transition-colors">
+                <div class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1">Success Rate</div>
+                <div id="success-rate" class="text-lg font-semibold">--</div>
             </div>
         </div>
 
-        <div class="workers-section" id="workers-section" style="display: none;">
-            <h3 class="section-title">Workers</h3>
-            <div class="workers-grid" id="workers-grid">
-                <!-- Worker cards will be dynamically added -->
+        <!-- Workers Section -->
+        <div id="workers-section" class="hidden">
+            <h3 class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">Workers</h3>
+            <div id="workers-grid" class="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-3 max-h-[180px] overflow-y-auto">
+                <!-- Workers added dynamically -->
             </div>
         </div>
 
-        <div class="main-grid">
-            <div class="chart-container">
-                <canvas id="rmsle-chart"></canvas>
+        <!-- Main Grid -->
+        <div class="grid grid-cols-[2fr_1fr] gap-4 flex-1 min-h-0">
+            <!-- Chart Container -->
+            <div class="bg-card border border-border rounded-xl p-4 flex flex-col min-h-0">
+                <canvas id="rmsle-chart" class="flex-1 min-h-0"></canvas>
             </div>
 
-            <div class="sidebar">
-                <div class="producer-status" id="producer-status" style="display: none;">
-                    <div class="producer-header">
-                        <i data-lucide="cpu" class="producer-icon"></i>
-                        <span class="producer-label">Generator</span>
-                        <span class="producer-state" id="producer-state">Idle</span>
+            <!-- Sidebar -->
+            <div class="flex flex-col gap-3 min-h-0 overflow-hidden">
+                <!-- Producer Status -->
+                <div id="producer-status" class="hidden bg-card border border-border rounded-lg p-3">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-chart-1 spinner-bars" id="producer-spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                            <rect width="6" height="14" x="1" y="4"></rect>
+                            <rect width="6" height="14" x="9" y="4" opacity="0.4"></rect>
+                            <rect width="6" height="14" x="17" y="4" opacity="0.3"></rect>
+                        </svg>
+                        <i data-lucide="cpu" class="w-4 h-4 text-chart-1" id="producer-icon"></i>
+                        <span class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Generator</span>
+                        <span id="producer-state" class="text-[10px] font-semibold text-muted-foreground ml-auto">Idle</span>
                     </div>
                 </div>
 
-                <div class="queue-panel" id="queue-panel" style="display: none;">
-                    <h3>Queue <span class="queue-progress" id="queue-progress">(0)</span></h3>
-                    <div class="queue-list" id="queue-list"></div>
+                <!-- Queue Panel -->
+                <div id="queue-panel" class="hidden bg-card border border-border rounded-lg p-3 max-h-[200px] overflow-y-auto flex-shrink-0">
+                    <h3 class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">
+                        Queue <span id="queue-progress" class="text-muted-foreground/70">(0)</span>
+                    </h3>
+                    <div id="queue-list" class="flex flex-col gap-1">
+                        <!-- Queue items added dynamically -->
+                    </div>
                 </div>
 
-                <div class="features-container">
-                    <h3>Recent Features</h3>
+                <!-- Features Container -->
+                <div class="bg-card border border-border rounded-lg p-3 flex-1 min-h-0 max-h-[500px] overflow-y-auto">
+                    <h3 class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-2">Recent Features</h3>
                     <div id="features-list">
-                        <div class="empty-state">No features yet. Start the agent to see results.</div>
+                        <div class="text-center text-muted-foreground py-12 text-sm">No features yet. Start the agent to see results.</div>
                     </div>
                 </div>
             </div>
@@ -610,165 +213,24 @@
         let totalIterations = 0;
         let successCount = 0;
         let totalCount = 0;
-        let queuedFeatures = [];  // Track features in queue: {code, status, workerId}
+        let queuedFeatures = [];
         let baselineRmsle = null;
         let currentBestRmsle = null;
         let pointColors = [];
         let nWorkers = 1;
-        let workers = {}; // Track worker states
+        let workers = {};
 
-        const WORKER_COLORS = ['#f97316', '#3b82f6', '#8b5cf6', '#10b981'];
+        const WORKER_COLORS = ['hsl(12 76% 61%)', 'hsl(221 83% 53%)', 'hsl(262 52% 47%)', 'hsl(142 71% 45%)'];
 
-        // Worker management functions
-        function initWorkers(n) {
-            nWorkers = n;
-            workers = {};
-            const grid = document.getElementById('workers-grid');
-            grid.innerHTML = '';
-
-            if (n > 1) {
-                document.getElementById('workers-section').style.display = 'block';
-                for (let i = 0; i < n; i++) {
-                    workers[i] = { status: 'idle', code: '' };
-                    const card = createWorkerCard(i);
-                    grid.appendChild(card);
-                }
-                // Initialize Lucide icons for the new worker cards
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons();
-                }
-            } else {
-                document.getElementById('workers-section').style.display = 'none';
+        function updateBestRmsleDisplay(bestRmsle) {
+            document.getElementById('best-rmsle').textContent = bestRmsle.toFixed(5);
+            if (baselineRmsle && bestRmsle < baselineRmsle) {
+                const improvement = baselineRmsle - bestRmsle;
+                document.getElementById('rmsle-improvement').textContent = `+${improvement.toFixed(4)}`;
             }
         }
 
-        function createWorkerCard(workerId) {
-            const color = WORKER_COLORS[workerId % WORKER_COLORS.length];
-            const card = document.createElement('div');
-            card.className = 'worker-card';
-            card.id = `worker-${workerId}`;
-            card.style.setProperty('--worker-color', color);
-            card.innerHTML = `
-                <div class="worker-header">
-                    <div class="worker-name">
-                        <i data-lucide="bot" class="worker-icon" id="worker-icon-${workerId}"></i>
-                        Worker ${workerId + 1}
-                    </div>
-                    <div class="worker-status" id="worker-status-${workerId}">
-                        <span class="worker-spinner" id="worker-spinner-${workerId}">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                <rect width="6" height="14" x="1" y="4" opacity=".4">
-                                    <animate attributeName="opacity" dur="0.75s" values="1;.2;1" repeatCount="indefinite" begin="0s"/>
-                                    <animate attributeName="height" dur="0.75s" values="22;14;22" repeatCount="indefinite" begin="0s"/>
-                                    <animate attributeName="y" dur="0.75s" values="1;5;1" repeatCount="indefinite" begin="0s"/>
-                                </rect>
-                                <rect width="6" height="14" x="9" y="4" opacity=".4">
-                                    <animate attributeName="opacity" dur="0.75s" values="1;.2;1" repeatCount="indefinite" begin="0.15s"/>
-                                    <animate attributeName="height" dur="0.75s" values="22;14;22" repeatCount="indefinite" begin="0.15s"/>
-                                    <animate attributeName="y" dur="0.75s" values="1;5;1" repeatCount="indefinite" begin="0.15s"/>
-                                </rect>
-                                <rect width="6" height="14" x="17" y="4" opacity=".4">
-                                    <animate attributeName="opacity" dur="0.75s" values="1;.2;1" repeatCount="indefinite" begin="0.3s"/>
-                                    <animate attributeName="height" dur="0.75s" values="22;14;22" repeatCount="indefinite" begin="0.3s"/>
-                                    <animate attributeName="y" dur="0.75s" values="1;5;1" repeatCount="indefinite" begin="0.3s"/>
-                                </rect>
-                            </svg>
-                        </span>
-                        <span id="worker-status-text-${workerId}">Idle</span>
-                    </div>
-                </div>
-                <div class="worker-code" id="worker-code-${workerId}">Waiting for task...</div>
-            `;
-            return card;
-        }
-
-        function updateWorker(workerId, status, code = null) {
-            if (workerId === undefined) return;
-
-            const card = document.getElementById(`worker-${workerId}`);
-            const statusEl = document.getElementById(`worker-status-${workerId}`);
-            const statusTextEl = document.getElementById(`worker-status-text-${workerId}`);
-            const spinnerEl = document.getElementById(`worker-spinner-${workerId}`);
-            const codeEl = document.getElementById(`worker-code-${workerId}`);
-            const iconEl = document.getElementById(`worker-icon-${workerId}`);
-
-            if (!card) return;
-
-            workers[workerId] = { status, code: code || workers[workerId]?.code || '' };
-
-            // Update status text
-            if (statusTextEl) {
-                statusTextEl.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-            }
-            statusEl.className = `worker-status ${status}`;
-
-            // Show/hide spinner based on status
-            if (spinnerEl) {
-                if (status === 'generating' || status === 'evaluating') {
-                    spinnerEl.classList.add('active');
-                } else {
-                    spinnerEl.classList.remove('active');
-                }
-            }
-
-            // Update card state
-            card.className = `worker-card ${status === 'idle' || status === 'done' ? '' : 'active'}`;
-            if (status === 'done') card.classList.add('done');
-
-            // Update icon animation based on status
-            if (iconEl) {
-                iconEl.className = 'worker-icon';
-                if (status === 'generating') {
-                    iconEl.classList.add('generating');
-                } else if (status === 'evaluating') {
-                    iconEl.classList.add('evaluating');
-                }
-            }
-
-            // Update code preview
-            if (code) {
-                const { featureName, formattedCode } = formatCode(code);
-                const preview = code.split('\n').find(l => l.includes("df[")) || code.split('\n')[0] || '';
-                codeEl.textContent = featureName || preview;
-            }
-        }
-
-        // Helper functions
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function formatCode(code) {
-            if (!code) return { featureName: '', formattedCode: '' };
-            const lines = code.split('\n');
-            let featureName = '';
-            let codeLines = [];
-
-            for (const line of lines) {
-                // Extract feature name from "# Feature: XXX"
-                const featureMatch = line.match(/^#\s*Feature:\s*(.+)/i);
-                if (featureMatch) {
-                    featureName = featureMatch[1].trim();
-                    continue;
-                }
-
-                // Skip all comment lines - only show actual code
-                if (line.trim().startsWith('#')) {
-                    continue;
-                }
-
-                // Only keep actual code lines
-                if (line.trim()) {
-                    codeLines.push(`<span class="code-main">${escapeHtml(line)}</span>`);
-                }
-            }
-
-            return { featureName, formattedCode: codeLines.join('\n') };
-        }
-
-        // Initialize chart
+        // Initialize Chart.js
         const ctx = document.getElementById('rmsle-chart').getContext('2d');
         chart = new Chart(ctx, {
             type: 'line',
@@ -778,44 +240,35 @@
                     {
                         label: 'Iteration RMSLE',
                         data: [],
-                        borderColor: '#f97316',
-                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                        tension: 0.3,
+                        borderColor: 'hsl(173 58% 39%)',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        tension: 0,
                         fill: false,
                         pointBackgroundColor: pointColors,
-                        pointBorderColor: '#ffffff',
-                        pointRadius: 6,
-                        pointHoverRadius: 8,
-                        borderWidth: 2
+                        pointBorderColor: '#fff',
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
                     },
                     {
                         label: 'Best RMSLE',
                         data: [],
-                        borderColor: '#22c55e',
+                        borderColor: 'hsl(12 76% 61%)',
                         backgroundColor: 'transparent',
-                        tension: 0.1,
-                        borderDash: [5, 5],
-                        pointRadius: 0,
+                        borderWidth: 2,
+                        tension: 0,
                         fill: false,
-                        borderWidth: 2
+                        pointRadius: 0,
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        grid: { color: '#e5e7eb' },
-                        ticks: { color: '#6b7280' },
-                        title: { display: true, text: 'RMSLE', color: '#6b7280' }
-                    },
-                    x: {
-                        grid: { color: '#e5e7eb' },
-                        ticks: { color: '#6b7280' },
-                        title: { display: true, text: 'Iteration', color: '#6b7280' }
-                    }
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
                 },
                 plugins: {
                     legend: {
@@ -823,9 +276,7 @@
                         position: 'top',
                         align: 'end',
                         labels: {
-                            color: '#6b7280',
                             usePointStyle: true,
-                            pointStyle: 'line',
                             padding: 15,
                             font: {
                                 size: 11,
@@ -833,18 +284,39 @@
                             }
                         }
                     }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false,
+                        },
+                        ticks: {
+                            font: { size: 11 }
+                        }
+                    },
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            color: 'hsl(214.3 31.8% 91.4%)',
+                            drawBorder: false,
+                        },
+                        ticks: {
+                            font: { size: 11 }
+                        }
+                    }
                 }
             }
         });
 
-        // WebSocket connection with reconnect
+        // WebSocket Connection
         let ws;
         function connect() {
             ws = new WebSocket(`ws://${window.location.host}/ws`);
 
             ws.onopen = () => {
-                document.getElementById('connection-status').textContent = 'Connected';
-                document.getElementById('connection-status').className = 'connection-status connected';
+                const statusEl = document.getElementById('connection-status');
+                statusEl.textContent = 'Connected';
+                statusEl.className = 'fixed top-4 right-4 px-4 py-2 rounded-full text-xs font-medium bg-success text-white';
             };
 
             ws.onmessage = (event) => {
@@ -853,18 +325,17 @@
             };
 
             ws.onclose = () => {
-                document.getElementById('connection-status').textContent = 'Disconnected';
-                document.getElementById('connection-status').className = 'connection-status disconnected';
-                // Reconnect after 2 seconds
+                const statusEl = document.getElementById('connection-status');
+                statusEl.textContent = 'Disconnected';
+                statusEl.className = 'fixed top-4 right-4 px-4 py-2 rounded-full text-xs font-medium bg-destructive text-white';
                 setTimeout(connect, 2000);
             };
 
-            ws.onerror = () => {
-                ws.close();
-            };
+            ws.onerror = () => ws.close();
         }
         connect();
 
+        // Event Handler
         function handleEvent(event) {
             const { event_type, data } = event;
             const workerId = data.worker_id;
@@ -874,79 +345,65 @@
                     totalIterations = data.total_iterations || 0;
                     baselineRmsle = data.baseline_rmsle || data.current_rmsle;
                     currentBestRmsle = data.current_rmsle || data.baseline_rmsle;
-                    pointColors = [];
                     successCount = 0;
                     totalCount = 0;
+                    pointColors = [];
 
-                    // Initialize workers if parallel mode
                     if (data.n_workers && data.n_workers > 1) {
                         initWorkers(data.n_workers);
                     }
 
-                    // Show producer status if batched mode (batch_size provided)
                     if (data.batch_size) {
                         updateProducerStatus('idle', 0);
                     }
 
                     document.getElementById('status').textContent = 'Running';
-                    document.getElementById('status').className = 'status-value running';
+                    document.getElementById('status').className = 'text-lg font-semibold text-chart-1 animate-pulse-slow';
                     document.getElementById('features-adopted').textContent = '0';
                     document.getElementById('success-rate').textContent = '--';
+
                     if (currentBestRmsle) {
-                        addRmslePoint('Start', currentBestRmsle, true);
-                        document.getElementById('best-rmsle').textContent = currentBestRmsle.toFixed(5);
+                        addRmslePoints('Start', currentBestRmsle, currentBestRmsle, null);
+                        updateBestRmsleDisplay(currentBestRmsle);
                     }
-                    // Clear features list and queue
+
                     document.getElementById('features-list').innerHTML = '';
                     queuedFeatures = [];
-                    renderQueueList();
-                    break;
-
-                case 'iteration_start':
-                    currentIteration = Math.max(currentIteration, data.iteration);
-                    document.getElementById('status').textContent = 'Running';
-                    document.getElementById('status').className = 'status-value running';
-                    document.getElementById('iteration').textContent = `${currentIteration} / ${totalIterations}`;
-
-                    // Update worker status
-                    updateWorker(workerId, 'generating');
-                    break;
-
-                case 'feature_generated':
-                    // Update worker with code
-                    updateWorker(workerId, 'evaluating', data.code);
-                    // Mark feature as active in queue
-                    markFeatureActive(data.code, workerId);
                     break;
 
                 case 'feature_accepted':
                     successCount++;
                     totalCount++;
                     currentBestRmsle = data.new_rmsle;
-                    // Use totalCount for x-axis label (global counter, not per-worker iteration)
-                    addRmslePoint(totalCount.toString(), data.new_rmsle, true, workerId);
-                    document.getElementById('best-rmsle').textContent = data.new_rmsle.toFixed(5);
+                    addRmslePoints(totalCount.toString(), data.new_rmsle, data.new_rmsle, workerId);
+                    updateBestRmsleDisplay(data.new_rmsle);
                     document.getElementById('features-adopted').textContent = successCount;
                     addFeature(data, true, workerId);
                     updateSuccessRate();
-                    // Remove completed feature from queue
                     removeFeatureFromQueue(data.code);
-
-                    // Update worker status
                     updateWorker(workerId, 'idle');
                     break;
 
                 case 'feature_rejected':
                     totalCount++;
-                    // Use totalCount for x-axis label (global counter, not per-worker iteration)
-                    addRmslePoint(totalCount.toString(), data.rmsle, false, workerId);
+                    if (data.rmsle && totalCount > 0) {
+                        addRmslePoints(totalCount.toString(), data.rmsle, currentBestRmsle, workerId);
+                    }
                     addFeature(data, false, workerId);
                     updateSuccessRate();
-                    // Remove completed feature from queue
                     removeFeatureFromQueue(data.code);
-
-                    // Update worker status
                     updateWorker(workerId, 'idle');
+                    break;
+
+                case 'iteration_start':
+                    currentIteration = Math.max(currentIteration, data.iteration);
+                    document.getElementById('iteration').textContent = `${currentIteration} / ${totalIterations}`;
+                    updateWorker(workerId, 'generating');
+                    break;
+
+                case 'feature_generated':
+                    updateWorker(workerId, 'evaluating', data.code);
+                    markFeatureActive(data.code, workerId);
                     break;
 
                 case 'producer_status':
@@ -954,26 +411,18 @@
                     break;
 
                 case 'batch_generated':
-                    // Append new features to queue (for multi-batch scenarios)
-                    const newFeatures = data.features.map(code => ({
-                        code,
-                        status: 'pending',
-                        workerId: null
-                    }));
-                    queuedFeatures = [...queuedFeatures, ...newFeatures];
+                    queuedFeatures = [...queuedFeatures, ...data.features.map(code => ({
+                        code, status: 'pending', workerId: null
+                    }))];
                     renderQueueList();
                     break;
 
                 case 'agent_complete':
                     document.getElementById('status').textContent = 'Complete ✓';
-                    document.getElementById('status').className = 'status-value success';
-
-                    // Mark all workers as done
+                    document.getElementById('status').className = 'text-lg font-semibold text-success';
                     for (let i = 0; i < nWorkers; i++) {
                         updateWorker(i, 'done');
                     }
-
-                    // Hide producer status and clear queue
                     updateProducerStatus('done', 0);
                     queuedFeatures = [];
                     renderQueueList();
@@ -981,92 +430,49 @@
             }
         }
 
-        function updateProducerStatus(status, queueSize, batchSize = null) {
-            const container = document.getElementById('producer-status');
-            const stateEl = document.getElementById('producer-state');
-
-            // Hide producer status when done
-            if (status === 'done') {
-                container.style.display = 'none';
-                return;
-            }
-
-            container.style.display = 'block';
-
-            // Update status text and classes
-            if (status === 'generating') {
-                container.classList.add('generating');
-                stateEl.textContent = batchSize ? `Generating ${batchSize}...` : 'Generating...';
-                stateEl.className = 'producer-state generating';
-            } else if (status === 'idle') {
-                container.classList.remove('generating');
-                stateEl.textContent = 'Ready';
-                stateEl.className = 'producer-state';
-            }
-
-            // Initialize Lucide icons if needed
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        }
-
-        function addRmslePoint(label, rmsle, isImprovement, workerId = null) {
+        function addRmslePoints(label, actualRmsle, bestRmsle, workerId) {
             chart.data.labels.push(label);
 
-            // Add point with color based on success or worker
-            let pointColor;
-            if (workerId !== null && workerId !== undefined && nWorkers > 1) {
-                // Use worker color with opacity for rejected
-                pointColor = isImprovement ? WORKER_COLORS[workerId % WORKER_COLORS.length] : '#ef4444';
-            } else {
-                pointColor = isImprovement ? '#22c55e' : '#ef4444';
-            }
+            let pointColor = workerId !== null && workerId !== undefined && nWorkers > 1
+                ? WORKER_COLORS[workerId % WORKER_COLORS.length]
+                : 'hsl(12 76% 61%)';
+
             pointColors.push(pointColor);
-            chart.data.datasets[0].data.push(rmsle);
+            chart.data.datasets[0].data.push(actualRmsle);
             chart.data.datasets[0].pointBackgroundColor = pointColors;
-
-            // Update best line
-            if (isImprovement) {
-                currentBestRmsle = rmsle;
-            }
-            chart.data.datasets[1].data.push(currentBestRmsle);
-
+            chart.data.datasets[1].data.push(bestRmsle);
             chart.update('none');
         }
 
-        function addFeature(data, success, workerId = null) {
+        function addFeature(data, success, workerId) {
             const list = document.getElementById('features-list');
-
-            // Remove empty state if present
-            const emptyState = list.querySelector('.empty-state');
+            const emptyState = list.querySelector('.text-center');
             if (emptyState) emptyState.remove();
 
             const div = document.createElement('div');
-            div.className = `feature ${success ? 'success' : 'failed'}`;
+            const borderClass = success ? 'border-l-success' : 'border-l-destructive';
+            div.className = `p-3 mb-2 bg-muted rounded-lg border border-transparent ${borderClass} border-l-2 hover:border-gray-200 transition-all`;
 
             const icon = success ? '✅' : '❌';
             const name = data.columns ? data.columns.join(', ') : 'Unknown';
             const delta = data.improvement
-                ? `<span class="improvement">↓ ${Math.abs(data.improvement).toFixed(5)}</span>`
-                : '<span class="no-improvement">No improvement</span>';
+                ? `<span class="text-success text-xs font-semibold">↓ ${Math.abs(data.improvement).toFixed(5)}</span>`
+                : '<span class="text-muted-foreground text-xs">No improvement</span>';
             const code = (data.code || '').split('\n').find(l => l.includes("df[")) || data.code?.split('\n')[0] || '';
 
-            // Add worker badge if in parallel mode
             const workerBadge = (workerId !== null && workerId !== undefined && nWorkers > 1)
-                ? `<span class="worker-badge" style="background: ${WORKER_COLORS[workerId % WORKER_COLORS.length]}20; color: ${WORKER_COLORS[workerId % WORKER_COLORS.length]}; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 6px;">W${workerId + 1}</span>`
+                ? `<span class="px-2 py-0.5 rounded text-[10px] font-semibold mr-2" style="background: ${WORKER_COLORS[workerId % WORKER_COLORS.length]}20; color: ${WORKER_COLORS[workerId % WORKER_COLORS.length]};">W${workerId + 1}</span>`
                 : '';
 
             div.innerHTML = `
-                <div class="feature-header">
-                    <span class="feature-name">${workerBadge}${icon} ${name}</span>
+                <div class="flex justify-between items-center gap-3">
+                    <span class="font-mono text-xs font-medium">${workerBadge}${icon} ${name}</span>
                     ${delta}
                 </div>
-                <div class="feature-code">${code}</div>
+                <div class="text-muted-foreground text-[10px] font-mono mt-1 truncate">${code}</div>
             `;
 
             list.insertBefore(div, list.firstChild);
-
-            // Keep only last 15
             while (list.children.length > 15) {
                 list.removeChild(list.lastChild);
             }
@@ -1077,62 +483,173 @@
             document.getElementById('success-rate').textContent = `${rate}%`;
         }
 
-        // Queue panel functions
+        function initWorkers(n) {
+            nWorkers = n;
+            workers = {};
+            const grid = document.getElementById('workers-grid');
+            grid.innerHTML = '';
+            document.getElementById('workers-section').classList.remove('hidden');
+
+            for (let i = 0; i < n; i++) {
+                workers[i] = { status: 'idle', code: '' };
+                const card = createWorkerCard(i);
+                grid.appendChild(card);
+            }
+
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        function createWorkerCard(workerId) {
+            const color = WORKER_COLORS[workerId % WORKER_COLORS.length];
+            const card = document.createElement('div');
+            card.id = `worker-${workerId}`;
+            card.className = 'bg-card border-2 border-border rounded-xl p-3 transition-all';
+            card.innerHTML = `
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2 font-semibold text-sm">
+                        <svg class="w-5 h-5 spinner-bars" id="worker-spinner-${workerId}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="color: ${color}; display: none;">
+                            <rect width="6" height="14" x="1" y="4"></rect>
+                            <rect width="6" height="14" x="9" y="4" opacity="0.4"></rect>
+                            <rect width="6" height="14" x="17" y="4" opacity="0.3"></rect>
+                        </svg>
+                        <i data-lucide="bot" class="w-5 h-5" id="worker-icon-${workerId}" style="color: ${color}"></i>
+                        Worker ${workerId + 1}
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <svg class="w-3 h-3 spinner-bars" id="worker-status-spinner-${workerId}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                            <rect width="6" height="14" x="1" y="4"></rect>
+                            <rect width="6" height="14" x="9" y="4" opacity="0.4"></rect>
+                            <rect width="6" height="14" x="17" y="4" opacity="0.3"></rect>
+                        </svg>
+                        <span id="worker-status-${workerId}" class="text-[10px] uppercase tracking-wider text-muted-foreground">Idle</span>
+                    </div>
+                </div>
+                <div id="worker-code-${workerId}" class="bg-muted rounded px-3 py-2 text-[10px] font-mono text-muted-foreground truncate min-h-[32px] flex items-center">
+                    Waiting for task...
+                </div>
+            `;
+            return card;
+        }
+
+        function updateWorker(workerId, status, code = null) {
+            if (workerId === undefined) return;
+
+            const card = document.getElementById(`worker-${workerId}`);
+            const statusEl = document.getElementById(`worker-status-${workerId}`);
+            const codeEl = document.getElementById(`worker-code-${workerId}`);
+            const spinner = document.getElementById(`worker-spinner-${workerId}`);
+            const icon = document.getElementById(`worker-icon-${workerId}`);
+            const statusSpinner = document.getElementById(`worker-status-spinner-${workerId}`);
+
+            if (!card) return;
+
+            workers[workerId] = { status, code: code || workers[workerId]?.code || '' };
+
+            const color = WORKER_COLORS[workerId % WORKER_COLORS.length];
+
+            if (statusEl) {
+                statusEl.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+            }
+
+            // Show spinner next to status text when evaluating
+            if (statusSpinner) {
+                if (status === 'evaluating') {
+                    statusSpinner.style.display = 'block';
+                    statusSpinner.style.color = color;
+                } else {
+                    statusSpinner.style.display = 'none';
+                }
+            }
+
+            // Update icon animation based on status - keep icon visible, hide spinner
+            if (spinner) spinner.style.display = 'none';
+            if (icon) {
+                icon.style.display = 'block';
+                icon.className = 'w-5 h-5';
+                icon.style.color = color;
+
+                if (status === 'generating') {
+                    icon.classList.add('bot-icon-generating');
+                } else if (status === 'evaluating') {
+                    icon.classList.add('bot-icon-evaluating');
+                } else if (status === 'waiting') {
+                    icon.classList.add('bot-icon-active');
+                }
+            }
+
+            if (status === 'idle' || status === 'done') {
+                card.className = 'bg-card border-2 border-border rounded-xl p-3 transition-all';
+            } else {
+                card.className = 'bg-card border-2 rounded-xl p-3 transition-all';
+                card.style.borderColor = color;
+            }
+
+            if (code && codeEl) {
+                const preview = code.split('\n').find(l => l.includes("df[")) || code.split('\n')[0] || '';
+                codeEl.textContent = preview;
+            }
+        }
+
+        function updateProducerStatus(status, queueSize, batchSize = null) {
+            const container = document.getElementById('producer-status');
+            const stateEl = document.getElementById('producer-state');
+            const spinner = document.getElementById('producer-spinner');
+            const icon = document.getElementById('producer-icon');
+
+            if (status === 'done') {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+
+            if (status === 'generating') {
+                stateEl.textContent = batchSize ? `Generating ${batchSize}...` : 'Generating...';
+                stateEl.className = 'text-[10px] font-semibold text-chart-1 ml-auto';
+                if (spinner) spinner.style.display = 'block';
+                if (icon) icon.style.display = 'none';
+            } else {
+                stateEl.textContent = 'Ready';
+                stateEl.className = 'text-[10px] font-semibold text-muted-foreground ml-auto';
+                if (spinner) spinner.style.display = 'none';
+                if (icon) icon.style.display = 'block';
+            }
+
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
         function renderQueueList() {
             const panel = document.getElementById('queue-panel');
             const list = document.getElementById('queue-list');
             const progress = document.getElementById('queue-progress');
 
-            // Show panel if there are items
             if (queuedFeatures.length > 0) {
-                panel.style.display = 'block';
+                panel.classList.remove('hidden');
             } else {
-                panel.style.display = 'none';
+                panel.classList.add('hidden');
                 return;
             }
 
-            // Update progress
             const pending = queuedFeatures.filter(f => f.status === 'pending').length;
             progress.textContent = `${pending} waiting`;
 
-            // Render items
-            list.innerHTML = queuedFeatures.map((feature, idx) => {
+            list.innerHTML = queuedFeatures.map(feature => {
                 const isActive = feature.status === 'active';
-                const color = isActive && feature.workerId !== null
-                    ? WORKER_COLORS[feature.workerId % WORKER_COLORS.length]
-                    : 'var(--accent)';
-
-                // Extract code preview
-                const codePreview = extractCodePreview(feature.code);
-
-                // Worker badge for active items
-                const workerBadge = isActive && feature.workerId !== null
-                    ? `<span class="queue-worker-badge" style="background: ${color}20; color: ${color};">W${feature.workerId + 1}</span>`
-                    : '';
+                const color = isActive && feature.workerId !== null ? WORKER_COLORS[feature.workerId % WORKER_COLORS.length] : 'hsl(12 76% 61%)';
+                const codePreview = feature.code.match(/df\['([^']+)'\]\s*=/)?.[1] || '...';
 
                 return `
-                    <div class="queue-item ${feature.status}" style="${isActive ? `--worker-color: ${color}` : ''}">
-                        <div class="queue-dot"></div>
-                        <span class="queue-code">${escapeHtml(codePreview)}</span>
-                        ${workerBadge}
+                    <div class="flex items-center gap-2 px-2 py-1.5 bg-muted rounded transition-all ${isActive ? 'border-l-2' : ''}" style="${isActive ? `border-color: ${color}` : ''}">
+                        <div class="w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? 'bg-current' : 'border border-current'}" style="${isActive ? `color: ${color}` : ''}"></div>
+                        <span class="flex-1 font-mono text-[10px] text-muted-foreground truncate">${codePreview}</span>
+                        ${isActive && feature.workerId !== null ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-semibold" style="background: ${color}20; color: ${color};">W${feature.workerId + 1}</span>` : ''}
                     </div>
                 `;
             }).join('');
-        }
-
-        function extractCodePreview(code) {
-            if (!code) return '?';
-            // Extract feature name from df['FeatureName'] = ...
-            const match = code.match(/df\['([^']+)'\]\s*=/);
-            if (match) {
-                return match[1];  // Just the feature name
-            }
-            // Fallback: try to find any df[] reference
-            const dfMatch = code.match(/df\['([^']+)'\]/);
-            if (dfMatch) {
-                return dfMatch[1];
-            }
-            return '...';
         }
 
         function markFeatureActive(code, workerId) {
@@ -1147,6 +664,11 @@
         function removeFeatureFromQueue(code) {
             queuedFeatures = queuedFeatures.filter(f => f.code !== code);
             renderQueueList();
+        }
+
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
         }
     </script>
 </body>
