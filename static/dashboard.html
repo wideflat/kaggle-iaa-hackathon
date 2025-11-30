@@ -135,6 +135,10 @@
                 <div id="status" class="text-lg font-semibold text-muted-foreground">Waiting...</div>
             </div>
             <div class="flex-1 bg-card border border-border rounded-lg p-3 hover:border-gray-300 transition-colors">
+                <div class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1">Elapsed</div>
+                <div id="elapsed-time" class="text-lg font-semibold font-mono">00:00</div>
+            </div>
+            <div class="flex-1 bg-card border border-border rounded-lg p-3 hover:border-gray-300 transition-colors">
                 <div class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1">Iteration</div>
                 <div id="iteration" class="text-lg font-semibold">0 / 0</div>
             </div>
@@ -143,15 +147,15 @@
                 <div id="features-adopted" class="text-lg font-semibold text-success">0</div>
             </div>
             <div class="flex-1 bg-card border border-border rounded-lg p-3 hover:border-gray-300 transition-colors">
+                <div class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1">Success Rate</div>
+                <div id="success-rate" class="text-lg font-semibold">--</div>
+            </div>
+            <div class="flex-1 bg-card border border-border rounded-lg p-3 hover:border-gray-300 transition-colors">
                 <div class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1">Best RMSLE</div>
                 <div class="flex items-baseline gap-1">
                     <span id="best-rmsle" class="text-lg font-semibold text-success">--</span>
                     <span id="rmsle-improvement" class="text-xs text-green-500 font-medium"></span>
                 </div>
-            </div>
-            <div class="flex-1 bg-card border border-border rounded-lg p-3 hover:border-gray-300 transition-colors">
-                <div class="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1">Success Rate</div>
-                <div id="success-rate" class="text-lg font-semibold">--</div>
             </div>
         </div>
 
@@ -219,8 +223,31 @@
         let pointColors = [];
         let nWorkers = 1;
         let workers = {};
+        let timerStartTime = null;
+        let timerInterval = null;
 
         const WORKER_COLORS = ['hsl(12 76% 61%)', 'hsl(221 83% 53%)', 'hsl(262 52% 47%)', 'hsl(142 71% 45%)'];
+
+        function startTimer() {
+            timerStartTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+            updateTimer();
+        }
+
+        function updateTimer() {
+            if (!timerStartTime) return;
+            const elapsed = Math.floor((Date.now() - timerStartTime) / 1000);
+            const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const secs = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('elapsed-time').textContent = `${mins}:${secs}`;
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
 
         function updateBestRmsleDisplay(bestRmsle) {
             document.getElementById('best-rmsle').textContent = bestRmsle.toFixed(5);
@@ -361,6 +388,8 @@
                     document.getElementById('status').className = 'text-lg font-semibold text-chart-1 animate-pulse-slow';
                     document.getElementById('features-adopted').textContent = '0';
                     document.getElementById('success-rate').textContent = '--';
+                    document.getElementById('elapsed-time').textContent = '00:00';
+                    startTimer();
 
                     if (currentBestRmsle) {
                         addRmslePoints('Start', currentBestRmsle, currentBestRmsle, null);
@@ -418,6 +447,7 @@
                     break;
 
                 case 'agent_complete':
+                    stopTimer();
                     document.getElementById('status').textContent = 'Complete ✓';
                     document.getElementById('status').className = 'text-lg font-semibold text-success';
                     for (let i = 0; i < nWorkers; i++) {

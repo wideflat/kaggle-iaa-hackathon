@@ -3,7 +3,8 @@ Model stacking for final prediction
 
 Combines multiple models using weighted averaging:
 - Ridge, Lasso, ElasticNet (linear models, 30% weight)
-- XGBoost, LightGBM (tree models, 70% weight)
+- SVR (kernel-based model, 10% weight)
+- XGBoost, LightGBM (tree models, 60% weight)
 
 Based on top Kaggle Ames Housing solutions.
 """
@@ -16,6 +17,8 @@ from typing import Dict, Tuple, Optional
 from sklearn.model_selection import KFold
 from sklearn.linear_model import Ridge, Lasso, ElasticNet
 from sklearn.preprocessing import RobustScaler
+from sklearn.pipeline import make_pipeline
+from sklearn.svm import SVR
 from sklearn.base import clone
 import lightgbm as lgb
 import xgboost as xgb
@@ -29,10 +32,12 @@ class ModelStacker:
     - Ridge (alpha=10) - Linear, robust to multicollinearity
     - Lasso (alpha=0.0005) - Linear, feature selection built-in
     - ElasticNet (alpha=0.0005, l1_ratio=0.9) - Linear, balanced L1/L2
+    - SVR (C=20, epsilon=0.008, gamma=0.0003) - Kernel-based, non-linear patterns
     - XGBoost - Tree-based, different from LightGBM
     - LightGBM - Tree-based, fast and accurate
 
     Linear models use RobustScaler for feature scaling.
+    SVR has RobustScaler in its pipeline.
     Tree models use raw features.
 
     Blending: Weighted average with configurable weights.
@@ -91,8 +96,9 @@ class ModelStacker:
             'ridge': 0.10,
             'lasso': 0.10,
             'elasticnet': 0.10,
-            'xgboost': 0.35,
-            'lightgbm': 0.35
+            'svr': 0.10,
+            'xgboost': 0.30,
+            'lightgbm': 0.30
         }
 
         # Store trained models and OOF predictions
@@ -146,6 +152,10 @@ class ModelStacker:
             'elasticnet': ElasticNet(
                 alpha=0.0005, l1_ratio=0.9, random_state=42, max_iter=10000
             ),
+            'svr': make_pipeline(
+                RobustScaler(),
+                SVR(C=20, epsilon=0.008, gamma=0.0003)
+            ),
             'xgboost': xgb.XGBRegressor(**self.xgb_params),
             'lightgbm': lgb.LGBMRegressor(**self.lgb_params)
         }
@@ -164,7 +174,7 @@ class ModelStacker:
             np.ndarray of shape (n_samples, n_models) with predictions stacked column-wise
         """
         # Consistent ordering of base models
-        model_order = ['ridge', 'lasso', 'elasticnet', 'xgboost', 'lightgbm']
+        model_order = ['ridge', 'lasso', 'elasticnet', 'svr', 'xgboost', 'lightgbm']
 
         # Stack predictions column-wise
         meta_features = np.column_stack([
@@ -295,7 +305,7 @@ class ModelStacker:
         Fit all models using CV and generate three-layer ensemble predictions.
 
         Architecture:
-            Layer 1: 5 base models (Ridge, Lasso, ElasticNet, XGBoost, LightGBM)
+            Layer 1: 6 base models (Ridge, Lasso, ElasticNet, SVR, XGBoost, LightGBM)
             Layer 2a: Weighted average of Layer 1
             Layer 2b: Stacking meta-learner trained on Layer 1 OOF predictions
             Layer 3: Ensemble of Layer 2a and 2b
@@ -326,12 +336,15 @@ class ModelStacker:
             if self.verbose:
                 print(f"   Training {name}...")
 
-            # Use scaled arrays for linear models, DataFrames for tree models
+            # Use scaled arrays for linear models (Ridge, Lasso, ElasticNet)
+            # SVR has RobustScaler in its pipeline, so use raw data
+            # Tree models use raw data (no scaling needed)
             if name in ['ridge', 'lasso', 'elasticnet']:
                 train_data = X_train_scaled
                 test_data = X_test_scaled
             else:
-                # Keep as DataFrame to preserve feature names
+                # Keep as DataFrame to preserve feature names (tree models)
+                # Or use raw arrays (SVR handles scaling internally)
                 train_data = X_train
                 test_data = X_test
 

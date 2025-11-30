@@ -319,6 +319,7 @@ def main(
         ('outputs/logs/agent_memory.json', 'agent_memory.json'),
         ('outputs/logs/agent.log', 'agent.log'),
         ('outputs/logs/progress_plot.png', 'progress_plot.png'),
+        ('scripts/run_submission.sh', 'run_submission.sh'),
     ]
 
     for src, dst in files_to_copy:
