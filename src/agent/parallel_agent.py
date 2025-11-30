@@ -1,8 +1,9 @@
 """
-Parallel Feature Engineering Agent
+Parallel Feature Engineering Agent (Batched)
 
-Runs multiple workers in parallel to speed up feature discovery.
-Each worker independently generates and evaluates features.
+Uses producer-consumer pattern:
+- Producer: Calls Gemini API in batches to generate features
+- Workers: Consume from queue, execute and evaluate features
 
 Usage:
     python -m src.agent.parallel_agent [OPTIONS]
@@ -10,19 +11,16 @@ Usage:
 Arguments:
     --iterations, -n INT    Total number of iterations (default: 10)
     --workers, -w INT       Number of parallel workers (default: 2)
+    --batch-size, -b INT    Features per Gemini batch (default: 5)
     --clear                 Clear previous memory and start fresh
-    --feedback, -f          Enable SHAP-based feedback loop
     --dashboard, -d         Open real-time dashboard in browser
 
 Examples:
-    # Run 10 iterations with 2 workers
-    python -m src.agent.parallel_agent -n 10 -w 2
+    # Run 10 iterations with 2 workers, batch size 5
+    python -m src.agent.parallel_agent -n 10 -w 2 -b 5
 
     # Run with dashboard
     python -m src.agent.parallel_agent -n 10 -w 2 --dashboard
-
-    # With SHAP feedback
-    python -m src.agent.parallel_agent -n 10 -w 2 --feedback --dashboard
 """
 
 import os
@@ -50,16 +48,17 @@ from src.agent.event_emitter import emit
 
 class ParallelFeatureAgent:
     """
-    Parallel feature engineering agent.
+    Parallel feature engineering agent with batched API calls.
 
-    Runs N workers concurrently, each generating and evaluating features.
-    Uses thread-safe shared state for coordination.
+    Uses producer-consumer pattern:
+    - Producer thread: Calls Gemini API to generate batches of features
+    - Worker threads: Consume features from queue, execute and evaluate
     """
 
     def __init__(
         self,
         n_workers: int = 2,
-        use_feedback: bool = False,
+        batch_size: int = 5,
         memory: AgentMemory = None
     ):
         """
@@ -67,11 +66,11 @@ class ParallelFeatureAgent:
 
         Args:
             n_workers: Number of parallel workers
-            use_feedback: Enable SHAP-based feedback
+            batch_size: Number of features to generate per Gemini batch
             memory: Agent memory instance
         """
         self.n_workers = n_workers
-        self.use_feedback = use_feedback
+        self.batch_size = batch_size
         self.memory = memory or AgentMemory()
 
         # Will be set during run()
@@ -79,6 +78,8 @@ class ParallelFeatureAgent:
         self.data_desc: str = ""
         self.column_info: str = ""
         self.target: pd.Series = None
+        self.total_iterations: int = 0
+        self.gemini: Optional[GeminiClient] = None
 
     def run(
         self,
@@ -136,15 +137,29 @@ class ParallelFeatureAgent:
         self.column_info = ', '.join(train_df.columns.tolist())
         self.target = target
 
+        self.total_iterations = total_iterations
+
+        # Initialize single Gemini client for producer
+        try:
+            self.gemini = GeminiClient()
+        except Exception as e:
+            print(f"Failed to initialize Gemini: {e}")
+            return {'successes': 0, 'failures': 0, 'best_rmsle': current_rmsle}
+
         # Emit agent start event
         emit('agent_start', {
             'total_iterations': total_iterations,
             'baseline_rmsle': baseline_rmsle,
             'current_rmsle': current_rmsle,
-            'n_workers': self.n_workers
+            'n_workers': self.n_workers,
+            'batch_size': self.batch_size
         })
 
-        print(f"\n5. Running {total_iterations} iterations with {self.n_workers} workers...")
+        print(f"\n5. Running {total_iterations} iterations with {self.n_workers} workers (batch size: {self.batch_size})...")
+
+        # Start producer thread
+        producer_thread = threading.Thread(target=self._producer_loop, daemon=True)
+        producer_thread.start()
 
         # Run workers in parallel
         with ThreadPoolExecutor(max_workers=self.n_workers) as executor:
@@ -159,6 +174,9 @@ class ParallelFeatureAgent:
                     future.result()
                 except Exception as e:
                     print(f"Worker error: {e}")
+
+        # Wait for producer to finish
+        producer_thread.join(timeout=5)
 
         # Get final statistics
         stats = self.shared_state.get_stats()
@@ -193,53 +211,126 @@ class ParallelFeatureAgent:
 
         return stats
 
+    def _producer_loop(self):
+        """
+        Producer loop: Generate batches of features and add to queue.
+
+        Calls Gemini API in batches to generate features efficiently.
+        """
+        features_generated = 0
+
+        while features_generated < self.total_iterations:
+            # Calculate batch size (don't generate more than needed)
+            remaining = self.total_iterations - features_generated
+            current_batch_size = min(self.batch_size, remaining)
+
+            # Emit producer status
+            self.shared_state.set_producer_status('generating')
+            emit('producer_status', {
+                'status': 'generating',
+                'batch_size': current_batch_size,
+                'queue_size': self.shared_state.get_queue_size()
+            })
+
+            print(f"\n[Producer] Generating batch of {current_batch_size} features...")
+
+            try:
+                # Get tried features for deduplication
+                tried_features = self.shared_state.get_tried_codes()
+
+                # Generate batch of features
+                batch = self.gemini.generate_feature_batch(
+                    self.data_desc,
+                    self.column_info,
+                    existing_features=tried_features,
+                    n_features=current_batch_size
+                )
+
+                print(f"[Producer] Generated {len(batch)} features, adding to queue")
+
+                # Add features to queue
+                for code in batch:
+                    self.shared_state.put_feature(code)
+                    features_generated += 1
+
+                # Emit batch with all feature codes for dashboard queue panel
+                emit('batch_generated', {
+                    'features': batch,
+                    'queue_size': self.shared_state.get_queue_size()
+                })
+
+                emit('producer_status', {
+                    'status': 'idle',
+                    'queue_size': self.shared_state.get_queue_size()
+                })
+
+            except Exception as e:
+                print(f"[Producer] Gemini error: {e}")
+                # On error, try smaller batch or wait
+                import time
+                time.sleep(2)
+
+        # Signal workers that production is complete
+        self.shared_state.set_producer_status('done')
+        self.shared_state.signal_done()
+        emit('producer_status', {'status': 'done', 'queue_size': 0})
+        print("[Producer] Done generating features")
+
     def _worker_loop(self, worker_id: int):
         """
-        Worker loop: generate and evaluate features until done.
+        Worker loop: Consume features from queue and evaluate.
 
         Args:
             worker_id: Unique worker identifier
         """
-        # Each worker has its own Gemini client and executor
-        try:
-            gemini = GeminiClient()
-        except Exception as e:
-            print(f"Worker {worker_id}: Failed to initialize Gemini: {e}")
-            return
-
         executor = CodeExecutor()
         evaluator = FeatureEvaluator(n_folds=5)
 
         self.shared_state.register_worker(worker_id)
+        iteration = 0
 
         try:
             while True:
-                # Get next iteration
-                iteration = self.shared_state.get_next_iteration()
-                if iteration is None:
+                # Get feature from queue
+                self.shared_state.update_worker_status(worker_id, 'waiting')
+                code = self.shared_state.get_feature(timeout=60)
+
+                # None is the poison pill - time to stop
+                if code is None:
                     break
 
-                # Run one iteration
-                self._run_iteration(
+                iteration += 1
+
+                # Evaluate the feature
+                self._evaluate_feature(
                     worker_id=worker_id,
                     iteration=iteration,
-                    gemini=gemini,
+                    code=code,
                     executor=executor,
                     evaluator=evaluator
                 )
         finally:
             self.shared_state.unregister_worker(worker_id)
 
-    def _run_iteration(
+    def _evaluate_feature(
         self,
         worker_id: int,
         iteration: int,
-        gemini: GeminiClient,
+        code: str,
         executor: CodeExecutor,
         evaluator: FeatureEvaluator
     ):
-        """Run a single iteration for a worker"""
-        print(f"\n[Worker {worker_id}] Iteration {iteration}")
+        """
+        Evaluate a single feature (execute and test).
+
+        Args:
+            worker_id: Worker identifier
+            iteration: Iteration number for this worker
+            code: Feature generation code from producer queue
+            executor: Code executor instance
+            evaluator: Feature evaluator instance
+        """
+        print(f"\n[Worker {worker_id}] Evaluating feature (iteration {iteration})")
 
         # Emit iteration start
         emit('iteration_start', {
@@ -247,64 +338,33 @@ class ParallelFeatureAgent:
             'iteration': iteration
         })
 
-        self.shared_state.update_worker_status(worker_id, 'generating')
+        # Emit feature received from queue
+        emit('feature_generated', {
+            'worker_id': worker_id,
+            'code': code
+        })
+
+        self.shared_state.update_worker_status(worker_id, 'evaluating', code)
 
         # Get current state
         current_df = self.shared_state.get_current_df()
-        tried_features = self.shared_state.get_tried_codes()
         current_best = self.shared_state.get_best_rmsle()
 
-        # Generate feature
-        try:
-            if self.use_feedback:
-                # Get SHAP insights
-                X_current, _ = get_features_and_target(current_df)
-                evaluator.evaluate(X_current, self.target, verbose=False)
-                shap_summary = evaluator.get_shap_summary(top_n=10)
-                feature_insights = evaluator.get_feature_insights(top_n=5)
-
-                generated_code = gemini.generate_feature_with_feedback(
-                    self.data_desc,
-                    self.column_info,
-                    shap_summary=shap_summary,
-                    feature_insights=feature_insights,
-                    existing_features=tried_features
-                )
-            else:
-                generated_code = gemini.generate_feature(
-                    self.data_desc,
-                    self.column_info,
-                    existing_features=tried_features
-                )
-        except Exception as e:
-            print(f"[Worker {worker_id}] Gemini error: {e}")
-            self.shared_state.reject_feature(
-                worker_id, iteration, "", current_best, [], str(e)
-            )
-            return
-
-        # Emit feature generated
-        emit('feature_generated', {
-            'worker_id': worker_id,
-            'code': generated_code
-        })
-
-        self.shared_state.update_worker_status(worker_id, 'evaluating', generated_code)
-
         # Execute code
-        new_df, error = executor.execute(generated_code, current_df)
+        new_df, error = executor.execute(code, current_df)
 
         if error:
             print(f"[Worker {worker_id}] Execution error: {error[:50]}...")
             self.shared_state.reject_feature(
-                worker_id, iteration, generated_code, current_best, [], error
+                worker_id, iteration, code, current_best, [], error
             )
             emit('feature_rejected', {
                 'worker_id': worker_id,
-                'code': generated_code,
+                'code': code,
                 'rmsle': current_best,
                 'reason': f"Execution error: {error[:100]}"
             })
+            self.shared_state.update_worker_status(worker_id, 'idle')
             return
 
         # Check new columns
@@ -312,15 +372,16 @@ class ParallelFeatureAgent:
         if not new_cols:
             print(f"[Worker {worker_id}] No new columns created")
             self.shared_state.reject_feature(
-                worker_id, iteration, generated_code, current_best, [], "No new columns"
+                worker_id, iteration, code, current_best, [], "No new columns"
             )
             emit('feature_rejected', {
                 'worker_id': worker_id,
-                'code': generated_code,
+                'code': code,
                 'rmsle': current_best,
                 'columns': [],
                 'reason': "No new columns created"
             })
+            self.shared_state.update_worker_status(worker_id, 'idle')
             return
 
         # Evaluate
@@ -333,7 +394,7 @@ class ParallelFeatureAgent:
         accepted = self.shared_state.try_accept_feature(
             worker_id=worker_id,
             iteration=iteration,
-            code=generated_code,
+            code=code,
             new_df=new_df,
             new_rmsle=new_rmsle,
             columns=new_cols
@@ -345,7 +406,7 @@ class ParallelFeatureAgent:
             emit('feature_accepted', {
                 'worker_id': worker_id,
                 'columns': new_cols,
-                'code': generated_code,
+                'code': code,
                 'new_rmsle': new_rmsle,
                 'improvement': improvement
             })
@@ -354,7 +415,7 @@ class ParallelFeatureAgent:
             emit('feature_rejected', {
                 'worker_id': worker_id,
                 'columns': new_cols,
-                'code': generated_code,
+                'code': code,
                 'rmsle': new_rmsle,
                 'reason': f"No improvement: {new_rmsle:.5f} vs {current_best:.5f}"
             })
@@ -365,11 +426,11 @@ class ParallelFeatureAgent:
 def main(
     n_iterations: int = 10,
     n_workers: int = 2,
+    batch_size: int = 5,
     clear_memory: bool = False,
-    use_feedback: bool = False,
     dashboard: bool = False
 ):
-    """Run parallel feature engineering agent"""
+    """Run parallel feature engineering agent with batched API calls"""
 
     # Start dashboard server if requested
     if dashboard:
@@ -386,11 +447,10 @@ def main(
         webbrowser.open("http://localhost:8765")
 
     print("=" * 60)
-    print(f"Parallel Feature Engineering Agent")
+    print(f"Parallel Feature Engineering Agent (Batched)")
     print(f"Workers: {n_workers}")
+    print(f"Batch Size: {batch_size}")
     print(f"Iterations: {n_iterations}")
-    if use_feedback:
-        print(f"SHAP Feedback: Enabled")
     if dashboard:
         print(f"Dashboard: http://localhost:8765")
     print("=" * 60)
@@ -435,7 +495,7 @@ def main(
     print("\n4. Initializing parallel agent...")
     agent = ParallelFeatureAgent(
         n_workers=n_workers,
-        use_feedback=use_feedback,
+        batch_size=batch_size,
         memory=memory
     )
 
@@ -475,10 +535,10 @@ if __name__ == '__main__':
                         help='Total number of iterations (default: 10)')
     parser.add_argument('--workers', '-w', type=int, default=2,
                         help='Number of parallel workers (default: 2)')
+    parser.add_argument('--batch-size', '-b', type=int, default=5,
+                        help='Features per Gemini API batch (default: 5)')
     parser.add_argument('--clear', action='store_true',
                         help='Clear previous memory and start fresh')
-    parser.add_argument('--feedback', '-f', action='store_true',
-                        help='Enable SHAP-based feedback loop')
     parser.add_argument('--dashboard', '-d', action='store_true',
                         help='Open real-time dashboard in browser')
     args = parser.parse_args()
@@ -486,7 +546,7 @@ if __name__ == '__main__':
     main(
         n_iterations=args.iterations,
         n_workers=args.workers,
+        batch_size=args.batch_size,
         clear_memory=args.clear,
-        use_feedback=args.feedback,
         dashboard=args.dashboard
     )

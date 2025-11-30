@@ -4,6 +4,7 @@ Thread-safe shared state for parallel feature engineering agent.
 Manages coordination between multiple worker threads.
 """
 
+import queue
 import threading
 from typing import Set, List, Optional
 from dataclasses import dataclass, field
@@ -62,6 +63,12 @@ class SharedState:
         # Worker status tracking
         self._worker_status: dict = {}
         self._active_workers = 0
+
+        # Feature queue for producer-consumer pattern
+        self._feature_queue: queue.Queue = queue.Queue()
+        self._producer_status: str = 'idle'  # idle, generating, done
+        self._features_in_queue: int = 0
+        self._done = False
 
     def get_next_iteration(self) -> Optional[int]:
         """
@@ -196,6 +203,57 @@ class SharedState:
             if worker_id in self._worker_status:
                 self._worker_status[worker_id] = {'status': 'done', 'code': None}
 
+    def get_results(self) -> List[FeatureResult]:
+        """Get all results"""
+        with self._lock:
+            return self._results.copy()
+
+    # Producer-Consumer Queue Methods
+
+    def put_feature(self, code: str):
+        """Add a feature to the queue (producer)"""
+        self._feature_queue.put(code)
+        with self._lock:
+            self._features_in_queue += 1
+
+    def get_feature(self, timeout: float = 30.0) -> Optional[str]:
+        """Get a feature from the queue (worker). Returns None if done."""
+        try:
+            code = self._feature_queue.get(timeout=timeout)
+            with self._lock:
+                self._features_in_queue = max(0, self._features_in_queue - 1)
+            return code
+        except queue.Empty:
+            return None
+
+    def set_producer_status(self, status: str):
+        """Update producer status (idle, generating, done)"""
+        with self._lock:
+            self._producer_status = status
+
+    def get_producer_status(self) -> str:
+        """Get producer status"""
+        with self._lock:
+            return self._producer_status
+
+    def get_queue_size(self) -> int:
+        """Get number of features in queue"""
+        with self._lock:
+            return self._features_in_queue
+
+    def signal_done(self):
+        """Signal all workers that production is complete"""
+        with self._lock:
+            self._done = True
+        # Put poison pills for each worker
+        for _ in range(10):  # Enough for all workers
+            self._feature_queue.put(None)
+
+    def is_done(self) -> bool:
+        """Check if production is complete"""
+        with self._lock:
+            return self._done
+
     def get_stats(self) -> dict:
         """Get current statistics"""
         with self._lock:
@@ -210,10 +268,7 @@ class SharedState:
                 'success_rate': successes / total * 100 if total > 0 else 0,
                 'best_rmsle': self._best_rmsle,
                 'active_workers': self._active_workers,
-                'worker_status': dict(self._worker_status)
+                'worker_status': dict(self._worker_status),
+                'producer_status': self._producer_status,
+                'queue_size': self._features_in_queue
             }
-
-    def get_results(self) -> List[FeatureResult]:
-        """Get all results"""
-        with self._lock:
-            return self._results.copy()

@@ -60,6 +60,7 @@ class EventEmitter:
         - feature_accepted: Feature improved RMSLE
         - feature_rejected: Feature did not improve
         - agent_complete: Agent finished all iterations
+        - producer_status: Producer batch generation status (batched mode)
         """
         event = AgentEvent(
             event_type=event_type,
