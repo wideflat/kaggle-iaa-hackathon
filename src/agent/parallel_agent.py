@@ -14,6 +14,7 @@ Arguments:
     --batch-size, -b INT    Features per Gemini batch (default: 5)
     --clear                 Clear previous memory and start fresh
     --dashboard, -d         Open real-time dashboard in browser
+    --include-ames          Include AmesHousing.csv in training data
 
 Examples:
     # Run 10 iterations with 2 workers, batch size 5
@@ -430,7 +431,8 @@ def main(
     n_workers: int = 2,
     batch_size: int = 5,
     clear_memory: bool = False,
-    dashboard: bool = False
+    dashboard: bool = False,
+    include_ames: bool = False
 ):
     """Run parallel feature engineering agent with batched API calls"""
 
@@ -466,7 +468,7 @@ def main(
     # Load data
     print("\n1. Loading data...")
     loader = AmesDataLoader()
-    train_df = loader.load_train()
+    train_df = loader.load_train(include_ames=include_ames)
     data_desc = loader.load_description()
     print(f"   Train shape: {train_df.shape}")
 
@@ -543,6 +545,8 @@ if __name__ == '__main__':
                         help='Clear previous memory and start fresh')
     parser.add_argument('--dashboard', '-d', action='store_true',
                         help='Open real-time dashboard in browser')
+    parser.add_argument('--include-ames', action='store_true',
+                        help='Include AmesHousing.csv in training data')
     args = parser.parse_args()
 
     main(
@@ -550,5 +554,6 @@ if __name__ == '__main__':
         n_workers=args.workers,
         batch_size=args.batch_size,
         clear_memory=args.clear,
-        dashboard=args.dashboard
+        dashboard=args.dashboard,
+        include_ames=args.include_ames
     )

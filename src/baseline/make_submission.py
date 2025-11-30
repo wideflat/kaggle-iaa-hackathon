@@ -17,6 +17,7 @@ Usage:
 
     --skip-features     Skip applying agent features (use raw features only)
     --skip-selection    Skip feature selection
+    --include-ames      Include AmesHousing.csv in training data
     --output PATH       Output path for submission (default: outputs/submission.csv)
 """
 
@@ -102,6 +103,7 @@ def apply_features(
 def main(
     skip_features: bool = False,
     skip_selection: bool = False,
+    include_ames: bool = False,
     output_path: str = 'outputs/submission.csv'
 ):
     """
@@ -110,6 +112,7 @@ def main(
     Args:
         skip_features: Skip applying agent features
         skip_selection: Skip feature selection
+        include_ames: Include AmesHousing.csv in training data
         output_path: Output path for submission CSV
     """
     print("=" * 60)
@@ -119,7 +122,7 @@ def main(
     # 1. Load data
     print("\n1. Loading data...")
     loader = AmesDataLoader()
-    train_df = loader.load_train()
+    train_df = loader.load_train(include_ames=include_ames)
     test_df = loader.load_test()
     print(f"   Train shape: {train_df.shape}")
     print(f"   Test shape: {test_df.shape}")
@@ -314,6 +317,11 @@ if __name__ == '__main__':
         help='Skip feature selection'
     )
     parser.add_argument(
+        '--include-ames',
+        action='store_true',
+        help='Include AmesHousing.csv in training data'
+    )
+    parser.add_argument(
         '--output',
         type=str,
         default='outputs/submission.csv',
@@ -324,5 +332,6 @@ if __name__ == '__main__':
     main(
         skip_features=args.skip_features,
         skip_selection=args.skip_selection,
+        include_ames=args.include_ames,
         output_path=args.output
     )
