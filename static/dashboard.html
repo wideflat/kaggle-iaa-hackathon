@@ -222,30 +222,28 @@
             if (!code) return { featureName: '', formattedCode: '' };
             const lines = code.split('\n');
             let featureName = '';
-            let formattedLines = [];
+            let codeLines = [];
 
             for (const line of lines) {
                 // Extract feature name from "# Feature: XXX"
                 const featureMatch = line.match(/^#\s*Feature:\s*(.+)/i);
                 if (featureMatch) {
                     featureName = featureMatch[1].trim();
-                    continue; // Don't show this line in code
+                    continue;
                 }
 
-                // Style comments (dim)
+                // Skip all comment lines - only show actual code
                 if (line.trim().startsWith('#')) {
-                    formattedLines.push(`<span class="code-comment">${escapeHtml(line)}</span>`);
+                    continue;
                 }
-                // Style actual code (highlighted)
-                else if (line.includes('df[')) {
-                    formattedLines.push(`<span class="code-main">${escapeHtml(line)}</span>`);
-                }
-                else if (line.trim()) {
-                    formattedLines.push(escapeHtml(line));
+
+                // Only keep actual code lines
+                if (line.trim()) {
+                    codeLines.push(`<span class="code-main">${escapeHtml(line)}</span>`);
                 }
             }
 
-            return { featureName, formattedCode: formattedLines.join('\n') };
+            return { featureName, formattedCode: codeLines.join('\n') };
         }
 
         // Initialize chart

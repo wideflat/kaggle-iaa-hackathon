@@ -171,10 +171,10 @@ def main(
     else:
         print("\n6. Skipping feature selection (--skip-selection)")
 
-    # 7. Model stacking
-    print("\n7. Model stacking...")
+    # 7. Three-layer model stacking
+    print("\n7. Three-layer model stacking...")
     stacker = ModelStacker(n_folds=5)
-    predictions, individual_preds = stacker.fit_predict(X_train, y_train, X_test)
+    predictions, layer_preds, oof_scores = stacker.fit_predict(X_train, y_train, X_test)
 
     # Transform predictions back from log scale
     predictions = np.expm1(predictions)
