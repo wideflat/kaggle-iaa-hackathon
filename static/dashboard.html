@@ -107,6 +107,22 @@
             font-size: 13px;
             line-height: 1.5;
         }
+        .feature-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.3);
+            padding-bottom: 8px;
+        }
+        .code-comment {
+            color: #666;
+            font-style: italic;
+        }
+        .code-main {
+            color: #00d4ff;
+            font-weight: 500;
+        }
         .connection-status {
             position: fixed;
             top: 10px;
@@ -167,6 +183,7 @@
 
         <div class="current-code" id="current-code-container" style="display: none;">
             <div class="label"><span class="spinner"></span>Currently Evaluating</div>
+            <div class="feature-title" id="feature-title"></div>
             <pre id="current-code"></pre>
         </div>
 
@@ -191,6 +208,45 @@
         let successCount = 0;
         let totalCount = 0;
         let baselineRmsle = null;
+        let currentBestRmsle = null;
+        let pointColors = [];
+
+        // Helper functions
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatCode(code) {
+            if (!code) return { featureName: '', formattedCode: '' };
+            const lines = code.split('\n');
+            let featureName = '';
+            let formattedLines = [];
+
+            for (const line of lines) {
+                // Extract feature name from "# Feature: XXX"
+                const featureMatch = line.match(/^#\s*Feature:\s*(.+)/i);
+                if (featureMatch) {
+                    featureName = featureMatch[1].trim();
+                    continue; // Don't show this line in code
+                }
+
+                // Style comments (dim)
+                if (line.trim().startsWith('#')) {
+                    formattedLines.push(`<span class="code-comment">${escapeHtml(line)}</span>`);
+                }
+                // Style actual code (highlighted)
+                else if (line.includes('df[')) {
+                    formattedLines.push(`<span class="code-main">${escapeHtml(line)}</span>`);
+                }
+                else if (line.trim()) {
+                    formattedLines.push(escapeHtml(line));
+                }
+            }
+
+            return { featureName, formattedCode: formattedLines.join('\n') };
+        }
 
         // Initialize chart
         const ctx = document.getElementById('rmsle-chart').getContext('2d');
@@ -198,18 +254,30 @@
             type: 'line',
             data: {
                 labels: [],
-                datasets: [{
-                    label: 'RMSLE',
-                    data: [],
-                    borderColor: '#00d4ff',
-                    backgroundColor: 'rgba(0, 212, 255, 0.1)',
-                    tension: 0.3,
-                    fill: true,
-                    pointBackgroundColor: '#00d4ff',
-                    pointBorderColor: '#fff',
-                    pointRadius: 5,
-                    pointHoverRadius: 7
-                }]
+                datasets: [
+                    {
+                        label: 'RMSLE',
+                        data: [],
+                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                        tension: 0.3,
+                        fill: false,
+                        pointBackgroundColor: pointColors,
+                        pointBorderColor: '#fff',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    },
+                    {
+                        label: 'Best RMSLE',
+                        data: [],
+                        borderColor: '#00ff88',
+                        backgroundColor: 'transparent',
+                        tension: 0.1,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false
+                    }
+                ]
             },
             options: {
                 responsive: true,
@@ -268,10 +336,13 @@
                 case 'agent_start':
                     totalIterations = data.total_iterations || 0;
                     baselineRmsle = data.baseline_rmsle;
+                    currentBestRmsle = data.baseline_rmsle;
+                    pointColors = [];
                     document.getElementById('status').textContent = 'Starting...';
                     document.getElementById('status').className = 'status-value running';
                     if (data.baseline_rmsle) {
-                        addRmslePoint('Baseline', data.baseline_rmsle);
+                        // Add baseline as first point (green, it's our starting point)
+                        addRmslePoint('Baseline', data.baseline_rmsle, true);
                         document.getElementById('best-rmsle').textContent = data.baseline_rmsle.toFixed(5);
                     }
                     // Clear features list
@@ -287,14 +358,16 @@
 
                 case 'feature_generated':
                     document.getElementById('status').textContent = 'Evaluating...';
+                    const { featureName, formattedCode } = formatCode(data.code);
+                    document.getElementById('feature-title').textContent = featureName || 'New Feature';
+                    document.getElementById('current-code').innerHTML = formattedCode;
                     document.getElementById('current-code-container').style.display = 'block';
-                    document.getElementById('current-code').textContent = data.code || '';
                     break;
 
                 case 'feature_accepted':
                     successCount++;
                     totalCount++;
-                    addRmslePoint(currentIteration.toString(), data.new_rmsle);
+                    addRmslePoint(currentIteration.toString(), data.new_rmsle, true);
                     document.getElementById('best-rmsle').textContent = data.new_rmsle.toFixed(5);
                     addFeature(data, true);
                     updateSuccessRate();
@@ -303,6 +376,7 @@
 
                 case 'feature_rejected':
                     totalCount++;
+                    addRmslePoint(currentIteration.toString(), data.rmsle, false);
                     addFeature(data, false);
                     updateSuccessRate();
                     document.getElementById('current-code-container').style.display = 'none';
@@ -316,9 +390,21 @@
             }
         }
 
-        function addRmslePoint(label, rmsle) {
+        function addRmslePoint(label, rmsle, isImprovement) {
             chart.data.labels.push(label);
+
+            // Add point with color based on success
+            const pointColor = isImprovement ? '#00ff88' : '#ff4444';
+            pointColors.push(pointColor);
             chart.data.datasets[0].data.push(rmsle);
+            chart.data.datasets[0].pointBackgroundColor = pointColors;
+
+            // Update best line
+            if (isImprovement || currentBestRmsle === null) {
+                currentBestRmsle = rmsle;
+            }
+            chart.data.datasets[1].data.push(currentBestRmsle);
+
             chart.update('none');
         }
 
