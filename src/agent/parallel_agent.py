@@ -287,7 +287,6 @@ class ParallelFeatureAgent:
         evaluator = FeatureEvaluator(n_folds=5)
 
         self.shared_state.register_worker(worker_id)
-        iteration = 0
 
         try:
             while True:
@@ -299,12 +298,15 @@ class ParallelFeatureAgent:
                 if code is None:
                     break
 
-                iteration += 1
+                # Get global iteration number (thread-safe atomic counter)
+                global_iteration = self.shared_state.get_next_iteration()
+                if global_iteration is None:
+                    break
 
                 # Evaluate the feature
                 self._evaluate_feature(
                     worker_id=worker_id,
-                    iteration=iteration,
+                    iteration=global_iteration,
                     code=code,
                     executor=executor,
                     evaluator=evaluator
@@ -325,7 +327,7 @@ class ParallelFeatureAgent:
 
         Args:
             worker_id: Worker identifier
-            iteration: Iteration number for this worker
+            iteration: Global iteration number (across all workers)
             code: Feature generation code from producer queue
             executor: Code executor instance
             evaluator: Feature evaluator instance

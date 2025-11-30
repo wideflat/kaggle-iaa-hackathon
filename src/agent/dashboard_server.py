@@ -223,7 +223,7 @@ def get_inline_dashboard() -> str:
                     data: [],
                     borderColor: '#00d4ff',
                     backgroundColor: 'rgba(0, 212, 255, 0.1)',
-                    tension: 0.1,
+                    tension: 0,
                     fill: true
                 }]
             },

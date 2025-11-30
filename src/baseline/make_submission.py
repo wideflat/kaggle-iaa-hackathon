@@ -63,7 +63,12 @@ def load_agent_features(memory_path: str = 'outputs/logs/agent_memory.json') -> 
     return codes
 
 
-def apply_features(df: pd.DataFrame, feature_codes: list, executor: CodeExecutor) -> pd.DataFrame:
+def apply_features(
+    df: pd.DataFrame,
+    feature_codes: list,
+    executor: CodeExecutor,
+    dataset_name: str = "data"
+) -> tuple[pd.DataFrame, list[str]]:
     """
     Apply feature engineering code to dataframe.
 
@@ -71,18 +76,25 @@ def apply_features(df: pd.DataFrame, feature_codes: list, executor: CodeExecutor
         df: Input dataframe
         feature_codes: List of code snippets
         executor: Code executor instance
+        dataset_name: Name for logging (e.g., "train", "test")
 
     Returns:
-        DataFrame with new features
+        Tuple of (DataFrame with new features, list of new column names)
     """
+    applied_cols = []
+    original_cols = set(df.columns)
+
     for i, code in enumerate(feature_codes, 1):
         result_df, error = executor.execute(code, df)
         if error:
-            print(f"   Warning: Feature {i} failed: {error[:50]}...")
+            print(f"   Warning: Feature {i} failed on {dataset_name}: {error[:50]}...")
         else:
+            new_cols = list(set(result_df.columns) - original_cols)
+            applied_cols.extend(new_cols)
+            original_cols = set(result_df.columns)
             df = result_df
 
-    return df
+    return df, applied_cols
 
 
 def main(
@@ -130,6 +142,9 @@ def main(
     print(f"   Processed train shape: {train_processed.shape}")
     print(f"   Processed test shape: {test_processed.shape}")
 
+    # Store original columns before applying features (for verification later)
+    original_cols = set(train_processed.columns)
+
     # 4. Apply agent features
     if not skip_features:
         print("\n4. Applying agent-discovered features...")
@@ -137,10 +152,20 @@ def main(
 
         if feature_codes:
             executor = CodeExecutor()
-            train_processed = apply_features(train_processed, feature_codes, executor)
-            test_processed = apply_features(test_processed, feature_codes, executor)
+            train_processed, train_new_cols = apply_features(
+                train_processed, feature_codes, executor, "train"
+            )
+            test_processed, test_new_cols = apply_features(
+                test_processed, feature_codes, executor, "test"
+            )
             print(f"   Train shape after features: {train_processed.shape}")
             print(f"   Test shape after features: {test_processed.shape}")
+            print(f"   Train new columns: {len(train_new_cols)}")
+            print(f"   Test new columns: {len(test_new_cols)}")
+
+            # Show which features are in both
+            common_new = set(train_new_cols) & set(test_new_cols)
+            print(f"   Common new features: {len(common_new)}")
     else:
         print("\n4. Skipping agent features (--skip-features)")
 
@@ -155,6 +180,15 @@ def main(
     X_test = X_test[common_cols]
 
     print(f"   Features: {len(common_cols)}")
+
+    # Verify which engineered features made it to the stacker
+    engineered_in_final = [c for c in common_cols if c not in original_cols]
+    if engineered_in_final:
+        print(f"\n   === ENGINEERED FEATURES PASSED TO STACKER ({len(engineered_in_final)}) ===")
+        for col in sorted(engineered_in_final):
+            print(f"   - {col}")
+    else:
+        print("\n   WARNING: No engineered features made it to stacker!")
 
     # Log-transform target
     y_train = np.log1p(target)
