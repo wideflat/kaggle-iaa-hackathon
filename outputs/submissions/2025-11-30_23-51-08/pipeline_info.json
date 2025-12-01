@@ -1,0 +1,52 @@
+{
+  "timestamp": "2025-11-30_23-51-08",
+  "data": {
+    "train_shape": [
+      1464,
+      81
+    ],
+    "test_shape": [
+      1465,
+      80
+    ],
+    "outliers_removed": 0,
+    "features_count": 83,
+    "selected_features_count": 83
+  },
+  "agent_features": {
+    "count": 4,
+    "names": [
+      "GrLivArea_Cubic",
+      "LivAreaRatioToLot",
+      "OverallQual_GrLivArea_Product",
+      "TotalLivingSF"
+    ]
+  },
+  "scores": {
+    "layer1": {
+      "ridge": 0.09990676733283667,
+      "lasso": 0.0996762157322946,
+      "elasticnet": 0.09967875822952169,
+      "svr": 0.1554672198546624,
+      "gbr": 0.0935870944320447,
+      "xgboost": 0.09607772498274855,
+      "lightgbm": 0.09805528593274655
+    },
+    "layer2_weighted": 0.09206426221202749,
+    "layer2_stacking": 0.03394425982868252,
+    "layer3_final": 0.05803308243238704
+  },
+  "predictions": {
+    "count": 1465,
+    "mean": 210939.56304006613,
+    "median": 189982.21791227933,
+    "min": 75880.36802292292,
+    "max": 723562.9111784691
+  },
+  "options": {
+    "skip_features": false,
+    "skip_selection": true,
+    "include_ames": false,
+    "blend_weight": 0.5
+  }
+}

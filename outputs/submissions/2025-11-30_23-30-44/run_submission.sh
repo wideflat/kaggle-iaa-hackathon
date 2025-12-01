@@ -5,9 +5,9 @@ set -e  # Exit on error
 # Kaggle Submission Script
 # ============================================================
 # Configuration
-ITERATIONS=20
-WORKERS=4
-BATCH_SIZE=5
+ITERATIONS=2
+WORKERS=2
+BATCH_SIZE=2
 
 echo "============================================================"
 echo "Starting submission pipeline"
@@ -31,7 +31,7 @@ echo ""
 echo "Step 2: Generating submission..."
 python -m src.baseline.make_submission \
     --skip-selection \
-    --blend-weight 0.5 # weight for Layer 2a (weighted avg)
+    --blend-weight 0.0 # weight for Layer 2a (weighted avg)
 
 echo ""
 echo "============================================================"

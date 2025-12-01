@@ -190,6 +190,18 @@ def main(
     X_train = X_train[common_cols]
     X_test = X_test[common_cols]
 
+    # Handle NaN values (can occur from agent features on unseen categories)
+    train_nan_cols = X_train.columns[X_train.isna().any()].tolist()
+    test_nan_cols = X_test.columns[X_test.isna().any()].tolist()
+    if train_nan_cols or test_nan_cols:
+        print(f"   Warning: NaN values found, filling with 0")
+        if train_nan_cols:
+            print(f"      Train NaN cols: {train_nan_cols}")
+        if test_nan_cols:
+            print(f"      Test NaN cols: {test_nan_cols}")
+        X_train = X_train.fillna(0)
+        X_test = X_test.fillna(0)
+
     print(f"   Features: {len(common_cols)}")
 
     # Verify which engineered features made it to the stacker
