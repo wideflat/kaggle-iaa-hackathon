@@ -1,0 +1,88 @@
+{
+  "successful_features": [
+    {
+      "code": "# Feature: Log_TotalBsmtSF\n# Strategy: skewness_correction\n# Enhances: TotalBsmtSF (top 4) by reducing its skewness.\ndf['Log_TotalBsmtSF'] = np.log1p(df['TotalBsmtSF'].fillna(0))",
+      "columns": [
+        "Log_TotalBsmtSF"
+      ],
+      "rmsle": 0.10034332553430855,
+      "improvement": 6.587602835682327e-05,
+      "timestamp": "2025-11-30T19:14:54.948721"
+    },
+    {
+      "code": "# Feature: IsHighQualityOverall\n# Strategy: binary\n# Enhances: OverallQual (top 1) by creating a binary indicator for high quality.\n# Definition of 'high quality' is subjective, here using a common threshold.\ndf['IsHighQualityOverall'] = (df['OverallQual'].fillna(0) >= 8).astype(int)",
+      "columns": [
+        "IsHighQualityOverall"
+      ],
+      "rmsle": 0.10023852989519777,
+      "improvement": 0.00010479563911078293,
+      "timestamp": "2025-11-30T19:14:54.949325"
+    },
+    {
+      "code": "# Feature: GrLivArea_LotRatio\n# Strategy: foundational\n# Enhances: GrLivArea (top 2) and LotArea (top 5) by showing the proportion of living space relative to the total lot size, indicating density.\n# LotArea is expected to be non-zero for houses. Added a small epsilon to denominator to prevent division by zero in extreme cases, though unlikely for LotArea.\ndf['GrLivArea_LotRatio'] = df['GrLivArea'] / (df['LotArea'] + 1e-6)",
+      "columns": [
+        "GrLivArea_LotRatio"
+      ],
+      "rmsle": 0.10012162192056409,
+      "improvement": 0.00011690797463367875,
+      "timestamp": "2025-11-30T19:14:54.949785"
+    }
+  ],
+  "failed_features": [
+    {
+      "code": "# Feature: AvgOverallQual_Neighborhood\n# Strategy: grouped_features\n# Enhances: OverallQual (top 1) by providing a neighborhood context, useful for understanding relative quality within an area.\n# Assumes 'Neighborhood' is clean; if not, fillna('') on Neighborhood first.\ndf['AvgOverallQual_Neighborhood'] = df.groupby('Neighborhood')['OverallQual'].transform('mean').fillna(df['OverallQual'].mean())",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:14:54.949564"
+    },
+    {
+      "code": "# Feature: TotalSF_LivingPlusBsmt\n# Strategy: aggregation\n# Enhances: GrLivArea (top 2) and TotalBsmtSF (top 4) by combining them into a single metric representing total usable floor area.\ndf['TotalSF_LivingPlusBsmt'] = df['GrLivArea'] + df['TotalBsmtSF'].fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:14:54.949676"
+    }
+  ],
+  "iteration_history": [
+    {
+      "iteration": 1,
+      "rmsle": 0.10034332553430855,
+      "success": true,
+      "feature_summary": "Log_TotalBsmtSF",
+      "feature_description": "Log transform: np.log1p(TotalBsmtSF)",
+      "feature_code": "# Feature: Log_TotalBsmtSF\n# Strategy: skewness_correction\n# Enhances: TotalBsmtSF (top 4) by reducing its skewness.\ndf['Log_TotalBsmtSF'] = np.log1p(df['TotalBsmtSF'].fillna(0))",
+      "columns": [
+        "Log_TotalBsmtSF"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T19:14:54.949184"
+    },
+    {
+      "iteration": 2,
+      "rmsle": 0.10023852989519777,
+      "success": true,
+      "feature_summary": "IsHighQualityOverall",
+      "feature_description": "Transform: (OverallQual >= 8).astype(int)",
+      "feature_code": "# Feature: IsHighQualityOverall\n# Strategy: binary\n# Enhances: OverallQual (top 1) by creating a binary indicator for high quality.\n# Definition of 'high quality' is subjective, here using a common threshold.\ndf['IsHighQualityOverall'] = (df['OverallQual'].fillna(0) >= 8).astype(int)",
+      "columns": [
+        "IsHighQualityOverall"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T19:14:54.949460"
+    },
+    {
+      "iteration": 5,
+      "rmsle": 0.10012162192056409,
+      "success": true,
+      "feature_summary": "GrLivArea_LotRatio",
+      "feature_description": "Ratio: GrLivArea / (LotArea + 1e-6)",
+      "feature_code": "# Feature: GrLivArea_LotRatio\n# Strategy: foundational\n# Enhances: GrLivArea (top 2) and LotArea (top 5) by showing the proportion of living space relative to the total lot size, indicating density.\n# LotArea is expected to be non-zero for houses. Added a small epsilon to denominator to prevent division by zero in extreme cases, though unlikely for LotArea.\ndf['GrLivArea_LotRatio'] = df['GrLivArea'] / (df['LotArea'] + 1e-6)",
+      "columns": [
+        "GrLivArea_LotRatio"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T19:14:54.949895"
+    }
+  ],
+  "shap_history": [],
+  "baseline_rmsle": 0.10040920156266538,
+  "best_rmsle": 0.10012162192056409,
+  "session_start": "2025-11-30T19:12:08.739084"
+}

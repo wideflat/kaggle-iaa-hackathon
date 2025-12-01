@@ -1,0 +1,50 @@
+{
+  "timestamp": "2025-11-30_17-40-37",
+  "data": {
+    "train_shape": [
+      1464,
+      81
+    ],
+    "test_shape": [
+      1465,
+      80
+    ],
+    "outliers_removed": 0,
+    "features_count": 83,
+    "selected_features_count": 75
+  },
+  "agent_features": {
+    "count": 4,
+    "names": [
+      "ExterQual_Ord",
+      "LivAreaToLotRatio",
+      "Neighborhood_Freq",
+      "OverallQual_GrLivArea"
+    ]
+  },
+  "scores": {
+    "layer1": {
+      "ridge": 0.10161476377564686,
+      "lasso": 0.1012329225766281,
+      "elasticnet": 0.10127339183684073,
+      "svr": 0.14507068657751168,
+      "xgboost": 0.09560102078305745,
+      "lightgbm": 0.09993180362299754
+    },
+    "layer2_weighted": 0.0934964660794122,
+    "layer2_stacking": 0.0927424751616505,
+    "layer3_final": 0.0929986738617069
+  },
+  "predictions": {
+    "count": 1465,
+    "mean": 210677.11509518136,
+    "median": 190473.6392577032,
+    "min": 76416.21593236236,
+    "max": 818633.0597503992
+  },
+  "options": {
+    "skip_features": false,
+    "skip_selection": false,
+    "include_ames": false
+  }
+}

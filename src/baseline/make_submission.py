@@ -213,9 +213,9 @@ def main(
     else:
         print("\n6. Skipping feature selection (--skip-selection)")
 
-    # 7. Three-layer model stacking
-    print("\n7. Three-layer model stacking...")
-    stacker = ModelStacker(n_folds=5)
+    # 7. Kaggle-style blending + stacking
+    print("\n7. Kaggle-style blending + stacking...")
+    stacker = ModelStacker(n_folds=10)
     predictions, layer_preds, oof_scores = stacker.fit_predict(X_train, y_train, X_test)
 
     # Transform predictions back from log scale
@@ -246,7 +246,7 @@ def main(
     for model_name, oof_pred in layer_preds['oof_layer1'].items():
         oof_layer1[model_name] = oof_pred
     oof_layer1.to_csv(f"{output_dir}/oof_layer1.csv", index=False)
-    print(f"   Saved: oof_layer1.csv (5 base models)")
+    print(f"   Saved: oof_layer1.csv (8 models)")
 
     # Save OOF predictions - Layer 2 & 3
     oof_layer2 = pd.DataFrame({
@@ -263,7 +263,7 @@ def main(
     for model_name, test_pred in layer_preds['layer1'].items():
         test_layer1[model_name] = test_pred
     test_layer1.to_csv(f"{output_dir}/test_layer1.csv", index=False)
-    print(f"   Saved: test_layer1.csv (5 base models)")
+    print(f"   Saved: test_layer1.csv (8 models)")
 
     # Save test predictions - Layer 2 & 3
     test_layer2 = pd.DataFrame({

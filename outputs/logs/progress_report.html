@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Feature Engineering Progress Report</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-card .value.improved {
+            color: #4CAF50;
+        }
+        .plot-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        .plot-container img {
+            width: 100%;
+            height: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #4CAF50;
+            color: white;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: #f9f9f9;
+        }
+        .status-kept {
+            background-color: #e8f5e9;
+        }
+        .status-kept .result {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .status-rejected {
+            background-color: #ffebee;
+        }
+        .status-rejected .result {
+            color: #c62828;
+            font-weight: bold;
+        }
+        .description {
+            font-size: 13px;
+            color: #555;
+        }
+        .delta {
+            font-family: monospace;
+        }
+        .code-block {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            overflow-x: auto;
+            margin-top: 8px;
+            border: 1px solid #ddd;
+        }
+        details summary {
+            cursor: pointer;
+            color: #1976d2;
+        }
+        details summary:hover {
+            text-decoration: underline;
+        }
+        .legend {
+            background: #f9f9f9;
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .legend li {
+            margin: 8px 0;
+        }
+        .legend-kept {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .legend-rejected {
+            color: #c62828;
+            font-weight: bold;
+        }
+        .timestamp {
+            color: #999;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Feature Engineering Progress Report</h1>
+
+    <div class="stats">
+        <div class="stat-card">
+            <h3>Baseline RMSLE</h3>
+            <div class="value">0.10041</div>
+        </div>
+        <div class="stat-card">
+            <h3>Best RMSLE</h3>
+            <div class="value improved">0.09862</div>
+        </div>
+        <div class="stat-card">
+            <h3>Improvement</h3>
+            <div class="value improved">1.78%</div>
+        </div>
+        <div class="stat-card">
+            <h3>Success Rate</h3>
+            <div class="value">100.0%</div>
+        </div>
+    </div>
+
+    <div class="plot-container">
+        <h2>Progress Over Iterations</h2>
+        <img src="progress_plot.png" alt="Progress Plot">
+    </div>
+
+    <h2>Iteration Details</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 50px;">Iter</th>
+                <th style="width: 150px;">Feature Name</th>
+                <th style="width: 300px;">Description</th>
+                <th style="width: 90px;">RMSLE</th>
+                <th style="width: 90px;">Change</th>
+                <th style="width: 80px;">Result</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="">
+                <td>0</td>
+                <td><strong>(baseline)</strong></td>
+                <td class="description">Initial model with 212 preprocessed features</td>
+                <td>0.10041</td>
+                <td class="delta">-</td>
+                <td class="result"> -</td>
+            </tr>
+            <tr class="status-kept">
+                <td>2</td>
+                <td>
+                    <details>
+                        <summary><strong>HouseAgeAtSale</strong></summary>
+                        <pre class="code-block"># Feature: HouseAgeAtSale
+# Strategy: temporal
+# Enhances: YearBuilt (top 3)
+# Description: Calculates the age of the house at the time of sale.
+df['HouseAgeAtSale'] = df['YrSold'] - df['YearBuilt'].fillna(df['YrSold']) # YearBuilt is usually clean, but fillna for safety</pre>
+                    </details></td>
+                <td class="description">Difference: YrSold - YearBuilt # YearBuilt is usually clean, but fillna for safety</td>
+                <td>0.09989</td>
+                <td class="delta">+0.00052</td>
+                <td class="result">✓ KEPT</td>
+            </tr>
+            <tr class="status-kept">
+                <td>4</td>
+                <td>
+                    <details>
+                        <summary><strong>LivAreaPerLotArea</strong></summary>
+                        <pre class="code-block"># Feature: LivAreaPerLotArea
+# Strategy: size_efficiency
+# Enhances: GrLivArea (top 2), LotArea (top 5)
+# Description: Ratio of above-grade living area to total lot area, indicating building density or footprint on the lot.
+df['LivAreaPerLotArea'] = df['GrLivArea'] / df['LotArea'].replace(0, 1).fillna(1) # Replace 0 with 1 in LotArea to avoid division by zero</pre>
+                    </details></td>
+                <td class="description">Ratio: GrLivArea / LotArea # Replace 0 with 1 in LotArea to avoid division by zero</td>
+                <td>0.09987</td>
+                <td class="delta">+0.00001</td>
+                <td class="result">✓ KEPT</td>
+            </tr>
+            <tr class="status-kept">
+                <td>5</td>
+                <td>
+                    <details>
+                        <summary><strong>Neighborhood_Frequency</strong></summary>
+                        <pre class="code-block"># Feature: Neighborhood_Frequency
+# Strategy: frequency_encoding
+# Enhances: (Indirectly) OverallQual, GrLivArea, YearBuilt by providing context for Neighborhood
+# Description: Replaces each Neighborhood with the frequency of its occurrence in the dataset, indicating its prevalence.
+neighborhood_counts = df['Neighborhood'].value_counts()
+df['Neighborhood_Frequency'] = df['Neighborhood'].map(neighborhood_counts).fillna(0) # Fillna(0) for any unseen categories</pre>
+                    </details></td>
+                <td class="description">Transform: Neighborhood.map(neighborhood_counts) # Fillna(0) for any unseen categories</td>
+                <td>0.09947</td>
+                <td class="delta">+0.00041</td>
+                <td class="result">✓ KEPT</td>
+            </tr>
+            <tr class="status-kept">
+                <td>6</td>
+                <td>
+                    <details>
+                        <summary><strong>GrLivArea_OverallQual_Interaction</strong></summary>
+                        <pre class="code-block"># Feature: GrLivArea_OverallQual_Interaction
+# Strategy: Interaction
+# Enhances: OverallQual (1) and GrLivArea (2) by multiplying them. This captures homes that are both large and high quality.
+df['GrLivArea_OverallQual_Interaction'] = df['GrLivArea'] * df['OverallQual']</pre>
+                    </details></td>
+                <td class="description">Interaction: GrLivArea * OverallQual</td>
+                <td>0.09893</td>
+                <td class="delta">+0.00053</td>
+                <td class="result">✓ KEPT</td>
+            </tr>
+            <tr class="status-kept">
+                <td>13</td>
+                <td>
+                    <details>
+                        <summary><strong>HasFinishedBsmt</strong></summary>
+                        <pre class="code-block"># Feature: HasFinishedBsmt
+# Strategy: binary
+# Enhances: BsmtFinSF1 (top 10), TotalBsmtSF (top 6)
+# Description: Binary flag indicating if the house has any finished basement area (BsmtFinSF1 or BsmtFinSF2 greater than 0).
+df['HasFinishedBsmt'] = ((df['BsmtFinSF1'].fillna(0) &gt; 0) | (df['BsmtFinSF2'].fillna(0) &gt; 0)).astype(int)</pre>
+                    </details></td>
+                <td class="description">Binary indicator: ((BsmtFinSF1 > 0) | (BsmtFinSF2 > 0)).astype(int)</td>
+                <td>0.09879</td>
+                <td class="delta">+0.00014</td>
+                <td class="result">✓ KEPT</td>
+            </tr>
+            <tr class="status-kept">
+                <td>19</td>
+                <td>
+                    <details>
+                        <summary><strong>LotShape_Ordinal</strong></summary>
+                        <pre class="code-block"># Feature: LotShape_Ordinal
+# Strategy: ordinal_from_description
+# Enhances: LotArea (top 6) by providing qualitative shape context.
+# Description: Converts the 'LotShape' categorical feature into an ordinal numerical scale based on the level of irregularity described in the data.
+lot_shape_map = {'Reg': 0, 'IR1': 1, 'IR2': 2, 'IR3': 3}
+df['LotShape_Ordinal'] = df['LotShape'].map(lot_shape_map).fillna(0) # Fill with 0 (Regular) if NaN</pre>
+                    </details></td>
+                <td class="description">Transform: LotShape.map(lot_shape_map) # Fill with 0 (Regular) if NaN</td>
+                <td>0.09862</td>
+                <td class="delta">+0.00017</td>
+                <td class="result">✓ KEPT</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Legend</h2>
+    <ul class="legend">
+        <li><span class="legend-kept">✓ KEPT</span> - Feature improved the model and was added to the pipeline</li>
+        <li><span class="legend-rejected">✗ REJECTED</span> - Feature did not improve the model and was discarded</li>
+        <li><strong>Change</strong> - Positive = improvement (lower RMSLE is better)</li>
+        <li>Click on feature names to expand and see the actual code</li>
+    </ul>
+
+    <p class="timestamp">Generated: 2025-11-30 19:39:01</p>
+</body>
+</html>

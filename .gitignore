@@ -1,6 +1,5 @@
 recordings/
 venv/
-outputs/
 *.pyc
 __pycache__/
 .env

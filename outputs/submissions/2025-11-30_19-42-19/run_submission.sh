@@ -24,7 +24,6 @@ python -m src.agent.parallel_agent \
     -w $WORKERS \
     -b $BATCH_SIZE \
     --feedback \
-    --include-ames \
     --clear
 
 # Step 2: Generate Submission

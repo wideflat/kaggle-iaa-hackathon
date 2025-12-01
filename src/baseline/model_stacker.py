@@ -1,110 +1,91 @@
 """
-Model stacking for final prediction
-
-Combines multiple models using weighted averaging:
-- Ridge, Lasso, ElasticNet (linear models, 30% weight)
-- SVR (kernel-based model, 10% weight)
-- XGBoost, LightGBM (tree models, 60% weight)
+Kaggle-style 3-Layer Model Blending + Stacking using mlxtend
 
 Based on top Kaggle Ames Housing solutions.
+
+Architecture:
+- Layer 1: 7 individual models (Ridge, Lasso, ElasticNet, SVR, GBR, XGBoost, LightGBM)
+- Layer 2:
+    a) Weighted average of Layer 1 predictions
+    b) StackingCVRegressor with XGBoost meta-regressor
+- Layer 3: 50/50 blend of Layer 2a and Layer 2b
 """
 
 import os
 import json
+import warnings
 import numpy as np
 import pandas as pd
 from typing import Dict, Tuple, Optional
-from sklearn.model_selection import KFold
-from sklearn.linear_model import Ridge, Lasso, ElasticNet
+from sklearn.model_selection import KFold, cross_val_score
+from sklearn.linear_model import Ridge, Lasso, ElasticNet, RidgeCV, LassoCV, ElasticNetCV
 from sklearn.preprocessing import RobustScaler
 from sklearn.pipeline import make_pipeline
 from sklearn.svm import SVR
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.base import clone
+from sklearn.metrics import mean_squared_error
+from mlxtend.regressor import StackingCVRegressor
 import lightgbm as lgb
 import xgboost as xgb
 
 
 class ModelStacker:
     """
-    Stack multiple models for improved predictions.
+    Kaggle-style 3-layer model stacking with mlxtend StackingCVRegressor.
 
-    Models:
-    - Ridge (alpha=10) - Linear, robust to multicollinearity
-    - Lasso (alpha=0.0005) - Linear, feature selection built-in
-    - ElasticNet (alpha=0.0005, l1_ratio=0.9) - Linear, balanced L1/L2
-    - SVR (C=20, epsilon=0.008, gamma=0.0003) - Kernel-based, non-linear patterns
-    - XGBoost - Tree-based, different from LightGBM
-    - LightGBM - Tree-based, fast and accurate
-
-    Linear models use RobustScaler for feature scaling.
-    SVR has RobustScaler in its pipeline.
-    Tree models use raw features.
-
-    Blending: Weighted average with configurable weights.
+    Architecture:
+    - Layer 1: 7 individual models
+    - Layer 2a: Weighted average of Layer 1
+    - Layer 2b: StackingCVRegressor
+    - Layer 3: 50/50 blend of Layer 2a and Layer 2b
     """
 
     def __init__(
         self,
-        n_folds: int = 5,
+        n_folds: int = 10,
         lgb_params_path: Optional[str] = 'outputs/models/best_lgbm_params.json',
         xgb_params_path: Optional[str] = 'outputs/models/best_xgb_params.json',
-        verbose: bool = True,
-        enable_stacking: bool = True,
-        meta_learner_type: str = 'ridge',
-        meta_learner_alpha: float = 1.0,
-        layer3_weights: Optional[Dict[str, float]] = None,
-        verbose_layers: bool = True
+        verbose: bool = True
     ):
         """
-        Initialize model stacker with three-layer ensemble architecture.
+        Initialize model stacker.
 
         Args:
-            n_folds: Number of CV folds for stacking
-            lgb_params_path: Path to tuned LightGBM params (optional)
-            xgb_params_path: Path to tuned XGBoost params (optional)
+            n_folds: Number of CV folds
+            lgb_params_path: Path to tuned LightGBM params
+            xgb_params_path: Path to tuned XGBoost params
             verbose: Print progress
-            enable_stacking: Enable Layer 2b stacking meta-learner (default: True)
-            meta_learner_type: Type of meta-learner ('ridge', 'lasso', 'elasticnet')
-            meta_learner_alpha: Regularization strength for meta-learner
-            layer3_weights: Custom weights for Layer 3 ensemble (default: 50-50)
-            verbose_layers: Show OOF scores for each layer
         """
         self.n_folds = n_folds
         self.verbose = verbose
-        self.scaler = RobustScaler()
-
-        # Three-layer ensemble parameters
-        self.enable_stacking = enable_stacking
-        self.meta_learner_type = meta_learner_type
-        self.meta_learner_alpha = meta_learner_alpha
-        self.verbose_layers = verbose_layers
-
-        # Layer 3 weights (default: equal weighting)
-        if layer3_weights is None:
-            self.layer3_weights = {'weighted': 0.5, 'stacking': 0.5}
-        else:
-            assert abs(sum(layer3_weights.values()) - 1.0) < 0.001, \
-                "Layer 3 weights must sum to 1.0"
-            self.layer3_weights = layer3_weights
+        self.kfolds = KFold(n_splits=n_folds, shuffle=True, random_state=42)
 
         # Load tuned params or use defaults
         self.lgb_params = self._load_params(lgb_params_path, 'lgb')
         self.xgb_params = self._load_params(xgb_params_path, 'xgb')
 
-        # Layer 2a: Model weights for weighted average (sum to 1.0)
-        self.weights = {
+        # Layer 1: Blending weights for individual models (sum to 1.0)
+        self.layer1_weights = {
             'ridge': 0.10,
             'lasso': 0.10,
             'elasticnet': 0.10,
-            'svr': 0.10,
-            'xgboost': 0.30,
-            'lightgbm': 0.30
+            'svr': 0.05,  # Lower weight due to higher error
+            'gbr': 0.20,
+            'xgboost': 0.20,
+            'lightgbm': 0.25,
         }
 
-        # Store trained models and OOF predictions
+        # Layer 3: Blend weights for Layer 2 outputs
+        self.layer3_weights = {
+            'weighted': 0.75,
+            'stacking': 0.25
+        }
+
+        # Trained models storage
         self.models = {}
+        self.stack_gen = None
         self.oof_predictions = {}
-        self.meta_learner = None
 
     def _load_params(self, path: Optional[str], model_type: str) -> dict:
         """Load tuned parameters from file or return defaults."""
@@ -115,185 +96,129 @@ class ModelStacker:
                 print(f"   Loaded tuned {model_type} params from {path}")
             return params
 
-        # Default parameters
+        # Default parameters (from Kaggle notebook)
         if model_type == 'lgb':
             return {
-                'n_estimators': 3000,
+                'objective': 'regression',
+                'num_leaves': 4,
                 'learning_rate': 0.01,
-                'max_depth': 5,
-                'num_leaves': 31,
-                'min_child_samples': 20,
-                'subsample': 0.8,
-                'colsample_bytree': 0.8,
-                'reg_alpha': 0.5,
-                'reg_lambda': 0.5,
-                'random_state': 42,
-                'verbosity': -1
+                'n_estimators': 5000,
+                'max_bin': 200,
+                'bagging_fraction': 0.75,
+                'bagging_freq': 5,
+                'bagging_seed': 7,
+                'feature_fraction': 0.2,
+                'feature_fraction_seed': 7,
+                'verbose': -1,
+                'random_state': 42
             }
         else:  # xgb
             return {
-                'n_estimators': 3000,
                 'learning_rate': 0.01,
-                'max_depth': 5,
-                'min_child_weight': 3,
-                'subsample': 0.8,
-                'colsample_bytree': 0.8,
-                'reg_alpha': 0.5,
-                'reg_lambda': 0.5,
+                'n_estimators': 3460,
+                'max_depth': 3,
+                'min_child_weight': 0,
+                'gamma': 0,
+                'subsample': 0.7,
+                'colsample_bytree': 0.7,
+                'reg_alpha': 0.00006,
                 'random_state': 42,
                 'verbosity': 0
             }
 
-    def _get_base_models(self) -> Dict:
-        """Get base model instances."""
+    def _create_base_models(self) -> Dict:
+        """Create all base model instances with Kaggle hyperparameters."""
+        # Alpha ranges for CV-tuned linear models
+        alphas_ridge = [14.5, 14.6, 14.7, 14.8, 14.9, 15, 15.1, 15.2, 15.3, 15.4, 15.5]
+        alphas_lasso = [5e-05, 0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.0008]
+        alphas_elastic = [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007]
+        l1_ratios = [0.8, 0.85, 0.9, 0.95, 0.99, 1]
+
         return {
-            'ridge': Ridge(alpha=10, random_state=42),
-            'lasso': Lasso(alpha=0.0005, random_state=42, max_iter=10000),
-            'elasticnet': ElasticNet(
-                alpha=0.0005, l1_ratio=0.9, random_state=42, max_iter=10000
+            'ridge': make_pipeline(
+                RobustScaler(),
+                RidgeCV(alphas=alphas_ridge, cv=self.kfolds)
+            ),
+            'lasso': make_pipeline(
+                RobustScaler(),
+                LassoCV(max_iter=int(1e7), alphas=alphas_lasso, random_state=42, cv=self.kfolds)
+            ),
+            'elasticnet': make_pipeline(
+                RobustScaler(),
+                ElasticNetCV(max_iter=int(1e7), alphas=alphas_elastic, cv=self.kfolds, l1_ratio=l1_ratios)
             ),
             'svr': make_pipeline(
                 RobustScaler(),
                 SVR(C=20, epsilon=0.008, gamma=0.0003)
             ),
+            'gbr': GradientBoostingRegressor(
+                n_estimators=3000,
+                learning_rate=0.05,
+                max_depth=4,
+                max_features='sqrt',
+                min_samples_leaf=15,
+                min_samples_split=10,
+                loss='huber',
+                random_state=42
+            ),
             'xgboost': xgb.XGBRegressor(**self.xgb_params),
             'lightgbm': lgb.LGBMRegressor(**self.lgb_params)
         }
 
-    def _create_meta_features(
-        self,
-        predictions_dict: Dict[str, np.ndarray]
-    ) -> np.ndarray:
-        """
-        Create meta-features from base model predictions.
+    def _create_stacking_regressor(self) -> StackingCVRegressor:
+        """Create mlxtend StackingCVRegressor with XGBoost meta-regressor."""
+        # Alpha ranges for CV-tuned linear models
+        alphas_ridge = [14.5, 14.6, 14.7, 14.8, 14.9, 15, 15.1, 15.2, 15.3, 15.4, 15.5]
+        alphas_lasso = [5e-05, 0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.0008]
+        alphas_elastic = [0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007]
+        l1_ratios = [0.8, 0.85, 0.9, 0.95, 0.99, 1]
 
-        Args:
-            predictions_dict: Dict mapping model names to predictions
+        # Base estimators for stacking
+        ridge = make_pipeline(
+            RobustScaler(),
+            RidgeCV(alphas=alphas_ridge, cv=self.kfolds)
+        )
+        lasso = make_pipeline(
+            RobustScaler(),
+            LassoCV(max_iter=int(1e7), alphas=alphas_lasso, random_state=42, cv=self.kfolds)
+        )
+        elasticnet = make_pipeline(
+            RobustScaler(),
+            ElasticNetCV(max_iter=int(1e7), alphas=alphas_elastic, cv=self.kfolds, l1_ratio=l1_ratios)
+        )
+        gbr = GradientBoostingRegressor(
+            n_estimators=3000,
+            learning_rate=0.05,
+            max_depth=4,
+            max_features='sqrt',
+            min_samples_leaf=15,
+            min_samples_split=10,
+            loss='huber',
+            random_state=42
+        )
+        xgboost = xgb.XGBRegressor(**self.xgb_params)
+        lightgbm = lgb.LGBMRegressor(**self.lgb_params)
 
-        Returns:
-            np.ndarray of shape (n_samples, n_models) with predictions stacked column-wise
-        """
-        # Consistent ordering of base models
-        model_order = ['ridge', 'lasso', 'elasticnet', 'svr', 'xgboost', 'lightgbm']
-
-        # Stack predictions column-wise
-        meta_features = np.column_stack([
-            predictions_dict[name] for name in model_order
-        ])
-
-        return meta_features
-
-    def _train_meta_learner(self, y_train: pd.Series):
-        """
-        Train meta-learner on OOF predictions from Layer 1.
-
-        Args:
-            y_train: Training target (log-transformed)
-
-        Returns:
-            Trained meta-learner model
-        """
-        # Create meta-features from OOF predictions
-        X_meta = self._create_meta_features(self.oof_predictions)
-
-        # Select meta-learner type
-        if self.meta_learner_type == 'ridge':
-            meta_model = Ridge(alpha=self.meta_learner_alpha, random_state=42)
-        elif self.meta_learner_type == 'lasso':
-            meta_model = Lasso(
-                alpha=self.meta_learner_alpha,
-                random_state=42,
-                max_iter=10000
-            )
-        elif self.meta_learner_type == 'elasticnet':
-            meta_model = ElasticNet(
-                alpha=self.meta_learner_alpha,
-                l1_ratio=0.9,
-                random_state=42,
-                max_iter=10000
-            )
-        else:
-            raise ValueError(
-                f"Unknown meta_learner_type: {self.meta_learner_type}. "
-                f"Choose from: 'ridge', 'lasso', 'elasticnet'"
-            )
-
-        # Train on OOF predictions (no leakage)
-        y_arr = y_train.values if hasattr(y_train, 'values') else y_train
-        meta_model.fit(X_meta, y_arr)
-
-        return meta_model
-
-    def _get_stacking_predictions(
-        self,
-        test_predictions_dict: Dict[str, np.ndarray],
-        meta_learner
-    ) -> np.ndarray:
-        """
-        Get stacking predictions using trained meta-learner.
-
-        Args:
-            test_predictions_dict: Dict mapping model names to test predictions
-            meta_learner: Trained meta-learner model
-
-        Returns:
-            Stacking predictions
-        """
-        # Create meta-features from test predictions
-        X_meta_test = self._create_meta_features(test_predictions_dict)
-
-        # Apply meta-learner
-        stacking_pred = meta_learner.predict(X_meta_test)
-
-        return stacking_pred
-
-    def _calculate_layer_scores(
-        self,
-        y_train: pd.Series,
-        weighted_pred_oof: np.ndarray,
-        stacking_pred_oof: Optional[np.ndarray] = None,
-        final_pred_oof: Optional[np.ndarray] = None
-    ) -> Dict[str, float]:
-        """
-        Calculate OOF RMSE for all layers.
-
-        Args:
-            y_train: Training target (log-transformed)
-            weighted_pred_oof: Layer 2a OOF predictions
-            stacking_pred_oof: Layer 2b OOF predictions (optional)
-            final_pred_oof: Layer 3 OOF predictions (optional)
-
-        Returns:
-            Dict mapping layer names to OOF RMSE scores
-        """
-        y_arr = y_train.values if hasattr(y_train, 'values') else y_train
-
-        scores = {}
-
-        # Layer 1: Individual base model scores
-        scores['layer1'] = {}
-        for name, oof_pred in self.oof_predictions.items():
-            rmse = np.sqrt(np.mean((oof_pred - y_arr) ** 2))
-            scores['layer1'][name] = rmse
-
-        # Layer 2a: Weighted average
-        scores['layer2_weighted'] = np.sqrt(
-            np.mean((weighted_pred_oof - y_arr) ** 2)
+        # Meta-regressor (XGBoost)
+        meta_xgb = xgb.XGBRegressor(
+            learning_rate=0.01,
+            n_estimators=2000,
+            max_depth=3,
+            min_child_weight=0,
+            gamma=0,
+            subsample=0.7,
+            colsample_bytree=0.7,
+            reg_alpha=0.00006,
+            random_state=42,
+            verbosity=0
         )
 
-        # Layer 2b: Stacking (if enabled)
-        if stacking_pred_oof is not None:
-            scores['layer2_stacking'] = np.sqrt(
-                np.mean((stacking_pred_oof - y_arr) ** 2)
-            )
-
-        # Layer 3: Final ensemble
-        if final_pred_oof is not None:
-            scores['layer3_final'] = np.sqrt(
-                np.mean((final_pred_oof - y_arr) ** 2)
-            )
-
-        return scores
+        # Use mlxtend StackingCVRegressor
+        return StackingCVRegressor(
+            regressors=(ridge, lasso, elasticnet, gbr, xgboost, lightgbm),
+            meta_regressor=meta_xgb,
+            use_features_in_secondary=True  # Include original features for meta-regressor
+        )
 
     def fit_predict(
         self,
@@ -302,13 +227,7 @@ class ModelStacker:
         X_test: pd.DataFrame
     ) -> Tuple[np.ndarray, Dict[str, np.ndarray], Dict]:
         """
-        Fit all models using CV and generate three-layer ensemble predictions.
-
-        Architecture:
-            Layer 1: 6 base models (Ridge, Lasso, ElasticNet, SVR, XGBoost, LightGBM)
-            Layer 2a: Weighted average of Layer 1
-            Layer 2b: Stacking meta-learner trained on Layer 1 OOF predictions
-            Layer 3: Ensemble of Layer 2a and 2b
+        Fit all models and generate 3-layer blended predictions.
 
         Args:
             X_train: Training features
@@ -318,200 +237,163 @@ class ModelStacker:
         Returns:
             Tuple of (final_predictions, layer_predictions_dict, oof_scores_dict)
         """
-        # ===== LAYER 1: Train base models =====
+        # Convert to numpy arrays for mlxtend compatibility
+        X_arr = np.array(X_train) if hasattr(X_train, 'values') else np.array(X_train)
+        y_arr = np.array(y_train) if hasattr(y_train, 'values') else np.array(y_train)
+        X_test_arr = np.array(X_test) if hasattr(X_test, 'values') else np.array(X_test)
+
+        layer1_preds = {}
+        layer1_oof = {}
+
+        # ===== LAYER 1: Train individual models =====
         if self.verbose:
-            print("\n   === LAYER 1: Base Models ===")
+            print("\n   === Layer 1: Training Individual Models ===")
 
-        # Convert to arrays for scaling (linear models only)
-        X_train_arr = X_train.values if hasattr(X_train, 'values') else X_train
-        X_test_arr = X_test.values if hasattr(X_test, 'values') else X_test
-
-        X_train_scaled = self.scaler.fit_transform(X_train_arr)
-        X_test_scaled = self.scaler.transform(X_test_arr)
-
-        predictions = {}
-        base_models = self._get_base_models()
+        base_models = self._create_base_models()
 
         for name, model in base_models.items():
             if self.verbose:
                 print(f"   Training {name}...")
 
-            # Use scaled arrays for linear models (Ridge, Lasso, ElasticNet)
-            # SVR has RobustScaler in its pipeline, so use raw data
-            # Tree models use raw data (no scaling needed)
-            if name in ['ridge', 'lasso', 'elasticnet']:
-                train_data = X_train_scaled
-                test_data = X_test_scaled
-            else:
-                # Keep as DataFrame to preserve feature names (tree models)
-                # Or use raw arrays (SVR handles scaling internally)
-                train_data = X_train
-                test_data = X_test
+            # Fit on full data
+            model.fit(X_arr, y_arr)
+            self.models[name] = model
 
-            # Fit with CV and predict
-            test_pred, oof_pred = self._fit_predict_cv(
-                model, train_data, y_train, test_data
-            )
+            # Generate test predictions
+            layer1_preds[name] = model.predict(X_test_arr)
 
-            predictions[name] = test_pred
+            # Calculate OOF predictions for scoring
+            oof_pred = self._get_oof_predictions(model, X_arr, y_arr)
+            layer1_oof[name] = oof_pred
             self.oof_predictions[name] = oof_pred
 
             if self.verbose:
-                oof_rmse = np.sqrt(np.mean((oof_pred - y_train) ** 2))
+                oof_rmse = np.sqrt(np.mean((oof_pred - y_arr) ** 2))
                 print(f"      {name} OOF RMSE: {oof_rmse:.5f}")
 
-        # ===== LAYER 2a: Weighted Average =====
+        # ===== LAYER 2a: Weighted average of Layer 1 =====
         if self.verbose:
-            print("\n   === LAYER 2a: Weighted Average ===")
+            print("\n   === Layer 2a: Weighted Average ===")
+            print(f"   Weights: {self.layer1_weights}")
 
-        weighted_pred = sum(
-            self.weights[name] * pred
-            for name, pred in predictions.items()
-        )
+        # Test predictions
+        layer2_weighted = np.zeros(len(X_test_arr))
+        for name, weight in self.layer1_weights.items():
+            layer2_weighted += weight * layer1_preds[name]
 
-        weighted_oof = sum(
-            self.weights[name] * self.oof_predictions[name]
-            for name in self.weights.keys()
-        )
+        # OOF predictions
+        layer2_weighted_oof = np.zeros(len(X_arr))
+        for name, weight in self.layer1_weights.items():
+            layer2_weighted_oof += weight * layer1_oof[name]
 
+        weighted_oof_rmse = np.sqrt(np.mean((layer2_weighted_oof - y_arr) ** 2))
         if self.verbose:
-            weighted_rmse = np.sqrt(np.mean((weighted_oof - y_train) ** 2))
-            print(f"   OOF RMSE: {weighted_rmse:.5f}")
+            print(f"   Layer 2a (Weighted) OOF RMSE: {weighted_oof_rmse:.5f}")
 
-        # ===== LAYER 2b: Stacking Meta-Learner =====
-        stacking_pred = None
-        stacking_oof = None
+        # ===== LAYER 2b: StackingCVRegressor =====
+        if self.verbose:
+            print("\n   === Layer 2b: StackingCVRegressor (mlxtend) ===")
+            print("   Base models: ridge, lasso, elasticnet, gbr, xgboost, lightgbm")
+            print("   Meta-regressor: XGBoost")
+            print("   use_features_in_secondary: True")
 
-        if self.enable_stacking:
-            if self.verbose:
-                print("\n   === LAYER 2b: Stacking Meta-Learner ===")
-                print(f"   Training meta-learner ({self.meta_learner_type}, "
-                      f"alpha={self.meta_learner_alpha})...")
+        self.stack_gen = self._create_stacking_regressor()
+        self.stack_gen.fit(X_arr, y_arr)
 
-            # Train meta-learner on OOF predictions
-            self.meta_learner = self._train_meta_learner(y_train)
+        # Test predictions
+        layer2_stacking = self.stack_gen.predict(X_test_arr)
 
-            # Get stacking predictions
-            stacking_pred = self._get_stacking_predictions(
-                predictions, self.meta_learner
-            )
+        # OOF predictions (train data predictions - note: this is optimistic)
+        layer2_stacking_oof = self.stack_gen.predict(X_arr)
 
-            # Get stacking OOF predictions (meta-learner on OOF features)
-            X_meta_oof = self._create_meta_features(self.oof_predictions)
-            stacking_oof = self.meta_learner.predict(X_meta_oof)
+        stacking_oof_rmse = np.sqrt(np.mean((layer2_stacking_oof - y_arr) ** 2))
+        if self.verbose:
+            print(f"   Layer 2b (Stacking) train RMSE: {stacking_oof_rmse:.5f}")
 
-            if self.verbose:
-                stacking_rmse = np.sqrt(np.mean((stacking_oof - y_train) ** 2))
-                print(f"   OOF RMSE: {stacking_rmse:.5f}")
+        # ===== LAYER 3: Final blend (50/50) =====
+        if self.verbose:
+            print("\n   === Layer 3: Final Blend ===")
+            print(f"   Weights: {self.layer3_weights}")
 
-        # ===== LAYER 3: Final Ensemble =====
-        if self.enable_stacking:
-            if self.verbose:
-                print("\n   === LAYER 3: Final Ensemble ===")
-                print(f"   Weights: weighted={self.layer3_weights['weighted']:.2f}, "
-                      f"stacking={self.layer3_weights['stacking']:.2f}")
-
-            final_pred = (
-                self.layer3_weights['weighted'] * weighted_pred +
-                self.layer3_weights['stacking'] * stacking_pred
-            )
-
-            final_oof = (
-                self.layer3_weights['weighted'] * weighted_oof +
-                self.layer3_weights['stacking'] * stacking_oof
-            )
-
-            if self.verbose:
-                final_rmse = np.sqrt(np.mean((final_oof - y_train) ** 2))
-                print(f"   OOF RMSE: {final_rmse:.5f}")
-        else:
-            # If stacking disabled, use weighted average as final
-            final_pred = weighted_pred
-            final_oof = weighted_oof
-
-        # ===== Calculate all layer scores =====
-        oof_scores = self._calculate_layer_scores(
-            y_train,
-            weighted_oof,
-            stacking_oof,
-            final_oof if self.enable_stacking else None
+        # Test predictions
+        layer3_final = (
+            self.layer3_weights['weighted'] * layer2_weighted +
+            self.layer3_weights['stacking'] * layer2_stacking
         )
+
+        # OOF predictions
+        layer3_final_oof = (
+            self.layer3_weights['weighted'] * layer2_weighted_oof +
+            self.layer3_weights['stacking'] * layer2_stacking_oof
+        )
+
+        final_oof_rmse = np.sqrt(np.mean((layer3_final_oof - y_arr) ** 2))
+        if self.verbose:
+            print(f"   Layer 3 (Final) OOF RMSE: {final_oof_rmse:.5f}")
+
+        # ===== Calculate scores =====
+        oof_scores = {'layer1': {}}
+        for name, oof_pred in layer1_oof.items():
+            oof_scores['layer1'][name] = np.sqrt(np.mean((oof_pred - y_arr) ** 2))
+
+        oof_scores['layer2_weighted'] = weighted_oof_rmse
+        oof_scores['layer2_stacking'] = stacking_oof_rmse
+        oof_scores['layer3_final'] = final_oof_rmse
 
         # ===== Prepare return values =====
         layer_predictions = {
             # Test predictions
-            'layer1': predictions,
-            'layer2_weighted': weighted_pred,
-            'layer2_stacking': stacking_pred,
-            'layer3_final': final_pred,
+            'layer1': layer1_preds,
+            'layer2_weighted': layer2_weighted,
+            'layer2_stacking': layer2_stacking,
+            'layer3_final': layer3_final,
             # OOF predictions
-            'oof_layer1': self.oof_predictions,
-            'oof_layer2_weighted': weighted_oof,
-            'oof_layer2_stacking': stacking_oof,
-            'oof_layer3_final': final_oof if self.enable_stacking else weighted_oof
+            'oof_layer1': layer1_oof,
+            'oof_layer2_weighted': layer2_weighted_oof,
+            'oof_layer2_stacking': layer2_stacking_oof,
+            'oof_layer3_final': layer3_final_oof
         }
 
-        return final_pred, layer_predictions, oof_scores
+        return layer3_final, layer_predictions, oof_scores
 
-    def _fit_predict_cv(
+    def _get_oof_predictions(
         self,
         model,
-        X,
-        y: pd.Series,
-        X_test
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Fit model with CV, generate OOF and test predictions.
-
-        Args:
-            model: sklearn-compatible model
-            X: Training features (DataFrame or ndarray)
-            y: Training target
-            X_test: Test features (DataFrame or ndarray)
-
-        Returns:
-            Tuple of (test_predictions, oof_predictions)
-        """
-        kf = KFold(n_splits=self.n_folds, shuffle=True, random_state=42)
-
-        test_preds = np.zeros(len(X_test))
+        X: np.ndarray,
+        y: np.ndarray
+    ) -> np.ndarray:
+        """Generate out-of-fold predictions for a model."""
         oof_preds = np.zeros(len(X))
 
-        y_arr = y.values if hasattr(y, 'values') else y
+        for train_idx, val_idx in self.kfolds.split(X):
+            X_tr, X_val = X[train_idx], X[val_idx]
+            y_tr = y[train_idx]
 
-        # Check if X is DataFrame or array
-        is_dataframe = isinstance(X, pd.DataFrame)
-
-        for fold, (train_idx, val_idx) in enumerate(kf.split(X), 1):
-            # Use iloc for DataFrames, direct indexing for arrays
-            if is_dataframe:
-                X_tr, X_val = X.iloc[train_idx], X.iloc[val_idx]
-            else:
-                X_tr, X_val = X[train_idx], X[val_idx]
-
-            y_tr, y_val = y_arr[train_idx], y_arr[val_idx]
-
-            # Clone model for each fold
             fold_model = clone(model)
             fold_model.fit(X_tr, y_tr)
-
-            # OOF predictions
             oof_preds[val_idx] = fold_model.predict(X_val)
 
-            # Test predictions (average across folds)
-            test_preds += fold_model.predict(X_test) / self.n_folds
+        return oof_preds
 
-        return test_preds, oof_preds
-
-    def set_weights(self, weights: Dict[str, float]):
+    def set_layer1_weights(self, weights: Dict[str, float]):
         """
-        Set custom model weights.
+        Set custom Layer 1 blending weights.
 
         Args:
             weights: Dict mapping model names to weights (should sum to 1.0)
         """
         assert abs(sum(weights.values()) - 1.0) < 0.001, "Weights must sum to 1.0"
-        self.weights = weights
+        self.layer1_weights = weights
+
+    def set_layer3_weights(self, weights: Dict[str, float]):
+        """
+        Set custom Layer 3 blending weights.
+
+        Args:
+            weights: Dict with 'weighted' and 'stacking' keys (should sum to 1.0)
+        """
+        assert abs(sum(weights.values()) - 1.0) < 0.001, "Weights must sum to 1.0"
+        self.layer3_weights = weights
 
     def get_oof_predictions(self) -> Dict[str, np.ndarray]:
         """Get out-of-fold predictions for each model."""

@@ -1,0 +1,47 @@
+{
+  "timestamp": "2025-11-30_18-46-03",
+  "data": {
+    "train_shape": [
+      1464,
+      81
+    ],
+    "test_shape": [
+      1465,
+      80
+    ],
+    "outliers_removed": 0,
+    "features_count": 79,
+    "selected_features_count": 70
+  },
+  "agent_features": {
+    "count": 0,
+    "names": []
+  },
+  "scores": {
+    "layer1": {
+      "ridge": 0.10194187414537957,
+      "lasso": 0.10212515937970391,
+      "elasticnet": 0.10211159591368571,
+      "svr": 0.14669462006424477,
+      "gbr": 0.09493239171423468,
+      "xgboost": 0.09710617111981903,
+      "lightgbm": 0.09900192021363431,
+      "stacking": 0.03585777542670109
+    },
+    "layer2_weighted": 0.07228341642718585,
+    "layer2_stacking": 0.03585777542670109,
+    "layer3_final": 0.07228341642718585
+  },
+  "predictions": {
+    "count": 1465,
+    "mean": 210443.15834137794,
+    "median": 190393.72830567395,
+    "min": 71806.60000442207,
+    "max": 803430.9396955634
+  },
+  "options": {
+    "skip_features": false,
+    "skip_selection": false,
+    "include_ames": false
+  }
+}

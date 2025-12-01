@@ -5,8 +5,8 @@ set -e  # Exit on error
 # Kaggle Submission Script
 # ============================================================
 # Configuration
-ITERATIONS=20
-WORKERS=4
+ITERATIONS=10
+WORKERS=2
 BATCH_SIZE=5
 
 echo "============================================================"
@@ -24,14 +24,13 @@ python -m src.agent.parallel_agent \
     -w $WORKERS \
     -b $BATCH_SIZE \
     --feedback \
-    --include-ames \
-    --clear
+    --clear \
+    --tune
 
 # Step 2: Generate Submission
 echo ""
 echo "Step 2: Generating submission..."
-python -m src.baseline.make_submission \
-    --skip-selection
+python -m src.baseline.make_submission
 
 echo ""
 echo "============================================================"
