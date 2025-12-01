@@ -19,6 +19,7 @@ Usage:
     --skip-selection    Skip feature selection
     --include-ames      Include AmesHousing.csv in training data
     --output PATH       Output path for submission (default: outputs/submission.csv)
+    --blend-weight      Weight for Layer 2a (weighted avg) in final blend (default: 0.75)
 """
 
 import os
@@ -104,7 +105,8 @@ def main(
     skip_features: bool = False,
     skip_selection: bool = False,
     include_ames: bool = False,
-    output_path: str = 'outputs/submission.csv'
+    output_path: str = 'outputs/submission.csv',
+    blend_weight: float = 0.75
 ):
     """
     Run end-to-end submission pipeline.
@@ -114,6 +116,7 @@ def main(
         skip_selection: Skip feature selection
         include_ames: Include AmesHousing.csv in training data
         output_path: Output path for submission CSV
+        blend_weight: Weight for Layer 2a (weighted avg) in Layer 3 blend (default: 0.75)
     """
     print("=" * 60)
     print("Submission Pipeline")
@@ -216,6 +219,14 @@ def main(
     # 7. Kaggle-style blending + stacking
     print("\n7. Kaggle-style blending + stacking...")
     stacker = ModelStacker(n_folds=10)
+
+    # Set custom Layer 3 blend weights
+    stacker.set_layer3_weights({
+        'weighted': blend_weight,
+        'stacking': 1.0 - blend_weight
+    })
+    print(f"   Layer 3 blend: {blend_weight:.0%} weighted avg + {1.0 - blend_weight:.0%} stacking")
+
     predictions, layer_preds, oof_scores = stacker.fit_predict(X_train, y_train, X_test)
 
     # Transform predictions back from log scale
@@ -305,7 +316,8 @@ def main(
         'options': {
             'skip_features': skip_features,
             'skip_selection': skip_selection,
-            'include_ames': include_ames
+            'include_ames': include_ames,
+            'blend_weight': blend_weight
         }
     }
     with open(f"{output_dir}/pipeline_info.json", 'w') as f:
@@ -365,11 +377,18 @@ if __name__ == '__main__':
         default='outputs/submission.csv',
         help='Output path for submission'
     )
+    parser.add_argument(
+        '--blend-weight',
+        type=float,
+        default=0.75,
+        help='Weight for Layer 2a (weighted avg) in final blend (default: 0.75)'
+    )
     args = parser.parse_args()
 
     main(
         skip_features=args.skip_features,
         skip_selection=args.skip_selection,
         include_ames=args.include_ames,
-        output_path=args.output
+        output_path=args.output,
+        blend_weight=args.blend_weight
     )
