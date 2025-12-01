@@ -13,7 +13,6 @@ Arguments:
     --workers, -w INT       Number of parallel workers (default: 2)
     --batch-size, -b INT    Features per Gemini batch (default: 5)
     --clear                 Clear previous memory and start fresh
-    --include-ames          Include AmesHousing.csv in training data
     --no-tuned-params       Skip tuned params, use large n_estimators with early stopping
     --tune                  Run hyperparameter tuning after feature engineering
     --feedback, -f          Enable SHAP-based feedback to guide feature generation
@@ -224,79 +223,90 @@ class ParallelFeatureAgent:
 
         Calls Gemini API in batches to generate features efficiently.
         """
+        import traceback
         features_generated = 0
 
-        while features_generated < self.total_iterations:
-            # Calculate batch size (don't generate more than needed)
-            remaining = self.total_iterations - features_generated
-            current_batch_size = min(self.batch_size, remaining)
+        try:
+            while features_generated < self.total_iterations:
+                # Calculate batch size (don't generate more than needed)
+                remaining = self.total_iterations - features_generated
+                current_batch_size = min(self.batch_size, remaining)
 
-            # Emit producer status
-            self.shared_state.set_producer_status('generating')
-            emit('producer_status', {
-                'status': 'generating',
-                'batch_size': current_batch_size,
-                'queue_size': self.shared_state.get_queue_size()
-            })
-
-            feedback_msg = " [SHAP]" if self.use_feedback else ""
-            print(f"\n[Producer] Generating batch of {current_batch_size} features...{feedback_msg}")
-
-            try:
-                # Get tried features for deduplication
-                tried_features = self.shared_state.get_tried_codes()
-
-                # Get SHAP summary if feedback is enabled
-                shap_summary = None
-                if self.use_feedback:
-                    try:
-                        # Get current accumulated dataframe
-                        current_df = self.shared_state.get_current_df()
-                        X_current, _ = get_features_and_target(current_df)
-                        # Refit evaluator on current data and get SHAP summary
-                        self.evaluator.evaluate(X_current, self.target, verbose=False)
-                        shap_summary = self.evaluator.get_shap_summary(top_n=10)
-                    except Exception as e:
-                        print(f"[Producer] SHAP feedback failed: {e}")
-
-                # Generate batch of features
-                batch = self.gemini.generate_feature_batch(
-                    self.data_desc,
-                    self.column_info,
-                    existing_features=tried_features,
-                    n_features=current_batch_size,
-                    shap_summary=shap_summary
-                )
-
-                print(f"[Producer] Generated {len(batch)} features, adding to queue")
-
-                # Add features to queue
-                for code in batch:
-                    self.shared_state.put_feature(code)
-                    features_generated += 1
-
-                # Emit batch with all feature codes for dashboard queue panel
-                emit('batch_generated', {
-                    'features': batch,
-                    'queue_size': self.shared_state.get_queue_size()
-                })
-
+                # Emit producer status
+                self.shared_state.set_producer_status('generating')
                 emit('producer_status', {
-                    'status': 'idle',
+                    'status': 'generating',
+                    'batch_size': current_batch_size,
                     'queue_size': self.shared_state.get_queue_size()
                 })
 
-            except Exception as e:
-                print(f"[Producer] Gemini error: {e}")
-                # On error, try smaller batch or wait
-                import time
-                time.sleep(2)
+                feedback_msg = " [SHAP]" if self.use_feedback else ""
+                print(f"\n[Producer] Generating batch of {current_batch_size} features...{feedback_msg}")
 
-        # Signal workers that production is complete
-        self.shared_state.set_producer_status('done')
-        self.shared_state.signal_done()
-        emit('producer_status', {'status': 'done', 'queue_size': 0})
-        print("[Producer] Done generating features")
+                try:
+                    # Get tried features for deduplication
+                    tried_features = self.shared_state.get_tried_codes()
+
+                    # Get SHAP summary if feedback is enabled
+                    shap_summary = None
+                    if self.use_feedback:
+                        try:
+                            print("[Producer] Computing SHAP feedback...")
+                            # Get current accumulated dataframe
+                            current_df = self.shared_state.get_current_df()
+                            X_current, _ = get_features_and_target(current_df)
+                            # Use fast SHAP method (no CV, lightweight model)
+                            self.evaluator.fit_for_shap(X_current, self.target)
+                            shap_summary = self.evaluator.get_shap_summary(top_n=10)
+                            print("[Producer] SHAP feedback ready")
+                        except Exception as e:
+                            print(f"[Producer] SHAP feedback failed: {e}")
+                            traceback.print_exc()
+
+                    # Generate batch of features
+                    print("[Producer] Calling Gemini API...")
+                    batch = self.gemini.generate_feature_batch(
+                        self.data_desc,
+                        self.column_info,
+                        existing_features=tried_features,
+                        n_features=current_batch_size,
+                        shap_summary=shap_summary
+                    )
+
+                    print(f"[Producer] Generated {len(batch)} features, adding to queue")
+
+                    # Add features to queue
+                    for code in batch:
+                        self.shared_state.put_feature(code)
+                        features_generated += 1
+
+                    # Emit batch with all feature codes for dashboard queue panel
+                    emit('batch_generated', {
+                        'features': batch,
+                        'queue_size': self.shared_state.get_queue_size()
+                    })
+
+                    emit('producer_status', {
+                        'status': 'idle',
+                        'queue_size': self.shared_state.get_queue_size()
+                    })
+
+                except Exception as e:
+                    print(f"[Producer] Gemini error: {e}")
+                    traceback.print_exc()
+                    # On error, try smaller batch or wait
+                    import time
+                    time.sleep(2)
+
+        except Exception as e:
+            print(f"[Producer] FATAL ERROR: {e}")
+            traceback.print_exc()
+        finally:
+            # Signal workers that production is complete
+            self.shared_state.set_producer_status('done')
+            self.shared_state.signal_done()
+            emit('producer_status', {'status': 'done', 'queue_size': 0})
+            print("[Producer] Done generating features")
 
     def _worker_loop(self, worker_id: int):
         """
@@ -314,11 +324,16 @@ class ParallelFeatureAgent:
             while True:
                 # Get feature from queue
                 self.shared_state.update_worker_status(worker_id, 'waiting')
-                code = self.shared_state.get_feature(timeout=60)
+                code = self.shared_state.get_feature(timeout=30)
 
-                # None is the poison pill - time to stop
+                # None means either timeout or poison pill
                 if code is None:
-                    break
+                    # Check if producer is done - if so, exit
+                    if self.shared_state.is_done():
+                        print(f"[Worker {worker_id}] Producer done, exiting")
+                        break
+                    # Otherwise, keep waiting silently (producer might still be generating)
+                    continue
 
                 # Get global iteration number (thread-safe atomic counter)
                 global_iteration = self.shared_state.get_next_iteration()
@@ -452,12 +467,19 @@ def main(
     n_workers: int = 2,
     batch_size: int = 5,
     clear_memory: bool = False,
-    include_ames: bool = False,
     no_tuned_params: bool = False,
     tune: bool = False,
     use_feedback: bool = False
 ):
     """Run parallel feature engineering agent with batched API calls"""
+
+    # Set global random seeds for reproducibility
+    import random
+    import numpy as np
+
+    SEED = 42
+    random.seed(SEED)
+    np.random.seed(SEED)
 
     # Start dashboard server
     import webbrowser
@@ -489,7 +511,7 @@ def main(
     # Load data
     print("\n1. Loading data...")
     loader = AmesDataLoader()
-    train_df = loader.load_train(include_ames=include_ames)
+    train_df = loader.load_train()
     data_desc = loader.load_description()
     print(f"   Train shape: {train_df.shape}")
 
@@ -623,8 +645,6 @@ if __name__ == '__main__':
                         help='Features per Gemini API batch (default: 5)')
     parser.add_argument('--clear', action='store_true',
                         help='Clear previous memory and start fresh')
-    parser.add_argument('--include-ames', action='store_true',
-                        help='Include AmesHousing.csv in training data')
     parser.add_argument('--no-tuned-params', action='store_true',
                         help='Skip tuned params, use large n_estimators with early stopping')
     parser.add_argument('--tune', action='store_true',
@@ -638,7 +658,6 @@ if __name__ == '__main__':
         n_workers=args.workers,
         batch_size=args.batch_size,
         clear_memory=args.clear,
-        include_ames=args.include_ames,
         no_tuned_params=args.no_tuned_params,
         tune=args.tune,
         use_feedback=args.feedback

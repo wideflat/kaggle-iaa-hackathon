@@ -24,7 +24,9 @@ python -m src.agent.parallel_agent \
     -w $WORKERS \
     -b $BATCH_SIZE \
     --feedback \
+    --include-hparg \
     --clear
+    # --include-ames  # Uncomment to add extra training data
 
 # Step 2: Generate Submission
 echo ""

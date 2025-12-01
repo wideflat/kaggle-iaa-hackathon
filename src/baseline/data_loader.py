@@ -111,12 +111,34 @@ class AmesDataLoader:
 
         return df
 
-    def load_train(self, include_ames: bool = False) -> pd.DataFrame:
+    def load_hparg(self) -> pd.DataFrame:
+        """
+        Load house-prices-advanced-regression-techniques train.csv.
+
+        Returns:
+            DataFrame with column names matching our train.csv format
+        """
+        hparg_path = os.path.join(self.data_dir, 'house-prices-advanced-regression-techniques', 'train.csv')
+        df = pd.read_csv(hparg_path)
+
+        # Rename columns to match our train.csv format
+        df = df.rename(columns={
+            'BedroomAbvGr': 'Bedroom',
+            'KitchenAbvGr': 'Kitchen'
+        })
+
+        # Offset IDs to avoid conflicts
+        df['Id'] = df['Id'] + 20000
+
+        return df
+
+    def load_train(self, include_ames: bool = False, include_hparg: bool = False) -> pd.DataFrame:
         """
         Load training data.
 
         Args:
             include_ames: If True, include AmesHousing.csv data
+            include_hparg: If True, include house-prices-advanced-regression-techniques data
 
         Returns:
             Training DataFrame
@@ -128,6 +150,12 @@ class AmesDataLoader:
             ames_df = self.load_ames_housing()
             self.train_df = pd.concat([self.train_df, ames_df], ignore_index=True)
             print(f"   Added AmesHousing.csv: {len(ames_df)} rows")
+            print(f"   Total training rows: {len(self.train_df)}")
+
+        if include_hparg:
+            hparg_df = self.load_hparg()
+            self.train_df = pd.concat([self.train_df, hparg_df], ignore_index=True)
+            print(f"   Added house-prices-advanced-regression-techniques: {len(hparg_df)} rows")
             print(f"   Total training rows: {len(self.train_df)}")
 
         return self.train_df

@@ -176,6 +176,33 @@ class FeatureEvaluator:
             'new_rmsle': new_rmsle
         }
 
+    def fit_for_shap(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series
+    ):
+        """
+        Quickly fit a single model for SHAP analysis (no CV).
+
+        Much faster than evaluate() - only trains one model with fewer estimators.
+        Use this when you just need SHAP importance, not CV scores.
+        """
+        y_log = np.log1p(y)
+
+        # Use lightweight params for fast SHAP - just need rough importance
+        fast_params = {
+            'n_estimators': 200,
+            'learning_rate': 0.1,
+            'max_depth': 4,
+            'num_leaves': 15,
+            'random_state': 42,
+            'verbosity': -1
+        }
+
+        self.last_X = X
+        self.last_model = lgb.LGBMRegressor(**fast_params)
+        self.last_model.fit(X, y_log)
+
     def get_shap_importance(
         self,
         top_n: int = 10,
