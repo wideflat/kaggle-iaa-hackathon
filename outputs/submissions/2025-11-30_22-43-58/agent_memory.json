@@ -1,0 +1,20 @@
+{
+  "successful_features": [],
+  "failed_features": [
+    {
+      "code": "# Feature: QualBsmtSF\n# Strategy: Interaction\n# Rationale: This feature multiplies 'OverallQual' (overall house quality) with 'TotalBsmtSF' (total basement square footage).\n#            It aims to capture the combined impact of house quality and basement size, as both are highly important\n#            features according to SHAP. A large, high-quality house with a large basement should command a higher price.\n#            NaNs in TotalBsmtSF are treated as 0 (no basement).\ndf['QualBsmtSF'] = df['OverallQual'] * df['TotalBsmtSF'].fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T22:40:56.173680"
+    },
+    {
+      "code": "# Feature: GrLivArea_LotRatio\n# Strategy: Size_Efficiency\n# Rationale: This feature calculates the ratio of 'GrLivArea' (above grade living area) to 'LotArea' (lot size).\n#            It represents the \"density\" or efficiency of the living space relative to the property size.\n#            A higher ratio could indicate a house that maximizes its footprint on the lot, or a smaller lot in a more\n#            desirable, dense area. Both GrLivArea and LotArea are top SHAP features.\n#            LotArea is always positive, so no division by zero handling is explicitly needed.\ndf['GrLivArea_LotRatio'] = df['GrLivArea'] / df['LotArea']",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T22:40:56.173957"
+    }
+  ],
+  "iteration_history": [],
+  "shap_history": [],
+  "baseline_rmsle": 0.10242769405767153,
+  "best_rmsle": 0.10242769405767153,
+  "session_start": "2025-11-30T22:38:18.989593"
+}

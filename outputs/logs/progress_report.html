@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Feature Engineering Progress Report</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-card .value.improved {
+            color: #4CAF50;
+        }
+        .plot-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        .plot-container img {
+            width: 100%;
+            height: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #4CAF50;
+            color: white;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: #f9f9f9;
+        }
+        .status-kept {
+            background-color: #e8f5e9;
+        }
+        .status-kept .result {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .status-rejected {
+            background-color: #ffebee;
+        }
+        .status-rejected .result {
+            color: #c62828;
+            font-weight: bold;
+        }
+        .description {
+            font-size: 13px;
+            color: #555;
+        }
+        .delta {
+            font-family: monospace;
+        }
+        .code-block {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            overflow-x: auto;
+            margin-top: 8px;
+            border: 1px solid #ddd;
+        }
+        details summary {
+            cursor: pointer;
+            color: #1976d2;
+        }
+        details summary:hover {
+            text-decoration: underline;
+        }
+        .legend {
+            background: #f9f9f9;
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .legend li {
+            margin: 8px 0;
+        }
+        .legend-kept {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .legend-rejected {
+            color: #c62828;
+            font-weight: bold;
+        }
+        .timestamp {
+            color: #999;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Feature Engineering Progress Report</h1>
+
+    <div class="stats">
+        <div class="stat-card">
+            <h3>Baseline RMSLE</h3>
+            <div class="value">0.10041</div>
+        </div>
+        <div class="stat-card">
+            <h3>Best RMSLE</h3>
+            <div class="value improved">0.09785</div>
+        </div>
+        <div class="stat-card">
+            <h3>Improvement</h3>
+            <div class="value improved">2.55%</div>
+        </div>
+        <div class="stat-card">
+            <h3>Success Rate</h3>
+            <div class="value">100.0%</div>
+        </div>
+    </div>
+
+    <div class="plot-container">
+        <h2>Progress Over Iterations</h2>
+        <img src="progress_plot.png" alt="Progress Plot">
+    </div>
+
+    <h2>Iteration Details</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 50px;">Iter</th>
+                <th style="width: 150px;">Feature Name</th>
+                <th style="width: 300px;">Description</th>
+                <th style="width: 90px;">RMSLE</th>
+                <th style="width: 90px;">Change</th>
+                <th style="width: 80px;">Result</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="">
+                <td>0</td>
+                <td><strong>(baseline)</strong></td>
+                <td class="description">Initial model with 212 preprocessed features</td>
+                <td>0.10041</td>
+                <td class="delta">-</td>
+                <td class="result"> -</td>
+            </tr>
+            <tr class="status-kept">
+                <td>1</td>
+                <td>
+                    <details>
+                        <summary><strong>QualGrLivArea</strong></summary>
+                        <pre class="code-block"># Feature: QualGrLivArea
+# Strategy: quality_interactions
+# Enhances: OverallQual (1), GrLivArea (2)
+# Description: Multiplies the overall quality of the house by its above grade living area.
+# This creates a weighted living area, prioritizing larger homes with higher quality.
+df['QualGrLivArea'] = df['OverallQual'] * df['GrLivArea']</pre>
+                    </details></td>
+                <td class="description">Interaction: OverallQual * GrLivArea</td>
+                <td>0.09878</td>
+                <td class="delta">+0.00163</td>
+                <td class="result">✓ KEPT</td>
+            </tr>
+            <tr class="status-kept">
+                <td>6</td>
+                <td>
+                    <details>
+                        <summary><strong>Neighborhood_Frequency</strong></summary>
+                        <pre class="code-block"># Feature: Neighborhood_Frequency
+neighborhood_counts = df.groupby('Neighborhood')['Neighborhood'].transform('count')
+df['Neighborhood_Frequency'] = neighborhood_counts.fillna(neighborhood_counts.mean()) # Fill any potential NaNs in the result if 'Neighborhood' had NaNs</pre>
+                    </details></td>
+                <td class="description">Transform: neighborhood_counts) # Fill any potential NaNs in the result if 'Neighborhood' h</td>
+                <td>0.09836</td>
+                <td class="delta">+0.00041</td>
+                <td class="result">✓ KEPT</td>
+            </tr>
+            <tr class="status-kept">
+                <td>19</td>
+                <td>
+                    <details>
+                        <summary><strong>CompositeQualityScore</strong></summary>
+                        <pre class="code-block"># Feature: CompositeQualityScore
+# Strategy: Quality_tiers
+# Interacts with: OverallQual (top feature), KitchenQual
+# Description: Creates a composite quality score by combining the overall quality with a numerical mapping of the kitchen quality. Kitchen quality is a significant driver of home value.
+quality_map = {'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1, 'NA': 0}
+df['KitchenQual_Mapped'] = df['KitchenQual'].map(quality_map).fillna(0) # Fill NA for no kitchen or missing
+df['CompositeQualityScore'] = df['OverallQual'] + df['KitchenQual_Mapped']</pre>
+                    </details></td>
+                <td class="description">Transform: KitchenQual.map(quality_map) # Fill NA for no kitchen or missing</td>
+                <td>0.09816</td>
+                <td class="delta">+0.00020</td>
+                <td class="result">✓ KEPT</td>
+            </tr>
+            <tr class="status-kept">
+                <td>27</td>
+                <td>
+                    <details>
+                        <summary><strong>IsRecentBuildOrRemodel</strong></summary>
+                        <pre class="code-block"># Feature: IsRecentBuildOrRemodel
+# Strategy: binary
+# Interaction with Top SHAP: Interacts with 'YearBuilt' and 'YearRemodAdd'.
+# Rationale: Indicates if a property is relatively new or has been recently updated. Newer or recently remodeled homes often command a premium, and this binary flag helps capture that modern appeal, enhancing the predictive power of the year features.
+df['IsRecentBuildOrRemodel'] = ((df['YrSold'] - df['YearBuilt'] &lt;= 10) | (df['YrSold'] - df['YearRemodAdd'] &lt;= 10)).astype(int)
+# YearBuilt, YearRemodAdd, and YrSold are typically complete, so no explicit .fillna() is needed here.</pre>
+                    </details></td>
+                <td class="description">Difference: ((YrSold - YearBuilt <= 10) | (YrSold - YearRemodAdd <= 10)).astype(int)</td>
+                <td>0.09785</td>
+                <td class="delta">+0.00032</td>
+                <td class="result">✓ KEPT</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Legend</h2>
+    <ul class="legend">
+        <li><span class="legend-kept">✓ KEPT</span> - Feature improved the model and was added to the pipeline</li>
+        <li><span class="legend-rejected">✗ REJECTED</span> - Feature did not improve the model and was discarded</li>
+        <li><strong>Change</strong> - Positive = improvement (lower RMSLE is better)</li>
+        <li>Click on feature names to expand and see the actual code</li>
+    </ul>
+
+    <p class="timestamp">Generated: 2025-11-30 23:10:09</p>
+</body>
+</html>

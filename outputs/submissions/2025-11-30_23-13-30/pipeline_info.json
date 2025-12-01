@@ -1,0 +1,52 @@
+{
+  "timestamp": "2025-11-30_23-13-30",
+  "data": {
+    "train_shape": [
+      1464,
+      81
+    ],
+    "test_shape": [
+      1465,
+      80
+    ],
+    "outliers_removed": 0,
+    "features_count": 84,
+    "selected_features_count": 84
+  },
+  "agent_features": {
+    "count": 5,
+    "names": [
+      "CompositeQualityScore",
+      "IsRecentBuildOrRemodel",
+      "KitchenQual_Mapped",
+      "Neighborhood_Frequency",
+      "QualGrLivArea"
+    ]
+  },
+  "scores": {
+    "layer1": {
+      "ridge": 0.10203990928939413,
+      "lasso": 0.10190707131647787,
+      "elasticnet": 0.10189380537066427,
+      "svr": 0.15596756845434032,
+      "gbr": 0.0944927248656335,
+      "xgboost": 0.09600675525169389,
+      "lightgbm": 0.09748126825515038
+    },
+    "layer2_weighted": 0.09214309343209362,
+    "layer2_stacking": 0.03534794689007941,
+    "layer3_final": 0.0749770762847624
+  },
+  "predictions": {
+    "count": 1465,
+    "mean": 210897.12075604912,
+    "median": 190977.66619998365,
+    "min": 73959.33137464612,
+    "max": 808045.4111665036
+  },
+  "options": {
+    "skip_features": false,
+    "skip_selection": true,
+    "include_ames": false
+  }
+}

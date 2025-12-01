@@ -17,13 +17,17 @@ Usage:
 
     --skip-features     Skip applying agent features (use raw features only)
     --skip-selection    Skip feature selection
+    --include-ames      Include AmesHousing.csv in training data
     --output PATH       Output path for submission (default: outputs/submission.csv)
+    --blend-weight      Weight for Layer 2a (weighted avg) in final blend (default: 0.75)
 """
 
 import os
 import sys
 import argparse
 import json
+import shutil
+from datetime import datetime
 import numpy as np
 import pandas as pd
 
@@ -63,7 +67,12 @@ def load_agent_features(memory_path: str = 'outputs/logs/agent_memory.json') -> 
     return codes
 
 
-def apply_features(df: pd.DataFrame, feature_codes: list, executor: CodeExecutor) -> pd.DataFrame:
+def apply_features(
+    df: pd.DataFrame,
+    feature_codes: list,
+    executor: CodeExecutor,
+    dataset_name: str = "data"
+) -> tuple[pd.DataFrame, list[str]]:
     """
     Apply feature engineering code to dataframe.
 
@@ -71,24 +80,33 @@ def apply_features(df: pd.DataFrame, feature_codes: list, executor: CodeExecutor
         df: Input dataframe
         feature_codes: List of code snippets
         executor: Code executor instance
+        dataset_name: Name for logging (e.g., "train", "test")
 
     Returns:
-        DataFrame with new features
+        Tuple of (DataFrame with new features, list of new column names)
     """
+    applied_cols = []
+    original_cols = set(df.columns)
+
     for i, code in enumerate(feature_codes, 1):
         result_df, error = executor.execute(code, df)
         if error:
-            print(f"   Warning: Feature {i} failed: {error[:50]}...")
+            print(f"   Warning: Feature {i} failed on {dataset_name}: {error[:50]}...")
         else:
+            new_cols = list(set(result_df.columns) - original_cols)
+            applied_cols.extend(new_cols)
+            original_cols = set(result_df.columns)
             df = result_df
 
-    return df
+    return df, applied_cols
 
 
 def main(
     skip_features: bool = False,
     skip_selection: bool = False,
-    output_path: str = 'outputs/submission.csv'
+    include_ames: bool = False,
+    output_path: str = 'outputs/submission.csv',
+    blend_weight: float = 0.75
 ):
     """
     Run end-to-end submission pipeline.
@@ -96,7 +114,9 @@ def main(
     Args:
         skip_features: Skip applying agent features
         skip_selection: Skip feature selection
+        include_ames: Include AmesHousing.csv in training data
         output_path: Output path for submission CSV
+        blend_weight: Weight for Layer 2a (weighted avg) in Layer 3 blend (default: 0.75)
     """
     print("=" * 60)
     print("Submission Pipeline")
@@ -105,12 +125,12 @@ def main(
     # 1. Load data
     print("\n1. Loading data...")
     loader = AmesDataLoader()
-    train_df = loader.load_train()
+    train_df = loader.load_train(include_ames=include_ames)
     test_df = loader.load_test()
     print(f"   Train shape: {train_df.shape}")
     print(f"   Test shape: {test_df.shape}")
 
-    # Store test IDs for submission
+    # Store test IDs for output files
     test_ids = test_df['Id'].values
 
     # 2. Remove outliers from training
@@ -118,6 +138,9 @@ def main(
     outlier_remover = OutlierRemover()
     train_df = outlier_remover.remove_known_outliers(train_df)
     print(f"   Train shape after outlier removal: {train_df.shape}")
+
+    # Store train IDs after outlier removal (for OOF predictions)
+    train_ids = train_df['Id'].values
 
     # 3. Preprocess
     print("\n3. Preprocessing...")
@@ -130,6 +153,9 @@ def main(
     print(f"   Processed train shape: {train_processed.shape}")
     print(f"   Processed test shape: {test_processed.shape}")
 
+    # Store original columns before applying features (for verification later)
+    original_cols = set(train_processed.columns)
+
     # 4. Apply agent features
     if not skip_features:
         print("\n4. Applying agent-discovered features...")
@@ -137,10 +163,20 @@ def main(
 
         if feature_codes:
             executor = CodeExecutor()
-            train_processed = apply_features(train_processed, feature_codes, executor)
-            test_processed = apply_features(test_processed, feature_codes, executor)
+            train_processed, train_new_cols = apply_features(
+                train_processed, feature_codes, executor, "train"
+            )
+            test_processed, test_new_cols = apply_features(
+                test_processed, feature_codes, executor, "test"
+            )
             print(f"   Train shape after features: {train_processed.shape}")
             print(f"   Test shape after features: {test_processed.shape}")
+            print(f"   Train new columns: {len(train_new_cols)}")
+            print(f"   Test new columns: {len(test_new_cols)}")
+
+            # Show which features are in both
+            common_new = set(train_new_cols) & set(test_new_cols)
+            print(f"   Common new features: {len(common_new)}")
     else:
         print("\n4. Skipping agent features (--skip-features)")
 
@@ -154,7 +190,28 @@ def main(
     X_train = X_train[common_cols]
     X_test = X_test[common_cols]
 
+    # Handle NaN values (can occur from agent features on unseen categories)
+    train_nan_cols = X_train.columns[X_train.isna().any()].tolist()
+    test_nan_cols = X_test.columns[X_test.isna().any()].tolist()
+    if train_nan_cols or test_nan_cols:
+        print(f"   Warning: NaN values found, filling with 0")
+        if train_nan_cols:
+            print(f"      Train NaN cols: {train_nan_cols}")
+        if test_nan_cols:
+            print(f"      Test NaN cols: {test_nan_cols}")
+        X_train = X_train.fillna(0)
+        X_test = X_test.fillna(0)
+
     print(f"   Features: {len(common_cols)}")
+
+    # Verify which engineered features made it to the stacker
+    engineered_in_final = [c for c in common_cols if c not in original_cols]
+    if engineered_in_final:
+        print(f"\n   === ENGINEERED FEATURES PASSED TO STACKER ({len(engineered_in_final)}) ===")
+        for col in sorted(engineered_in_final):
+            print(f"   - {col}")
+    else:
+        print("\n   WARNING: No engineered features made it to stacker!")
 
     # Log-transform target
     y_train = np.log1p(target)
@@ -171,10 +228,18 @@ def main(
     else:
         print("\n6. Skipping feature selection (--skip-selection)")
 
-    # 7. Model stacking
-    print("\n7. Model stacking...")
-    stacker = ModelStacker(n_folds=5)
-    predictions, individual_preds = stacker.fit_predict(X_train, y_train, X_test)
+    # 7. Kaggle-style blending + stacking
+    print("\n7. Kaggle-style blending + stacking...")
+    stacker = ModelStacker(n_folds=10)
+
+    # Set custom Layer 3 blend weights
+    stacker.set_layer3_weights({
+        'weighted': blend_weight,
+        'stacking': 1.0 - blend_weight
+    })
+    print(f"   Layer 3 blend: {blend_weight:.0%} weighted avg + {1.0 - blend_weight:.0%} stacking")
+
+    predictions, layer_preds, oof_scores = stacker.fit_predict(X_train, y_train, X_test)
 
     # Transform predictions back from log scale
     predictions = np.expm1(predictions)
@@ -182,23 +247,118 @@ def main(
     # Clip negative predictions (shouldn't happen, but just in case)
     predictions = np.maximum(predictions, 0)
 
-    # 8. Create submission
+    # 8. Create submission and save all outputs
     print("\n8. Creating submission...")
+
+    # Create timestamped output folder
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    output_dir = f"outputs/submissions/{timestamp}"
+    os.makedirs(output_dir, exist_ok=True)
+    print(f"   Output folder: {output_dir}")
+
+    # Save submission.csv
     submission = pd.DataFrame({
         'Id': test_ids,
         'SalePrice': predictions
     })
+    submission.to_csv(f"{output_dir}/submission.csv", index=False)
+    print(f"   Saved: submission.csv")
 
-    # Ensure output directory exists
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    # Save OOF predictions - Layer 1
+    oof_layer1 = pd.DataFrame({'Id': train_ids})
+    for model_name, oof_pred in layer_preds['oof_layer1'].items():
+        oof_layer1[model_name] = oof_pred
+    oof_layer1.to_csv(f"{output_dir}/oof_layer1.csv", index=False)
+    print(f"   Saved: oof_layer1.csv (8 models)")
 
+    # Save OOF predictions - Layer 2 & 3
+    oof_layer2 = pd.DataFrame({
+        'Id': train_ids,
+        'weighted': layer_preds['oof_layer2_weighted'],
+        'stacking': layer_preds['oof_layer2_stacking'],
+        'final': layer_preds['oof_layer3_final']
+    })
+    oof_layer2.to_csv(f"{output_dir}/oof_layer2.csv", index=False)
+    print(f"   Saved: oof_layer2.csv (weighted, stacking, final)")
+
+    # Save test predictions - Layer 1
+    test_layer1 = pd.DataFrame({'Id': test_ids})
+    for model_name, test_pred in layer_preds['layer1'].items():
+        test_layer1[model_name] = test_pred
+    test_layer1.to_csv(f"{output_dir}/test_layer1.csv", index=False)
+    print(f"   Saved: test_layer1.csv (8 models)")
+
+    # Save test predictions - Layer 2 & 3
+    test_layer2 = pd.DataFrame({
+        'Id': test_ids,
+        'weighted': layer_preds['layer2_weighted'],
+        'stacking': layer_preds['layer2_stacking'],
+        'final': layer_preds['layer3_final']
+    })
+    test_layer2.to_csv(f"{output_dir}/test_layer2.csv", index=False)
+    print(f"   Saved: test_layer2.csv (weighted, stacking, final)")
+
+    # Save pipeline metadata as JSON
+    pipeline_info = {
+        'timestamp': timestamp,
+        'data': {
+            'train_shape': list(train_df.shape),
+            'test_shape': list(test_df.shape),
+            'outliers_removed': len(train_ids) - len(train_df) if 'train_ids' in dir() else 0,
+            'features_count': len(common_cols),
+            'selected_features_count': X_train.shape[1]
+        },
+        'agent_features': {
+            'count': len(engineered_in_final) if 'engineered_in_final' in dir() else 0,
+            'names': sorted(engineered_in_final) if 'engineered_in_final' in dir() else []
+        },
+        'scores': {
+            'layer1': {name: float(score) for name, score in oof_scores['layer1'].items()},
+            'layer2_weighted': float(oof_scores['layer2_weighted']),
+            'layer2_stacking': float(oof_scores['layer2_stacking']),
+            'layer3_final': float(oof_scores['layer3_final'])
+        },
+        'predictions': {
+            'count': len(predictions),
+            'mean': float(predictions.mean()),
+            'median': float(np.median(predictions)),
+            'min': float(predictions.min()),
+            'max': float(predictions.max())
+        },
+        'options': {
+            'skip_features': skip_features,
+            'skip_selection': skip_selection,
+            'include_ames': include_ames,
+            'blend_weight': blend_weight
+        }
+    }
+    with open(f"{output_dir}/pipeline_info.json", 'w') as f:
+        json.dump(pipeline_info, f, indent=2)
+    print(f"   Saved: pipeline_info.json")
+
+    # Copy supporting files
+    files_to_copy = [
+        ('outputs/models/best_lgbm_params.json', 'best_lgbm_params.json'),
+        ('outputs/models/best_xgb_params.json', 'best_xgb_params.json'),
+        ('outputs/logs/agent_memory.json', 'agent_memory.json'),
+        ('outputs/logs/agent.log', 'agent.log'),
+        ('outputs/logs/progress_plot.png', 'progress_plot.png'),
+        ('scripts/run_submission.sh', 'run_submission.sh'),
+    ]
+
+    for src, dst in files_to_copy:
+        if os.path.exists(src):
+            shutil.copy2(src, f"{output_dir}/{dst}")
+            print(f"   Copied: {dst}")
+
+    # Also save to the legacy output path for compatibility
     submission.to_csv(output_path, index=False)
-    print(f"   Submission saved to: {output_path}")
 
     # Summary statistics
     print("\n" + "=" * 60)
     print("Summary")
     print("=" * 60)
+    print(f"   Output folder: {output_dir}")
     print(f"   Predictions: {len(predictions)}")
     print(f"   Mean: ${predictions.mean():,.0f}")
     print(f"   Median: ${np.median(predictions):,.0f}")
@@ -219,15 +379,28 @@ if __name__ == '__main__':
         help='Skip feature selection'
     )
     parser.add_argument(
+        '--include-ames',
+        action='store_true',
+        help='Include AmesHousing.csv in training data'
+    )
+    parser.add_argument(
         '--output',
         type=str,
         default='outputs/submission.csv',
         help='Output path for submission'
+    )
+    parser.add_argument(
+        '--blend-weight',
+        type=float,
+        default=0.75,
+        help='Weight for Layer 2a (weighted avg) in final blend (default: 0.75)'
     )
     args = parser.parse_args()
 
     main(
         skip_features=args.skip_features,
         skip_selection=args.skip_selection,
-        output_path=args.output
+        include_ames=args.include_ames,
+        output_path=args.output,
+        blend_weight=args.blend_weight
     )

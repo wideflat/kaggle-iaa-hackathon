@@ -718,7 +718,8 @@ The top feature is '{top_features[0] if top_features else 'unknown'}'. Consider:
         data_description: str,
         column_info: str,
         existing_features: list[str] | None = None,
-        n_features: int = 5
+        n_features: int = 5,
+        shap_summary: str | None = None
     ) -> list[str]:
         """
         Generate multiple features in a single prompt.
@@ -731,6 +732,7 @@ The top feature is '{top_features[0] if top_features else 'unknown'}'. Consider:
             column_info: Comma-separated list of column names
             existing_features: List of already tried feature codes to avoid
             n_features: Number of features to generate (default: 5)
+            shap_summary: Optional SHAP importance summary to guide generation
 
         Returns:
             List of Python code strings, each creating one feature
@@ -739,7 +741,8 @@ The top feature is '{top_features[0] if top_features else 'unknown'}'. Consider:
             data_description,
             column_info,
             existing_features,
-            n_features
+            n_features,
+            shap_summary
         )
         response = self.model.generate_content(prompt)
         return self._extract_multiple_codes(response.text)
@@ -749,7 +752,8 @@ The top feature is '{top_features[0] if top_features else 'unknown'}'. Consider:
         data_description: str,
         column_info: str,
         existing_features: list[str] | None = None,
-        n_features: int = 5
+        n_features: int = 5,
+        shap_summary: str | None = None
     ) -> str:
         """Build prompt for batch feature generation"""
 
@@ -769,12 +773,25 @@ The top feature is '{top_features[0] if top_features else 'unknown'}'. Consider:
                 ex = random.choice(examples)
                 example_text += f"\n{strategy.upper()} Example:\n```python\n# Feature: {ex['name']}\n{ex['code']}\n```\n"
 
+        # Add SHAP feedback section if provided
+        shap_section = ""
+        if shap_summary:
+            shap_section = f"""
+## SHAP Feature Importance Analysis
+The following features are currently most important for prediction.
+Create features that INTERACT with or ENHANCE these top features:
+
+{shap_summary}
+
+PRIORITY: Focus on creating interactions, ratios, or transformations involving the top features above.
+"""
+
         prompt = f"""You are an expert data scientist specializing in the Ames Housing dataset.
 
 ## Your Task
 Generate {n_features} DIFFERENT features to improve house price prediction.
 Each feature should use a DIFFERENT strategy from: {', '.join(strategies_to_use)}
-
+{shap_section}
 ## Data Description
 {data_description}
 

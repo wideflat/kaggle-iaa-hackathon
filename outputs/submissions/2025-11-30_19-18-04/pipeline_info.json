@@ -1,0 +1,50 @@
+{
+  "timestamp": "2025-11-30_19-18-04",
+  "data": {
+    "train_shape": [
+      1464,
+      81
+    ],
+    "test_shape": [
+      1465,
+      80
+    ],
+    "outliers_removed": 0,
+    "features_count": 82,
+    "selected_features_count": 82
+  },
+  "agent_features": {
+    "count": 3,
+    "names": [
+      "GrLivArea_LotRatio",
+      "IsHighQualityOverall",
+      "Log_TotalBsmtSF"
+    ]
+  },
+  "scores": {
+    "layer1": {
+      "ridge": 0.10026808020534932,
+      "lasso": 0.10009087559495962,
+      "elasticnet": 0.10009205170834452,
+      "svr": 0.15767380292269398,
+      "gbr": 0.09543137015076848,
+      "xgboost": 0.09648495159240303,
+      "lightgbm": 0.0989310973409014
+    },
+    "layer2_weighted": 0.09246303245766879,
+    "layer2_stacking": 0.03509571740889088,
+    "layer3_final": 0.05854559140060861
+  },
+  "predictions": {
+    "count": 1465,
+    "mean": 210620.40019506626,
+    "median": 190654.06748413126,
+    "min": 74484.29707165596,
+    "max": 731487.1311170323
+  },
+  "options": {
+    "skip_features": false,
+    "skip_selection": true,
+    "include_ames": false
+  }
+}

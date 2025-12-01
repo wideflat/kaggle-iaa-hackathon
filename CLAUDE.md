@@ -34,6 +34,7 @@ kaggle-iaa-hackathon/
 │       ├── visualizer.py    # Progress plot, table, HTML report
 │       ├── simple_agent.py  # Single iteration agent
 │       ├── iterative_agent.py  # Multi-iteration agent
+│       ├── parallel_agent.py   # Parallel feature engineering (producer-consumer)
 │       └── run.py           # Production CLI entry point
 ├── scripts/
 │   └── visualize_progress.py  # Standalone visualization CLI
@@ -240,7 +241,16 @@ When `--feedback` is enabled:
 ## Key Commands
 
 ```bash
-# Production CLI (recommended)
+# Parallel agent (recommended for feature engineering)
+python -m src.agent.parallel_agent -n 20 -w 2 -b 5 --dashboard
+
+# With extra training data (AmesHousing.csv)
+python -m src.agent.parallel_agent -n 20 -w 2 --include-ames
+
+# Skip tuned params, use early stopping
+python -m src.agent.parallel_agent -n 20 -w 2 --no-tuned-params
+
+# Production CLI
 ./venv/bin/python -m src.agent.run -n 10 --clear --visualize
 
 # Show config without running
@@ -267,6 +277,22 @@ When `--feedback` is enabled:
 ```
 
 ## CLI Options
+
+### parallel_agent.py
+
+| Option | Description |
+|--------|-------------|
+| `-n, --iterations` | Total number of iterations (default: 10) |
+| `-w, --workers` | Number of parallel workers (default: 2) |
+| `-b, --batch-size` | Features per Gemini API batch (default: 5) |
+| `--clear` | Clear memory and start fresh |
+| `-d, --dashboard` | Open real-time dashboard in browser |
+| `--include-ames` | Include AmesHousing.csv in training data (2930 extra rows) |
+| `--no-tuned-params` | Skip tuned params, use n_estimators=10000 with early stopping |
+| `--tune` | Run hyperparameter tuning after feature engineering (15 trials) |
+| `-f, --feedback` | Enable SHAP-based feedback to guide feature generation |
+
+### run.py (Legacy)
 
 | Option | Description |
 |--------|-------------|
@@ -303,19 +329,20 @@ When `--feedback` is enabled:
 ## Submission Workflow
 
 ```bash
-# 1. Run agent to discover features
-./venv/bin/python -m src.agent.iterative_agent -n 20 --feedback --batch --clear
+# 1. Run parallel agent to discover features + tune hyperparameters
+python -m src.agent.parallel_agent -n 50 -w 2 -b 5 --dashboard --clear --tune
 
-# 2. (Optional) Tune hyperparameters for stacking models
-./venv/bin/python -m src.baseline.hyperparameter_tuner
-
-# 3. Generate final submission with model stacking
-./venv/bin/python -m src.baseline.make_submission
+# 2. Generate final submission with model stacking
+python -m src.baseline.make_submission
 
 # Options for make_submission:
 #   --skip-features    Skip applying agent features
 #   --skip-selection   Skip feature selection
+#   --include-ames     Include AmesHousing.csv in training data
 #   --output PATH      Custom output path
+
+# Alternative: separate tuning step (if not using --tune)
+# python -m src.baseline.hyperparameter_tuner
 ```
 
 ### Model Stacking Architecture

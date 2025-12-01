@@ -1,0 +1,130 @@
+{
+  "successful_features": [
+    {
+      "code": "# Feature: ExterQual_Ord\n# Strategy: ordinal_from_description - Convert Exterior Quality from categorical to an ordinal numerical scale.\n# Enhances: OverallQual, OverallCond (by providing another quality dimension)\ndf['ExterQual_Ord'] = df['ExterQual'].map({'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1}).fillna(0).astype(int)",
+      "columns": [
+        "ExterQual_Ord"
+      ],
+      "rmsle": 0.10033848433075361,
+      "improvement": 9.158700772815553e-05,
+      "timestamp": "2025-11-30T17:28:53.400853"
+    },
+    {
+      "code": "# Feature: LivAreaToLotRatio\n# Strategy: size_efficiency - Ratio of total finished living area (above and below ground) to the lot size.\n# Enhances: GrLivArea, TotalBsmtSF, LotArea\ndf['LivAreaToLotRatio'] = (df['GrLivArea'].fillna(0) + df['TotalBsmtSF'].fillna(0)) / df['LotArea'].replace(0, 1)",
+      "columns": [
+        "LivAreaToLotRatio"
+      ],
+      "rmsle": 0.10008652464042275,
+      "improvement": 0.00025195969033085797,
+      "timestamp": "2025-11-30T17:28:53.401427"
+    },
+    {
+      "code": "# Feature: OverallQual_GrLivArea\n# Strategy: Quality_Interactions\n# Description: Multiplies the overall material and finish quality by the above grade living area. This captures the value of high-quality large living spaces.\n# Interaction: Direct interaction between the top two SHAP features: OverallQual (0.0814) and GrLivArea (0.0665).\ndf['OverallQual_GrLivArea'] = df['OverallQual'] * df['GrLivArea']",
+      "columns": [
+        "OverallQual_GrLivArea"
+      ],
+      "rmsle": 0.09979376133748144,
+      "improvement": 0.00029276330294131236,
+      "timestamp": "2025-11-30T17:28:53.402372"
+    },
+    {
+      "code": "# Feature: Neighborhood_Freq\n# Strategy: Frequency_encoding\n# Description: Replaces each neighborhood category with its frequency of occurrence in the dataset. This can capture the \"popularity\" or \"density\" of a neighborhood, often correlating with demand and price.\n# Interaction: Enhances the categorical feature 'Neighborhood' which often has high predictive power.\nneighborhood_counts = df['Neighborhood'].value_counts()\ndf['Neighborhood_Freq'] = df['Neighborhood'].map(neighborhood_counts).fillna(0)",
+      "columns": [
+        "Neighborhood_Freq"
+      ],
+      "rmsle": 0.09929008845527254,
+      "improvement": 0.0005036728822088998,
+      "timestamp": "2025-11-30T17:28:53.402814"
+    }
+  ],
+  "failed_features": [
+    {
+      "code": "# Feature: HasGarage\n# Strategy: binary - Indicates whether the property has a garage or not.\n# Enhances: GarageYrBlt (explicitly captures presence, which GarageYrBlt NaNs implicitly suggest)\ndf['HasGarage'] = df['GarageYrBlt'].notna().astype(int)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T17:28:53.401662"
+    },
+    {
+      "code": "# Feature: Log_GrLivArea\n# Strategy: skewness_correction - Apply a log transformation to GrLivArea to handle its typical right-skewness.\n# Enhances: GrLivArea (makes it more suitable for linear models)\ndf['Log_GrLivArea'] = np.log1p(df['GrLivArea'].fillna(0))",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T17:28:53.401778"
+    },
+    {
+      "code": "# Feature: HouseAgeAtSale\n# Strategy: foundational - Calculate the age of the house at the time of sale.\n# Enhances: YearBuilt (creates a temporal feature by interacting with YrSold)\ndf['HouseAgeAtSale'] = df['YrSold'] - df['YearBuilt'].fillna(df['YearBuilt'].median())",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T17:28:53.401895"
+    },
+    {
+      "code": "# Feature: TotalHouseSF\n# Strategy: Foundational\n# Description: Combines the total above ground living area, total basement area, and garage area to get a comprehensive total square footage for the main structures of the property.\n# Interaction: Enhances GrLivArea (0.0665), TotalBsmtSF (0.0209), and GarageYrBlt (0.0174) by including GarageArea.\ndf['TotalHouseSF'] = df['GrLivArea'] + df['TotalBsmtSF'].fillna(0) + df['GarageArea'].fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T17:28:53.402055"
+    },
+    {
+      "code": "# Feature: ExterQual_Ord\n# Strategy: Ordinal_from_description\n# Description: Converts the 'ExterQual' categorical variable into an ordinal numerical scale based on its description.\n# Interaction: Related to OverallQual (0.0814) as exterior quality is a key component of overall quality.\ndf['ExterQual_Ord'] = df['ExterQual'].map({'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1}).fillna(0).astype(int)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T17:28:53.402202"
+    },
+    {
+      "code": "# Feature: IsRemodeled\n# Strategy: Binary\n# Description: Creates a binary flag indicating if the house has been remodeled (YearRemodAdd > YearBuilt).\n# Interaction: Interacts with YearBuilt (0.0479) by highlighting houses that have received updates post-construction.\n# Handle NaN values for YearRemodAdd by assuming no remodel if it's missing (i.e., treating it as equal to YearBuilt).\ndf['IsRemodeled'] = (df['YearRemodAdd'].fillna(df['YearBuilt']) > df['YearBuilt']).astype(int)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T17:28:53.402667"
+    }
+  ],
+  "iteration_history": [
+    {
+      "iteration": 2,
+      "rmsle": 0.10033848433075361,
+      "success": true,
+      "feature_summary": "ExterQual_Ord",
+      "feature_description": "Transform: ExterQual.map({'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1}).astype(int)",
+      "feature_code": "# Feature: ExterQual_Ord\n# Strategy: ordinal_from_description - Convert Exterior Quality from categorical to an ordinal numerical scale.\n# Enhances: OverallQual, OverallCond (by providing another quality dimension)\ndf['ExterQual_Ord'] = df['ExterQual'].map({'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1}).fillna(0).astype(int)",
+      "columns": [
+        "ExterQual_Ord"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T17:28:53.401326"
+    },
+    {
+      "iteration": 1,
+      "rmsle": 0.10008652464042275,
+      "success": true,
+      "feature_summary": "LivAreaToLotRatio",
+      "feature_description": "Ratio: (GrLivArea + TotalBsmtSF) / LotArea",
+      "feature_code": "# Feature: LivAreaToLotRatio\n# Strategy: size_efficiency - Ratio of total finished living area (above and below ground) to the lot size.\n# Enhances: GrLivArea, TotalBsmtSF, LotArea\ndf['LivAreaToLotRatio'] = (df['GrLivArea'].fillna(0) + df['TotalBsmtSF'].fillna(0)) / df['LotArea'].replace(0, 1)",
+      "columns": [
+        "LivAreaToLotRatio"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T17:28:53.401554"
+    },
+    {
+      "iteration": 8,
+      "rmsle": 0.09979376133748144,
+      "success": true,
+      "feature_summary": "OverallQual_GrLivArea",
+      "feature_description": "Interaction: OverallQual * GrLivArea",
+      "feature_code": "# Feature: OverallQual_GrLivArea\n# Strategy: Quality_Interactions\n# Description: Multiplies the overall material and finish quality by the above grade living area. This captures the value of high-quality large living spaces.\n# Interaction: Direct interaction between the top two SHAP features: OverallQual (0.0814) and GrLivArea (0.0665).\ndf['OverallQual_GrLivArea'] = df['OverallQual'] * df['GrLivArea']",
+      "columns": [
+        "OverallQual_GrLivArea"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T17:28:53.402540"
+    },
+    {
+      "iteration": 10,
+      "rmsle": 0.09929008845527254,
+      "success": true,
+      "feature_summary": "Neighborhood_Freq",
+      "feature_description": "Transform: Neighborhood.map(neighborhood_counts)",
+      "feature_code": "# Feature: Neighborhood_Freq\n# Strategy: Frequency_encoding\n# Description: Replaces each neighborhood category with its frequency of occurrence in the dataset. This can capture the \"popularity\" or \"density\" of a neighborhood, often correlating with demand and price.\n# Interaction: Enhances the categorical feature 'Neighborhood' which often has high predictive power.\nneighborhood_counts = df['Neighborhood'].value_counts()\ndf['Neighborhood_Freq'] = df['Neighborhood'].map(neighborhood_counts).fillna(0)",
+      "columns": [
+        "Neighborhood_Freq"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T17:28:53.402962"
+    }
+  ],
+  "shap_history": [],
+  "baseline_rmsle": 0.10043007133848177,
+  "best_rmsle": 0.09929008845527254,
+  "session_start": "2025-11-30T17:24:36.106895"
+}

@@ -1,0 +1,1385 @@
+2025-11-29 16:22:18 | [32mINFO[0m | ============================================================
+2025-11-29 16:22:18 | [32mINFO[0m | New session started at 2025-11-29T16:22:18.608914
+2025-11-29 16:22:18 | [32mINFO[0m | ============================================================
+2025-11-29 16:22:18 | [32mINFO[0m | ============================================================
+2025-11-29 16:22:18 | [32mINFO[0m | Feature Engineering Agent
+2025-11-29 16:22:18 | [32mINFO[0m | Iterations: 1
+2025-11-29 16:22:18 | [32mINFO[0m | Feedback: Enabled
+2025-11-29 16:22:18 | [32mINFO[0m | Model: gemini-2.5-flash
+2025-11-29 16:22:18 | [32mINFO[0m | ============================================================
+2025-11-29 16:22:18 | [32mINFO[0m | Clearing previous memory...
+2025-11-29 16:22:18 | [32mINFO[0m | Loading data...
+2025-11-29 16:22:18 | [32mINFO[0m | Train shape: (1465, 81)
+2025-11-29 16:22:18 | [32mINFO[0m | Preprocessing...
+2025-11-29 16:22:18 | [32mINFO[0m | Processed shape: (1465, 212)
+2025-11-29 16:22:18 | [32mINFO[0m | Calculating baseline RMSLE...
+2025-11-29 16:22:30 | [32mINFO[0m | Baseline RMSLE: 0.10353
+2025-11-29 16:22:30 | [32mINFO[0m | Initializing Gemini client...
+2025-11-29 16:22:30 | [32mINFO[0m | Gemini client ready
+2025-11-29 16:22:30 | [32mINFO[0m | Starting from best RMSLE: 0.10353
+2025-11-29 16:22:30 | [32mINFO[0m | Starting iterations...
+2025-11-29 16:22:30 | [32mINFO[0m | 
+2025-11-29 16:22:30 | [32mINFO[0m | ============================================================
+2025-11-29 16:22:30 | [32mINFO[0m | ITERATION 1/1 [SHAP Feedback]
+2025-11-29 16:22:30 | [32mINFO[0m | ============================================================
+2025-11-29 16:22:39 | [32mINFO[0m | Generated code:
+2025-11-29 16:22:39 | [32mINFO[0m |   # Feature: Qual_x_TotalSF
+2025-11-29 16:22:39 | [32mINFO[0m |   df['Qual_x_TotalSF'] = df['OverallQual'] * df['TotalSF'].fillna(0)
+2025-11-29 16:22:50 | [33mWARNING[0m | ✗ No improvement: Qual_x_TotalSF
+2025-11-29 16:22:50 | [33mWARNING[0m |   RMSLE: 0.10353 → 0.10514 (Δ -0.00161)
+2025-11-29 16:22:50 | [32mINFO[0m | 
+2025-11-29 16:22:50 | [32mINFO[0m | ============================================================
+2025-11-29 16:22:50 | [32mINFO[0m | SESSION COMPLETE
+2025-11-29 16:22:50 | [32mINFO[0m | ============================================================
+2025-11-29 16:22:50 | [32mINFO[0m | Iterations:    1
+2025-11-29 16:22:50 | [32mINFO[0m | Successful:    0 (0.0%)
+2025-11-29 16:22:50 | [32mINFO[0m | Baseline:      0.10353
+2025-11-29 16:22:50 | [32mINFO[0m | Best:          0.10353
+2025-11-29 16:22:50 | [32mINFO[0m | Improvement:   0.00000 (0.00%)
+2025-11-29 16:22:50 | [32mINFO[0m | ============================================================
+2025-11-29 16:27:51 | [32mINFO[0m | ============================================================
+2025-11-29 16:27:51 | [32mINFO[0m | New session started at 2025-11-29T16:27:51.095156
+2025-11-29 16:27:51 | [32mINFO[0m | ============================================================
+2025-11-29 16:27:51 | [32mINFO[0m | ============================================================
+2025-11-29 16:27:51 | [32mINFO[0m | Feature Engineering Agent
+2025-11-29 16:27:51 | [32mINFO[0m | Iterations: 2
+2025-11-29 16:27:51 | [32mINFO[0m | Feedback: Enabled
+2025-11-29 16:27:51 | [32mINFO[0m | Model: gemini-2.5-flash
+2025-11-29 16:27:51 | [32mINFO[0m | ============================================================
+2025-11-29 16:27:51 | [32mINFO[0m | Clearing previous memory...
+2025-11-29 16:27:51 | [32mINFO[0m | Loading data...
+2025-11-29 16:27:51 | [32mINFO[0m | Train shape: (1465, 81)
+2025-11-29 16:27:51 | [32mINFO[0m | Preprocessing...
+2025-11-29 16:27:51 | [32mINFO[0m | Processed shape: (1465, 212)
+2025-11-29 16:27:51 | [32mINFO[0m | Calculating baseline RMSLE...
+2025-11-29 16:28:02 | [32mINFO[0m | Baseline RMSLE: 0.10353
+2025-11-29 16:28:02 | [32mINFO[0m | Initializing Gemini client...
+2025-11-29 16:28:02 | [32mINFO[0m | Gemini client ready
+2025-11-29 16:28:02 | [32mINFO[0m | Starting from best RMSLE: 0.10353
+2025-11-29 16:28:02 | [32mINFO[0m | Starting iterations...
+2025-11-29 16:28:02 | [32mINFO[0m | 
+2025-11-29 16:28:02 | [32mINFO[0m | ============================================================
+2025-11-29 16:28:02 | [32mINFO[0m | ITERATION 1/1 [SHAP Feedback]
+2025-11-29 16:28:02 | [32mINFO[0m | ============================================================
+2025-11-29 16:28:11 | [32mINFO[0m | Generated code:
+2025-11-29 16:28:11 | [32mINFO[0m |   # Feature: OverallQualityTotalSF
+2025-11-29 16:28:11 | [32mINFO[0m |   df['OverallQualityTotalSF'] = df['OverallQual'].fillna(0) * df['TotalSF'].fillna(0)
+2025-11-29 16:28:22 | [33mWARNING[0m | ✗ No improvement: OverallQualityTotalSF
+2025-11-29 16:28:22 | [33mWARNING[0m |   RMSLE: 0.10353 → 0.10514 (Δ -0.00161)
+2025-11-29 16:28:22 | [32mINFO[0m | 
+2025-11-29 16:28:22 | [32mINFO[0m | ============================================================
+2025-11-29 16:28:22 | [32mINFO[0m | ITERATION 2/2 [SHAP Feedback]
+2025-11-29 16:28:22 | [32mINFO[0m | ============================================================
+2025-11-29 16:28:30 | [32mINFO[0m | Generated code:
+2025-11-29 16:28:30 | [32mINFO[0m |   # Feature: OverallQualityTotalSFLotArea
+2025-11-29 16:28:30 | [32mINFO[0m |   df['OverallQualityTotalSFLotArea'] = df['OverallQualityTotalSF'].fillna(0) * df['LotArea'].fillna(0)
+2025-11-29 16:28:30 | [31mERROR[0m | Execution failed: Column not found: 'OverallQualityTotalSF'...
+2025-11-29 16:28:30 | [32mINFO[0m | 
+2025-11-29 16:28:30 | [32mINFO[0m | ============================================================
+2025-11-29 16:28:30 | [32mINFO[0m | SESSION COMPLETE
+2025-11-29 16:28:30 | [32mINFO[0m | ============================================================
+2025-11-29 16:28:30 | [32mINFO[0m | Iterations:    2
+2025-11-29 16:28:30 | [32mINFO[0m | Successful:    0 (0.0%)
+2025-11-29 16:28:30 | [32mINFO[0m | Baseline:      0.10353
+2025-11-29 16:28:30 | [32mINFO[0m | Best:          0.10353
+2025-11-29 16:28:30 | [32mINFO[0m | Improvement:   0.00000 (0.00%)
+2025-11-29 16:28:30 | [32mINFO[0m | ============================================================
+2025-11-29 16:28:30 | [32mINFO[0m | Generating visualization...
+2025-11-29 16:28:50 | [32mINFO[0m | ============================================================
+2025-11-29 16:28:50 | [32mINFO[0m | New session started at 2025-11-29T16:28:50.991468
+2025-11-29 16:28:50 | [32mINFO[0m | ============================================================
+2025-11-29 16:28:50 | [32mINFO[0m | ============================================================
+2025-11-29 16:28:50 | [32mINFO[0m | Feature Engineering Agent
+2025-11-29 16:28:50 | [32mINFO[0m | Iterations: 2
+2025-11-29 16:28:50 | [32mINFO[0m | Feedback: Enabled
+2025-11-29 16:28:50 | [32mINFO[0m | Model: gemini-2.5-flash
+2025-11-29 16:28:50 | [32mINFO[0m | ============================================================
+2025-11-29 16:28:50 | [32mINFO[0m | Clearing previous memory...
+2025-11-29 16:28:50 | [32mINFO[0m | Loading data...
+2025-11-29 16:28:50 | [32mINFO[0m | Train shape: (1465, 81)
+2025-11-29 16:28:50 | [32mINFO[0m | Preprocessing...
+2025-11-29 16:28:51 | [32mINFO[0m | Processed shape: (1465, 212)
+2025-11-29 16:28:51 | [32mINFO[0m | Calculating baseline RMSLE...
+2025-11-29 16:29:02 | [32mINFO[0m | Baseline RMSLE: 0.10353
+2025-11-29 16:29:02 | [32mINFO[0m | Initializing Gemini client...
+2025-11-29 16:29:02 | [32mINFO[0m | Gemini client ready
+2025-11-29 16:29:02 | [32mINFO[0m | Starting from best RMSLE: 0.10353
+2025-11-29 16:29:02 | [32mINFO[0m | Starting iterations...
+2025-11-29 16:29:02 | [32mINFO[0m | 
+2025-11-29 16:29:02 | [32mINFO[0m | ============================================================
+2025-11-29 16:29:02 | [32mINFO[0m | ITERATION 1/1 [SHAP Feedback]
+2025-11-29 16:29:02 | [32mINFO[0m | ============================================================
+2025-11-29 16:29:12 | [32mINFO[0m | Generated code:
+2025-11-29 16:29:12 | [32mINFO[0m |   # Feature: QualGrLivAreaInteraction
+2025-11-29 16:29:12 | [32mINFO[0m |   df['QualGrLivAreaInteraction'] = df['OverallQual'].fillna(0) * df['GrLivArea'].fillna(0)
+2025-11-29 16:29:23 | [33mWARNING[0m | ✗ No improvement: QualGrLivAreaInteraction
+2025-11-29 16:29:23 | [33mWARNING[0m |   RMSLE: 0.10353 → 0.10441 (Δ -0.00088)
+2025-11-29 16:29:23 | [32mINFO[0m | 
+2025-11-29 16:29:23 | [32mINFO[0m | ============================================================
+2025-11-29 16:29:23 | [32mINFO[0m | ITERATION 2/2 [SHAP Feedback]
+2025-11-29 16:29:23 | [32mINFO[0m | ============================================================
+2025-11-29 16:29:27 | [32mINFO[0m | Generated code:
+2025-11-29 16:29:27 | [32mINFO[0m |   # Feature: QualGrLivAreaInteractionSquared
+2025-11-29 16:29:27 | [32mINFO[0m |   df['QualGrLivAreaInteractionSquared'] = df['QualGrLivAreaInteraction'].fillna(0) ** 2
+2025-11-29 16:29:27 | [31mERROR[0m | Execution failed: Column not found: 'QualGrLivAreaInteraction'...
+2025-11-29 16:29:27 | [32mINFO[0m | 
+2025-11-29 16:29:27 | [32mINFO[0m | ============================================================
+2025-11-29 16:29:27 | [32mINFO[0m | SESSION COMPLETE
+2025-11-29 16:29:27 | [32mINFO[0m | ============================================================
+2025-11-29 16:29:27 | [32mINFO[0m | Iterations:    2
+2025-11-29 16:29:27 | [32mINFO[0m | Successful:    0 (0.0%)
+2025-11-29 16:29:27 | [32mINFO[0m | Baseline:      0.10353
+2025-11-29 16:29:27 | [32mINFO[0m | Best:          0.10353
+2025-11-29 16:29:27 | [32mINFO[0m | Improvement:   0.00000 (0.00%)
+2025-11-29 16:29:27 | [32mINFO[0m | ============================================================
+2025-11-29 16:29:27 | [32mINFO[0m | Generating visualization...
+2025-11-29 16:29:28 | [32mINFO[0m | Visualization complete!
+2025-11-29 16:33:45 | [32mINFO[0m | ============================================================
+2025-11-29 16:33:45 | [32mINFO[0m | New session started at 2025-11-29T16:33:45.462121
+2025-11-29 16:33:45 | [32mINFO[0m | ============================================================
+2025-11-29 16:33:45 | [32mINFO[0m | ============================================================
+2025-11-29 16:33:45 | [32mINFO[0m | Feature Engineering Agent
+2025-11-29 16:33:45 | [32mINFO[0m | Iterations: 10
+2025-11-29 16:33:45 | [32mINFO[0m | Feedback: Enabled
+2025-11-29 16:33:45 | [32mINFO[0m | Model: gemini-2.5-flash
+2025-11-29 16:33:45 | [32mINFO[0m | ============================================================
+2025-11-29 16:33:45 | [32mINFO[0m | Clearing previous memory...
+2025-11-29 16:33:45 | [32mINFO[0m | Loading data...
+2025-11-29 16:33:45 | [32mINFO[0m | Train shape: (1465, 81)
+2025-11-29 16:33:45 | [32mINFO[0m | Preprocessing...
+2025-11-29 16:33:45 | [32mINFO[0m | Processed shape: (1465, 212)
+2025-11-29 16:33:45 | [32mINFO[0m | Calculating baseline RMSLE...
+2025-11-29 16:33:56 | [32mINFO[0m | Baseline RMSLE: 0.10353
+2025-11-29 16:33:56 | [32mINFO[0m | Initializing Gemini client...
+2025-11-29 16:33:56 | [32mINFO[0m | Gemini client ready
+2025-11-29 16:33:56 | [32mINFO[0m | Starting from best RMSLE: 0.10353
+2025-11-29 16:33:56 | [32mINFO[0m | Starting iterations...
+2025-11-29 16:33:56 | [32mINFO[0m | 
+2025-11-29 16:33:56 | [32mINFO[0m | ============================================================
+2025-11-29 16:33:56 | [32mINFO[0m | ITERATION 1/1 [SHAP Feedback]
+2025-11-29 16:33:56 | [32mINFO[0m | ============================================================
+2025-11-29 16:34:11 | [32mINFO[0m | Generated code:
+2025-11-29 16:34:11 | [32mINFO[0m |   # Feature: QualTotalSFInteraction
+2025-11-29 16:34:11 | [32mINFO[0m |   df['QualTotalSFInteraction'] = df['OverallQual'].fillna(0) * df['TotalSF'].fillna(0)
+2025-11-29 16:34:22 | [33mWARNING[0m | ✗ No improvement: QualTotalSFInteraction
+2025-11-29 16:34:22 | [33mWARNING[0m |   RMSLE: 0.10353 → 0.10514 (Δ -0.00161)
+2025-11-29 16:34:22 | [32mINFO[0m | 
+2025-11-29 16:34:22 | [32mINFO[0m | ============================================================
+2025-11-29 16:34:22 | [32mINFO[0m | ITERATION 2/2 [SHAP Feedback]
+2025-11-29 16:34:22 | [32mINFO[0m | ============================================================
+2025-11-29 16:34:33 | [32mINFO[0m | Generated code:
+2025-11-29 16:34:33 | [32mINFO[0m |   # Feature: QualTotalCondInteraction
+2025-11-29 16:34:33 | [32mINFO[0m |   df['QualTotalCondInteraction'] = df['QualTotalSFInteraction'].fillna(0) * df['OverallCond'].fillna(0)
+2025-11-29 16:34:33 | [31mERROR[0m | Execution failed: Column not found: 'QualTotalSFInteraction'...
+2025-11-29 16:34:33 | [32mINFO[0m | 
+2025-11-29 16:34:33 | [32mINFO[0m | ============================================================
+2025-11-29 16:34:33 | [32mINFO[0m | ITERATION 3/3 [SHAP Feedback]
+2025-11-29 16:34:33 | [32mINFO[0m | ============================================================
+2025-11-29 16:34:45 | [32mINFO[0m | Generated code:
+2025-11-29 16:34:45 | [32mINFO[0m |   # Feature: QualTotalSFLotInteraction
+2025-11-29 16:34:45 | [32mINFO[0m |   df['QualTotalSFLotInteraction'] = df['QualTotalSFInteraction'].fillna(0) * df['LotArea'].fillna(0)
+2025-11-29 16:34:45 | [31mERROR[0m | Execution failed: Column not found: 'QualTotalSFInteraction'...
+2025-11-29 16:34:45 | [32mINFO[0m | 
+2025-11-29 16:34:45 | [32mINFO[0m | ============================================================
+2025-11-29 16:34:45 | [32mINFO[0m | ITERATION 4/4 [SHAP Feedback]
+2025-11-29 16:34:45 | [32mINFO[0m | ============================================================
+2025-11-29 16:34:49 | [32mINFO[0m | Generated code:
+2025-11-29 16:34:49 | [32mINFO[0m |   # Feature: QualTotalSFInteraction_Squared
+2025-11-29 16:34:49 | [32mINFO[0m |   df['QualTotalSFInteraction_Squared'] = df['QualTotalSFInteraction'].fillna(0) ** 2
+2025-11-29 16:34:49 | [31mERROR[0m | Execution failed: Column not found: 'QualTotalSFInteraction'...
+2025-11-29 16:34:49 | [32mINFO[0m | 
+2025-11-29 16:34:49 | [32mINFO[0m | ============================================================
+2025-11-29 16:34:49 | [32mINFO[0m | ITERATION 5/5 [SHAP Feedback]
+2025-11-29 16:34:49 | [32mINFO[0m | ============================================================
+2025-11-29 16:34:57 | [32mINFO[0m | Generated code:
+2025-11-29 16:34:57 | [32mINFO[0m |   # Feature: QualTotalSF_GarageCars
+2025-11-29 16:34:57 | [32mINFO[0m |   df['QualTotalSF_GarageCars'] = df['QualTotalSFInteraction'].fillna(0) * df['GarageCars'].fillna(0)
+2025-11-29 16:34:57 | [31mERROR[0m | Execution failed: Column not found: 'QualTotalSFInteraction'...
+2025-11-29 16:34:57 | [32mINFO[0m | 
+2025-11-29 16:34:57 | [32mINFO[0m | ============================================================
+2025-11-29 16:34:57 | [32mINFO[0m | ITERATION 6/6 [SHAP Feedback]
+2025-11-29 16:34:57 | [32mINFO[0m | ============================================================
+2025-11-29 16:35:11 | [32mINFO[0m | Generated code:
+2025-11-29 16:35:11 | [32mINFO[0m |   # Feature: LogQualTotalSFInteraction
+2025-11-29 16:35:11 | [32mINFO[0m |   import numpy as np
+2025-11-29 16:35:11 | [32mINFO[0m |   df['LogQualTotalSFInteraction'] = np.log1p(df['QualTotalSFInteraction'].fillna(0))
+2025-11-29 16:35:11 | [31mERROR[0m | Execution failed: Execution Error: __import__ not found
+Traceback (most recent call last):
+  File "/Users/koheikudo/Do...
+2025-11-29 16:35:11 | [32mINFO[0m | 
+2025-11-29 16:35:11 | [32mINFO[0m | ============================================================
+2025-11-29 16:35:11 | [32mINFO[0m | ITERATION 7/7 [SHAP Feedback]
+2025-11-29 16:35:11 | [32mINFO[0m | ============================================================
+2025-11-29 16:35:24 | [32mINFO[0m | Generated code:
+2025-11-29 16:35:24 | [32mINFO[0m |   # Feature: QualTotalSF_KitchenQual
+2025-11-29 16:35:24 | [32mINFO[0m |   df['QualTotalSF_KitchenQual'] = df['QualTotalSFInteraction'].fillna(0) * df['KitchenQual'].fillna(0)
+2025-11-29 16:35:24 | [31mERROR[0m | Execution failed: Column not found: 'QualTotalSFInteraction'...
+2025-11-29 16:35:24 | [32mINFO[0m | 
+2025-11-29 16:35:24 | [32mINFO[0m | ============================================================
+2025-11-29 16:35:24 | [32mINFO[0m | ITERATION 8/8 [SHAP Feedback]
+2025-11-29 16:35:24 | [32mINFO[0m | ============================================================
+2025-11-29 16:35:34 | [32mINFO[0m | Generated code:
+2025-11-29 16:35:34 | [32mINFO[0m |   # Feature: QualTotalSF_HouseAge
+2025-11-29 16:35:34 | [32mINFO[0m |   df['QualTotalSF_HouseAge'] = df['QualTotalSFInteraction'].fillna(0) * df['HouseAge'].fillna(0)
+2025-11-29 16:35:34 | [31mERROR[0m | Execution failed: Column not found: 'QualTotalSFInteraction'...
+2025-11-29 16:35:34 | [32mINFO[0m | 
+2025-11-29 16:35:34 | [32mINFO[0m | ============================================================
+2025-11-29 16:35:34 | [32mINFO[0m | ITERATION 9/9 [SHAP Feedback]
+2025-11-29 16:35:34 | [32mINFO[0m | ============================================================
+2025-11-29 16:35:41 | [32mINFO[0m | Generated code:
+2025-11-29 16:35:41 | [32mINFO[0m |   # Feature: QualTotalSF_GarageArea
+2025-11-29 16:35:41 | [32mINFO[0m |   df['QualTotalSF_GarageArea'] = df['QualTotalSFInteraction'].fillna(0) * df['GarageArea'].fillna(0)
+2025-11-29 16:35:41 | [31mERROR[0m | Execution failed: Column not found: 'QualTotalSFInteraction'...
+2025-11-29 16:35:41 | [32mINFO[0m | 
+2025-11-29 16:35:41 | [32mINFO[0m | ============================================================
+2025-11-29 16:35:41 | [32mINFO[0m | ITERATION 10/10 [SHAP Feedback]
+2025-11-29 16:35:41 | [32mINFO[0m | ============================================================
+2025-11-29 16:35:52 | [32mINFO[0m | Generated code:
+2025-11-29 16:35:52 | [32mINFO[0m |   # Feature: QualTotalSF_GrLivArea
+2025-11-29 16:35:52 | [32mINFO[0m |   df['QualTotalSF_GrLivArea'] = df['QualTotalSFInteraction'].fillna(0) * df['GrLivArea'].fillna(0)
+2025-11-29 16:35:52 | [31mERROR[0m | Execution failed: Column not found: 'QualTotalSFInteraction'...
+2025-11-29 16:35:52 | [32mINFO[0m | 
+2025-11-29 16:35:52 | [32mINFO[0m | ============================================================
+2025-11-29 16:35:52 | [32mINFO[0m | SESSION COMPLETE
+2025-11-29 16:35:52 | [32mINFO[0m | ============================================================
+2025-11-29 16:35:52 | [32mINFO[0m | Iterations:    10
+2025-11-29 16:35:52 | [32mINFO[0m | Successful:    0 (0.0%)
+2025-11-29 16:35:52 | [32mINFO[0m | Baseline:      0.10353
+2025-11-29 16:35:52 | [32mINFO[0m | Best:          0.10353
+2025-11-29 16:35:52 | [32mINFO[0m | Improvement:   0.00000 (0.00%)
+2025-11-29 16:35:52 | [32mINFO[0m | ============================================================
+2025-11-29 16:35:52 | [32mINFO[0m | Generating visualization...
+2025-11-29 16:35:53 | [32mINFO[0m | Visualization complete!
+2025-11-29 18:14:45 | [32mINFO[0m | ============================================================
+2025-11-29 18:14:45 | [32mINFO[0m | New session started at 2025-11-29T18:14:45.412936
+2025-11-29 18:14:45 | [32mINFO[0m | ============================================================
+2025-11-29 18:14:45 | [32mINFO[0m | ============================================================
+2025-11-29 18:14:45 | [32mINFO[0m | Feature Engineering Agent
+2025-11-29 18:14:45 | [32mINFO[0m | Iterations: 10
+2025-11-29 18:14:45 | [32mINFO[0m | Feedback: Enabled
+2025-11-29 18:14:45 | [32mINFO[0m | Model: gemini-2.5-flash
+2025-11-29 18:14:45 | [32mINFO[0m | ============================================================
+2025-11-29 18:14:45 | [32mINFO[0m | Clearing previous memory...
+2025-11-29 18:14:45 | [32mINFO[0m | Loading data...
+2025-11-29 18:14:45 | [32mINFO[0m | Train shape: (1465, 81)
+2025-11-29 18:14:45 | [32mINFO[0m | Preprocessing...
+2025-11-29 18:14:45 | [32mINFO[0m | Processed shape: (1465, 212)
+2025-11-29 18:14:45 | [32mINFO[0m | Calculating baseline RMSLE...
+2025-11-29 18:14:56 | [32mINFO[0m | Baseline RMSLE: 0.10353
+2025-11-29 18:14:56 | [32mINFO[0m | Initializing Gemini client...
+2025-11-29 18:14:56 | [32mINFO[0m | Gemini client ready
+2025-11-29 18:14:56 | [32mINFO[0m | Starting from best RMSLE: 0.10353
+2025-11-29 18:14:56 | [32mINFO[0m | Starting iterations...
+2025-11-29 18:14:56 | [32mINFO[0m | 
+2025-11-29 18:14:56 | [32mINFO[0m | ============================================================
+2025-11-29 18:14:56 | [32mINFO[0m | ITERATION 1/1 [SHAP Feedback]
+2025-11-29 18:14:56 | [32mINFO[0m | ============================================================
+2025-11-29 18:15:10 | [32mINFO[0m | Generated code:
+2025-11-29 18:15:10 | [32mINFO[0m |   # Feature: OverallQual_HouseAge_Interaction
+2025-11-29 18:15:10 | [32mINFO[0m |   # Rationale: This feature captures the interaction between the most important feature, 'OverallQual', and 'HouseAge'.
+2025-11-29 18:15:10 | [32mINFO[0m |   # It hypothesizes that the impact of quality on price might vary depending on the age of the house.
+2025-11-29 18:15:10 | [32mINFO[0m |   # For example, a high-quality older home might carry a different premium (e.g., historical value, excellent maintenance)
+2025-11-29 18:15:10 | [32mINFO[0m |   # than a high-quality new home, or an older, low-quality home. This interaction helps to model
+2025-11-29 18:15:10 | [32mINFO[0m |   ...
+2025-11-29 18:15:21 | [33mWARNING[0m | ✗ No improvement: OverallQual_HouseAge_Interaction
+2025-11-29 18:15:21 | [33mWARNING[0m |   RMSLE: 0.10353 → 0.10418 (Δ -0.00064)
+2025-11-29 18:15:21 | [32mINFO[0m | 
+2025-11-29 18:15:21 | [32mINFO[0m | ============================================================
+2025-11-29 18:15:21 | [32mINFO[0m | ITERATION 2/2 [SHAP Feedback]
+2025-11-29 18:15:21 | [32mINFO[0m | ============================================================
+2025-11-29 18:15:31 | [32mINFO[0m | Generated code:
+2025-11-29 18:15:31 | [32mINFO[0m |   # Feature: OverallQual_TotalSF_Interaction
+2025-11-29 18:15:31 | [32mINFO[0m |   # Rationale: This feature captures the interaction between the two most important features, 'OverallQual' and 'TotalSF'.
+2025-11-29 18:15:31 | [32mINFO[0m |   # It hypothesizes that the value of high quality might be amplified in larger homes, and conversely, the premium for large homes
+2025-11-29 18:15:31 | [32mINFO[0m |   # is greater when they are also of higher quality. This interaction helps to model non-additive effects where the combined impact
+2025-11-29 18:15:31 | [32mINFO[0m |   # of size and quality is more than the sum of their individual effects, capturing distinct market segments.
+2025-11-29 18:15:31 | [32mINFO[0m |   ...
+2025-11-29 18:15:42 | [33mWARNING[0m | ✗ No improvement: OverallQual_TotalSF_Interaction
+2025-11-29 18:15:42 | [33mWARNING[0m |   RMSLE: 0.10353 → 0.10514 (Δ -0.00161)
+2025-11-29 18:15:42 | [32mINFO[0m | 
+2025-11-29 18:15:42 | [32mINFO[0m | ============================================================
+2025-11-29 18:15:42 | [32mINFO[0m | ITERATION 3/3 [SHAP Feedback]
+2025-11-29 18:15:42 | [32mINFO[0m | ============================================================
+2025-11-29 18:15:47 | [32mINFO[0m | Generated code:
+2025-11-29 18:15:47 | [32mINFO[0m |   # Feature: OverallQual_TotalSF_Interaction_Sq
+2025-11-29 18:15:47 | [32mINFO[0m |   # Rationale: The SHAP analysis clearly identifies 'OverallQual_TotalSF_Interaction' as the single most important feature.
+2025-11-29 18:15:47 | [32mINFO[0m |   # Applying a polynomial transform (squaring it) directly to this top feature allows the model to capture
+2025-11-29 18:15:47 | [32mINFO[0m |   # an even stronger, super-linear relationship for properties that excel in both overall quality and total square footage.
+2025-11-29 18:15:47 | [32mINFO[0m |   # This accentuates the premium for exceptionally high-quality and large homes beyond a simple linear interaction.
+2025-11-29 18:15:47 | [32mINFO[0m |   ...
+2025-11-29 18:15:47 | [31mERROR[0m | Execution failed: Column not found: 'OverallQual_TotalSF_Interaction'...
+2025-11-29 18:15:47 | [32mINFO[0m | 
+2025-11-29 18:15:47 | [32mINFO[0m | ============================================================
+2025-11-29 18:15:47 | [32mINFO[0m | ITERATION 4/4 [SHAP Feedback]
+2025-11-29 18:15:47 | [32mINFO[0m | ============================================================
+2025-11-29 18:15:58 | [32mINFO[0m | Generated code:
+2025-11-29 18:15:58 | [32mINFO[0m |   # Feature: OverallQual_TotalSF_LotArea_Interaction
+2025-11-29 18:15:58 | [32mINFO[0m |   # Rationale: This feature builds upon the single most important feature, 'OverallQual_TotalSF_Interaction', by combining it with 'LotArea', which is also a top-5 predictive feature according to SHAP analysis.
+2025-11-29 18:15:58 | [32mINFO[0m |   # The hypothesis is that the combined effect of a high-quality, large house on a spacious lot significantly amplifies its value, capturing a super-additive premium for properties excelling in all three dimensions: quality, size, and land area. This interaction aims to model a more comprehensive "premium property" characteristic.
+2025-11-29 18:15:58 | [32mINFO[0m |   df['OverallQual_TotalSF_LotArea_Interaction'] = df['OverallQual_TotalSF_Interaction'] * df['LotArea'].fillna(df['LotArea'].median())
+2025-11-29 18:15:58 | [31mERROR[0m | Execution failed: Column not found: 'OverallQual_TotalSF_Interaction'...
+2025-11-29 18:15:58 | [32mINFO[0m | 
+2025-11-29 18:15:58 | [32mINFO[0m | ============================================================
+2025-11-29 18:15:58 | [32mINFO[0m | ITERATION 5/5 [SHAP Feedback]
+2025-11-29 18:15:58 | [32mINFO[0m | ============================================================
+2025-11-29 18:16:08 | [32mINFO[0m | Generated code:
+2025-11-29 18:16:08 | [32mINFO[0m |   # Feature: OverallQual_TotalSF_OverallCond_Interaction
+2025-11-29 18:16:08 | [32mINFO[0m |   # Rationale: This feature builds upon the single most important feature, 'OverallQual_TotalSF_Interaction', by combining it with 'OverallCond', which is also identified as a top 6 predictive feature by SHAP analysis.
+2025-11-29 18:16:08 | [32mINFO[0m |   # The hypothesis is that the premium for a high-quality, large home is further amplified when the property is also in excellent overall condition. This interaction captures a more comprehensive measure of a property's appeal, where exceptional quality, generous size, and meticulous maintenance together drive significantly higher value, beyond their individual or pairwise additive effects.
+2025-11-29 18:16:08 | [32mINFO[0m |   df['OverallQual_TotalSF_OverallCond_Interaction'] = df['OverallQual_TotalSF_Interaction'] * df['OverallCond'].fillna(df['OverallCond'].median())
+2025-11-29 18:16:08 | [31mERROR[0m | Execution failed: Column not found: 'OverallQual_TotalSF_Interaction'...
+2025-11-29 18:16:08 | [32mINFO[0m | 
+2025-11-29 18:16:08 | [32mINFO[0m | ============================================================
+2025-11-29 18:16:08 | [32mINFO[0m | ITERATION 6/6 [SHAP Feedback]
+2025-11-29 18:16:08 | [32mINFO[0m | ============================================================
+2025-11-29 18:16:18 | [32mINFO[0m | Generated code:
+2025-11-29 18:16:18 | [32mINFO[0m |   # Feature: OverallQual_TotalSF_Garage_Interaction
+2025-11-29 18:16:18 | [32mINFO[0m |   # Rationale: This feature leverages the top-ranking 'OverallQual_TotalSF_Interaction' by combining it with the combined utility and size of the garage (GarageCars * GarageArea).
+2025-11-29 18:16:18 | [32mINFO[0m |   # The hypothesis is that the premium for a high-quality and large home is further amplified when it also includes a substantial and functional garage.
+2025-11-29 18:16:18 | [32mINFO[0m |   # This interaction aims to capture a super-additive effect where properties excelling in living space quality/size AND garage capacity/size fetch a disproportionately higher value.
+2025-11-29 18:16:18 | [32mINFO[0m |   # It effectively combines the top feature with other important features (GarageCars, GarageArea) from the SHAP analysis into a single, comprehensive indicator of property value.
+2025-11-29 18:16:18 | [32mINFO[0m |   ...
+2025-11-29 18:16:18 | [31mERROR[0m | Execution failed: Column not found: 'OverallQual_TotalSF_Interaction'...
+2025-11-29 18:16:18 | [32mINFO[0m | 
+2025-11-29 18:16:18 | [32mINFO[0m | ============================================================
+2025-11-29 18:16:18 | [32mINFO[0m | ITERATION 7/7 [SHAP Feedback]
+2025-11-29 18:16:18 | [32mINFO[0m | ============================================================
+2025-11-29 18:16:29 | [32mINFO[0m | Generated code:
+2025-11-29 18:16:29 | [32mINFO[0m |   # Feature: OverallQual_TotalSF_KitchenQuality
+2025-11-29 18:16:29 | [32mINFO[0m |   # Rationale: This feature enhances the single most important predictor, 'OverallQual_TotalSF_Interaction', by incorporating 'KitchenQual', which is also a high-ranking feature (top 8) in the SHAP analysis.
+2025-11-29 18:16:29 | [32mINFO[0m |   # The hypothesis is that the premium for a large, high-quality home is significantly amplified when it also boasts an excellent kitchen. This interaction aims to capture a multi-dimensional "luxury" or "desirability" factor, suggesting that properties excelling in overall size and quality, *and* having a top-tier kitchen, command a disproportionately higher value.
+2025-11-29 18:16:29 | [32mINFO[0m |   kitchen_qual_map = {'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1}
+2025-11-29 18:16:29 | [32mINFO[0m |   # Map KitchenQual to numerical values, filling any NaNs with the median value (3 for 'TA') as it's a common/average condition.
+2025-11-29 18:16:29 | [32mINFO[0m |   ...
+2025-11-29 18:16:29 | [31mERROR[0m | Execution failed: Column not found: 'OverallQual_TotalSF_Interaction'...
+2025-11-29 18:16:29 | [32mINFO[0m | 
+2025-11-29 18:16:29 | [32mINFO[0m | ============================================================
+2025-11-29 18:16:29 | [32mINFO[0m | ITERATION 8/8 [SHAP Feedback]
+2025-11-29 18:16:29 | [32mINFO[0m | ============================================================
+2025-11-29 18:16:42 | [32mINFO[0m | Generated code:
+2025-11-29 18:16:42 | [32mINFO[0m |   # Feature: QualitySF
+2025-11-29 18:16:42 | [32mINFO[0m |   df['QualitySF'] = df['OverallQual'].fillna(df['OverallQual'].median()) * df['GrLivArea'].fillna(df['GrLivArea'].median())
+2025-11-29 18:16:54 | [33mWARNING[0m | ✗ No improvement: QualitySF
+2025-11-29 18:16:54 | [33mWARNING[0m |   RMSLE: 0.10353 → 0.10441 (Δ -0.00088)
+2025-11-29 18:16:54 | [32mINFO[0m | 
+2025-11-29 18:16:54 | [32mINFO[0m | ============================================================
+2025-11-29 18:16:54 | [32mINFO[0m | ITERATION 9/9 [SHAP Feedback]
+2025-11-29 18:16:54 | [32mINFO[0m | ============================================================
+2025-11-29 18:17:09 | [32mINFO[0m | Generated code:
+2025-11-29 18:17:09 | [32mINFO[0m |   # Feature: QualitySF_Sq
+2025-11-29 18:17:09 | [32mINFO[0m |   # Rationale: The SHAP analysis identifies 'QualitySF' as the single most important feature.
+2025-11-29 18:17:09 | [32mINFO[0m |   # Applying a polynomial transform (squaring it) directly to this top feature allows the model to capture
+2025-11-29 18:17:09 | [32mINFO[0m |   # an even stronger, super-linear relationship for properties that excel in both overall quality and living area square footage.
+2025-11-29 18:17:09 | [32mINFO[0m |   # This accentuates the premium for exceptionally high-quality and large homes beyond a simple linear interaction,
+2025-11-29 18:17:09 | [32mINFO[0m |   ...
+2025-11-29 18:17:09 | [31mERROR[0m | Execution failed: Column not found: 'QualitySF'...
+2025-11-29 18:17:09 | [32mINFO[0m | 
+2025-11-29 18:17:09 | [32mINFO[0m | ============================================================
+2025-11-29 18:17:09 | [32mINFO[0m | ITERATION 10/10 [SHAP Feedback]
+2025-11-29 18:17:09 | [32mINFO[0m | ============================================================
+2025-11-29 18:17:21 | [32mINFO[0m | Generated code:
+2025-11-29 18:17:21 | [32mINFO[0m |   # Feature: QualitySF_GarageScore_Interaction
+2025-11-29 18:17:21 | [32mINFO[0m |   # Rationale: This feature enhances the top predictive feature, 'QualitySF' (OverallQual * GrLivArea),
+2025-11-29 18:17:21 | [32mINFO[0m |   # by interacting it with a 'GarageScore' derived from 'GarageCars' and 'GarageArea'. The hypothesis is that the premium
+2025-11-29 18:17:21 | [32mINFO[0m |   # for a high-quality and spacious above-ground living area is significantly amplified when the property also includes
+2025-11-29 18:17:21 | [32mINFO[0m |   # a substantial and functional garage. This interaction leverages multiple top-ranking SHAP features
+2025-11-29 18:17:21 | [32mINFO[0m |   ...
+2025-11-29 18:17:33 | [33mWARNING[0m | ✗ No improvement: QualitySF_GarageScore_Interaction
+2025-11-29 18:17:33 | [33mWARNING[0m |   RMSLE: 0.10353 → 0.10443 (Δ -0.00089)
+2025-11-29 18:17:33 | [32mINFO[0m | 
+2025-11-29 18:17:33 | [32mINFO[0m | ============================================================
+2025-11-29 18:17:33 | [32mINFO[0m | SESSION COMPLETE
+2025-11-29 18:17:33 | [32mINFO[0m | ============================================================
+2025-11-29 18:17:33 | [32mINFO[0m | Iterations:    10
+2025-11-29 18:17:33 | [32mINFO[0m | Successful:    0 (0.0%)
+2025-11-29 18:17:33 | [32mINFO[0m | Baseline:      0.10353
+2025-11-29 18:17:33 | [32mINFO[0m | Best:          0.10353
+2025-11-29 18:17:33 | [32mINFO[0m | Improvement:   0.00000 (0.00%)
+2025-11-29 18:17:33 | [32mINFO[0m | ============================================================
+2025-11-29 18:17:33 | [32mINFO[0m | Generating visualization...
+2025-11-29 18:17:33 | [32mINFO[0m | Visualization complete!
+2025-11-29 18:22:10 | [32mINFO[0m | ============================================================
+2025-11-29 18:22:10 | [32mINFO[0m | New session started at 2025-11-29T18:22:10.472087
+2025-11-29 18:22:10 | [32mINFO[0m | ============================================================
+2025-11-29 18:22:10 | [32mINFO[0m | ============================================================
+2025-11-29 18:22:10 | [32mINFO[0m | Feature Engineering Agent
+2025-11-29 18:22:10 | [32mINFO[0m | Iterations: 10
+2025-11-29 18:22:10 | [32mINFO[0m | Feedback: Enabled
+2025-11-29 18:22:10 | [32mINFO[0m | Model: gemini-2.5-flash
+2025-11-29 18:22:10 | [32mINFO[0m | ============================================================
+2025-11-29 18:22:10 | [32mINFO[0m | Clearing previous memory...
+2025-11-29 18:22:10 | [32mINFO[0m | Loading data...
+2025-11-29 18:22:10 | [32mINFO[0m | Train shape: (1465, 81)
+2025-11-29 18:22:10 | [32mINFO[0m | Preprocessing...
+2025-11-29 18:22:10 | [32mINFO[0m | Processed shape: (1465, 212)
+2025-11-29 18:22:10 | [32mINFO[0m | Calculating baseline RMSLE...
+2025-11-29 18:22:21 | [32mINFO[0m | Baseline RMSLE: 0.10353
+2025-11-29 18:22:21 | [32mINFO[0m | Initializing Gemini client...
+2025-11-29 18:22:21 | [32mINFO[0m | Gemini client ready
+2025-11-29 18:22:21 | [32mINFO[0m | Starting from best RMSLE: 0.10353
+2025-11-29 18:22:21 | [32mINFO[0m | Starting iterations...
+2025-11-29 18:22:21 | [32mINFO[0m | 
+2025-11-29 18:22:21 | [32mINFO[0m | ============================================================
+2025-11-29 18:22:21 | [32mINFO[0m | ITERATION 1/1 [SHAP Feedback]
+2025-11-29 18:22:21 | [32mINFO[0m | ============================================================
+2025-11-29 18:22:30 | [32mINFO[0m | Generated code:
+2025-11-29 18:22:30 | [32mINFO[0m |   # Feature: QualityTotalSF
+2025-11-29 18:22:30 | [32mINFO[0m |   df['QualityTotalSF'] = df['OverallQual'] * df['TotalSF'].fillna(0)
+2025-11-29 18:22:41 | [33mWARNING[0m | ✗ No improvement: QualityTotalSF
+2025-11-29 18:22:41 | [33mWARNING[0m |   RMSLE: 0.10353 → 0.10514 (Δ -0.00161)
+2025-11-29 18:22:41 | [32mINFO[0m | 
+2025-11-29 18:22:41 | [32mINFO[0m | ============================================================
+2025-11-29 18:22:41 | [32mINFO[0m | ITERATION 2/2 [SHAP Feedback]
+2025-11-29 18:22:41 | [32mINFO[0m | ============================================================
+2025-11-29 18:22:49 | [32mINFO[0m | Generated code:
+2025-11-29 18:22:49 | [32mINFO[0m |   # Feature: QualityOverallSF_Lot
+2025-11-29 18:22:49 | [32mINFO[0m |   # Rationale: This feature captures a triple interaction between overall quality, total living square footage, and lot size.
+2025-11-29 18:22:49 | [32mINFO[0m |   #            It amplifies the value of large, high-quality homes situated on spacious lots, which aligns with market intuition
+2025-11-29 18:22:49 | [32mINFO[0m |   #            and directly leverages the top SHAP features: 'QualityTotalSF' (implicitly 'OverallQual' * 'TotalSF') and 'LotArea'.
+2025-11-29 18:22:49 | [32mINFO[0m |   df['QualityOverallSF_Lot'] = df['OverallQual'] * df['TotalSF'].fillna(0) * df['LotArea'].fillna(0)
+2025-11-29 18:23:00 | [32mINFO[0m | ✓ IMPROVED: QualityOverallSF_Lot
+2025-11-29 18:23:00 | [32mINFO[0m |   RMSLE: 0.10353 → 0.10320 (Δ +0.00033)
+2025-11-29 18:23:00 | [32mINFO[0m | 
+2025-11-29 18:23:00 | [32mINFO[0m | ============================================================
+2025-11-29 18:23:00 | [32mINFO[0m | ITERATION 3/3 [SHAP Feedback]
+2025-11-29 18:23:00 | [32mINFO[0m | ============================================================
+2025-11-29 18:23:08 | [32mINFO[0m | Generated code:
+2025-11-29 18:23:08 | [32mINFO[0m |   # Feature: QualityGrLivArea
+2025-11-29 18:23:08 | [32mINFO[0m |   # Rationale: This feature captures a powerful interaction between the property's 'OverallQual' (the most important SHAP feature)
+2025-11-29 18:23:08 | [32mINFO[0m |   #            and 'GrLivArea' (above grade living area, another top SHAP feature). It represents the perceived value of high-quality,
+2025-11-29 18:23:08 | [32mINFO[0m |   #            spacious above-ground living areas, aligning with the intuition that a larger footprint of a well-built home significantly increases its appeal and price.
+2025-11-29 18:23:08 | [32mINFO[0m |   #            This directly implements the "QualitySF" example provided, which is a proven effective interaction pattern.
+2025-11-29 18:23:08 | [32mINFO[0m |   ...
+2025-11-29 18:23:19 | [33mWARNING[0m | ✗ No improvement: QualityGrLivArea
+2025-11-29 18:23:19 | [33mWARNING[0m |   RMSLE: 0.10320 → 0.10333 (Δ -0.00012)
+2025-11-29 18:23:19 | [32mINFO[0m | 
+2025-11-29 18:23:19 | [32mINFO[0m | ============================================================
+2025-11-29 18:23:19 | [32mINFO[0m | ITERATION 4/4 [SHAP Feedback]
+2025-11-29 18:23:19 | [32mINFO[0m | ============================================================
+2025-11-29 18:23:24 | [32mINFO[0m | Generated code:
+2025-11-29 18:23:24 | [32mINFO[0m |   # Feature: QualityGrLivAreaSq
+2025-11-29 18:23:24 | [32mINFO[0m |   # Rationale: This feature applies a polynomial (squared) transformation to the top SHAP-important feature, 'QualityGrLivArea'.
+2025-11-29 18:23:24 | [32mINFO[0m |   #            It aims to capture non-linear relationships, where the premium for high quality in large living areas might increase quadratically.
+2025-11-29 18:23:24 | [32mINFO[0m |   #            This aligns with the suggestion to try polynomial transforms of 'QualityGrLivArea'.
+2025-11-29 18:23:24 | [32mINFO[0m |   df['QualityGrLivAreaSq'] = df['QualityGrLivArea'].fillna(0) ** 2
+2025-11-29 18:23:24 | [31mERROR[0m | Execution failed: Column not found: 'QualityGrLivArea'...
+2025-11-29 18:23:24 | [32mINFO[0m | 
+2025-11-29 18:23:24 | [32mINFO[0m | ============================================================
+2025-11-29 18:23:24 | [32mINFO[0m | ITERATION 5/5 [SHAP Feedback]
+2025-11-29 18:23:24 | [32mINFO[0m | ============================================================
+2025-11-29 18:23:31 | [32mINFO[0m | Generated code:
+2025-11-29 18:23:31 | [32mINFO[0m |   # Feature: QualityOverallSF_Lot_Sq
+2025-11-29 18:23:31 | [32mINFO[0m |   # Rationale: This feature applies a polynomial (squared) transformation to 'QualityOverallSF_Lot',
+2025-11-29 18:23:31 | [32mINFO[0m |   #            which is the second most important SHAP feature. It aims to capture non-linear relationships,
+2025-11-29 18:23:31 | [32mINFO[0m |   #            suggesting that the combined premium of quality, total square footage, and lot size might
+2025-11-29 18:23:31 | [32mINFO[0m |   #            increase quadratically, providing more weight to truly exceptional properties. This directly
+2025-11-29 18:23:31 | [32mINFO[0m |   ...
+2025-11-29 18:23:42 | [32mINFO[0m | ✓ IMPROVED: QualityOverallSF_Lot_Sq
+2025-11-29 18:23:42 | [32mINFO[0m |   RMSLE: 0.10320 → 0.10281 (Δ +0.00039)
+2025-11-29 18:23:42 | [32mINFO[0m | 
+2025-11-29 18:23:42 | [32mINFO[0m | ============================================================
+2025-11-29 18:23:42 | [32mINFO[0m | ITERATION 6/6 [SHAP Feedback]
+2025-11-29 18:23:42 | [32mINFO[0m | ============================================================
+2025-11-29 18:23:50 | [32mINFO[0m | Generated code:
+2025-11-29 18:23:50 | [32mINFO[0m |   # Feature: OverallQualityCondition
+2025-11-29 18:23:50 | [32mINFO[0m |   # Rationale: This feature captures a powerful interaction between the property's 'OverallQual' (the most important SHAP feature)
+2025-11-29 18:23:50 | [32mINFO[0m |   #            and 'OverallCond' (general condition, another top SHAP feature at #8). It represents the combined assessment of a home's
+2025-11-29 18:23:50 | [32mINFO[0m |   #            quality and its current condition. A high-quality home that is also in excellent condition is likely to command
+2025-11-29 18:23:50 | [32mINFO[0m |   #            a premium that is greater than the sum of its individual quality and condition scores, reflecting a holistic view of the property's state.
+2025-11-29 18:23:50 | [32mINFO[0m |   ...
+2025-11-29 18:24:00 | [32mINFO[0m | ✓ IMPROVED: OverallQualityCondition
+2025-11-29 18:24:00 | [32mINFO[0m |   RMSLE: 0.10281 → 0.10269 (Δ +0.00012)
+2025-11-29 18:24:00 | [32mINFO[0m | 
+2025-11-29 18:24:00 | [32mINFO[0m | ============================================================
+2025-11-29 18:24:00 | [32mINFO[0m | ITERATION 7/7 [SHAP Feedback]
+2025-11-29 18:24:00 | [32mINFO[0m | ============================================================
+2025-11-29 18:24:14 | [32mINFO[0m | Generated code:
+2025-11-29 18:24:14 | [32mINFO[0m |   # Feature: OverallQual_KitchenQual
+2025-11-29 18:24:14 | [32mINFO[0m |   # Rationale: This feature captures a specific interaction between the overall quality of the house ('OverallQual', the top SHAP feature)
+2025-11-29 18:24:14 | [32mINFO[0m |   #            and the quality of the kitchen ('KitchenQual', another top 10 SHAP feature). A high-quality house with an equally high-quality
+2025-11-29 18:24:14 | [32mINFO[0m |   #            kitchen is likely to be significantly more desirable and valuable, as the kitchen is often considered the heart of the home.
+2025-11-29 18:24:14 | [32mINFO[0m |   #            This interaction amplifies the combined impact of these two crucial quality indicators, directly leveraging the most important features.
+2025-11-29 18:24:14 | [32mINFO[0m |   ...
+2025-11-29 18:24:24 | [33mWARNING[0m | ✗ No improvement: OverallQual_KitchenQual
+2025-11-29 18:24:24 | [33mWARNING[0m |   RMSLE: 0.10269 → 0.10269 (Δ +0.00000)
+2025-11-29 18:24:24 | [32mINFO[0m | 
+2025-11-29 18:24:24 | [32mINFO[0m | ============================================================
+2025-11-29 18:24:24 | [32mINFO[0m | ITERATION 8/8 [SHAP Feedback]
+2025-11-29 18:24:24 | [32mINFO[0m | ============================================================
+2025-11-29 18:24:41 | [32mINFO[0m | Generated code:
+2025-11-29 18:24:41 | [32mINFO[0m |   # Feature: QualitySizeAgePenalty
+2025-11-29 18:24:41 | [32mINFO[0m |   # Rationale: This feature captures a powerful interaction where the inherent value from a home's overall quality and size is modulated by its age.
+2025-11-29 18:24:41 | [32mINFO[0m |   #            A high 'OverallQual' (the most important SHAP feature) combined with a large 'TotalSF' (the second most important SHAP feature) creates a base premium.
+2025-11-29 18:24:41 | [32mINFO[0m |   #            This base premium is then reduced by the 'HouseAge' (the fifth most important SHAP feature), reflecting the natural depreciation and decreasing desirability
+2025-11-29 18:24:41 | [32mINFO[0m |   #            of older homes. This subtractive interaction directly models the intuition that while quality and size add value, age simultaneously detracts from it,
+2025-11-29 18:24:41 | [32mINFO[0m |   ...
+2025-11-29 18:24:51 | [33mWARNING[0m | ✗ No improvement: QualitySizeAgePenalty
+2025-11-29 18:24:51 | [33mWARNING[0m |   RMSLE: 0.10269 → 0.10416 (Δ -0.00146)
+2025-11-29 18:24:51 | [32mINFO[0m | 
+2025-11-29 18:24:51 | [32mINFO[0m | ============================================================
+2025-11-29 18:24:51 | [32mINFO[0m | ITERATION 9/9 [SHAP Feedback]
+2025-11-29 18:24:51 | [32mINFO[0m | ============================================================
+2025-11-29 18:25:06 | [32mINFO[0m | Generated code:
+2025-11-29 18:25:06 | [32mINFO[0m |   # Feature: QualitySizeAge_GarageCars
+2025-11-29 18:25:06 | [32mINFO[0m |   # Rationale: This feature captures a powerful interaction, amplifying the impact of the most important SHAP feature, 'QualitySizeAgePenalty',
+2025-11-29 18:25:06 | [32mINFO[0m |   #            with 'GarageCars' (the 5th most important feature). 'QualitySizeAgePenalty' represents the inherent value from a home's
+2025-11-29 18:25:06 | [32mINFO[0m |   #            overall quality and size, adjusted by its age. Multiplying this by 'GarageCars' reflects the strong market intuition
+2025-11-29 18:25:06 | [32mINFO[0m |   #            that a high-value property (high quality, large, relatively newer) becomes even more desirable and valuable with increased garage capacity.
+2025-11-29 18:25:06 | [32mINFO[0m |   ...
+2025-11-29 18:25:06 | [31mERROR[0m | Execution failed: Column not found: 'QualitySizeAgePenalty'...
+2025-11-29 18:25:06 | [32mINFO[0m | 
+2025-11-29 18:25:06 | [32mINFO[0m | ============================================================
+2025-11-29 18:25:06 | [32mINFO[0m | ITERATION 10/10 [SHAP Feedback]
+2025-11-29 18:25:06 | [32mINFO[0m | ============================================================
+2025-11-29 18:25:21 | [32mINFO[0m | Generated code:
+2025-11-29 18:25:21 | [32mINFO[0m |   # Feature: QualitySizeAgePenalty_YearBuilt
+2025-11-29 18:25:21 | [32mINFO[0m |   # Rationale: This feature captures a powerful interaction between 'QualitySizeAgePenalty' (the most important SHAP feature)
+2025-11-29 18:25:21 | [32mINFO[0m |   #            and 'YearBuilt' (the third most important SHAP feature). 'QualitySizeAgePenalty' represents a property's
+2025-11-29 18:25:21 | [32mINFO[0m |   #            inherent value from quality and size, adjusted by its age. Multiplying this by 'YearBuilt' amplifies the
+2025-11-29 18:25:21 | [32mINFO[0m |   #            signal for newer homes. A high-quality, large property that is also recently built (high YearBuilt)
+2025-11-29 18:25:21 | [32mINFO[0m |   ...
+2025-11-29 18:25:21 | [31mERROR[0m | Execution failed: Column not found: 'QualitySizeAgePenalty'...
+2025-11-29 18:25:21 | [32mINFO[0m | 
+2025-11-29 18:25:21 | [32mINFO[0m | ============================================================
+2025-11-29 18:25:21 | [32mINFO[0m | SESSION COMPLETE
+2025-11-29 18:25:21 | [32mINFO[0m | ============================================================
+2025-11-29 18:25:21 | [32mINFO[0m | Iterations:    10
+2025-11-29 18:25:21 | [32mINFO[0m | Successful:    3 (30.0%)
+2025-11-29 18:25:21 | [32mINFO[0m | Baseline:      0.10353
+2025-11-29 18:25:21 | [32mINFO[0m | Best:          0.10269
+2025-11-29 18:25:21 | [32mINFO[0m | Improvement:   0.00084 (0.81%)
+2025-11-29 18:25:21 | [32mINFO[0m | ============================================================
+2025-11-29 18:25:21 | [32mINFO[0m | Successful features:
+2025-11-29 18:25:21 | [32mINFO[0m |   1. ['QualityOverallSF_Lot'] (improvement: 0.00033)
+2025-11-29 18:25:21 | [32mINFO[0m |   2. ['QualityOverallSF_Lot_Sq'] (improvement: 0.00039)
+2025-11-29 18:25:21 | [32mINFO[0m |   3. ['OverallQualityCondition'] (improvement: 0.00012)
+2025-11-29 18:25:21 | [32mINFO[0m | Generating visualization...
+2025-11-29 18:25:21 | [32mINFO[0m | Visualization complete!
+2025-11-29 18:31:01 | [32mINFO[0m | ============================================================
+2025-11-29 18:31:01 | [32mINFO[0m | New session started at 2025-11-29T18:31:01.317954
+2025-11-29 18:31:01 | [32mINFO[0m | ============================================================
+2025-11-29 18:31:01 | [32mINFO[0m | ============================================================
+2025-11-29 18:31:01 | [32mINFO[0m | Feature Engineering Agent
+2025-11-29 18:31:01 | [32mINFO[0m | Iterations: 10
+2025-11-29 18:31:01 | [32mINFO[0m | Feedback: Enabled
+2025-11-29 18:31:01 | [32mINFO[0m | Model: gemini-2.5-flash
+2025-11-29 18:31:01 | [32mINFO[0m | ============================================================
+2025-11-29 18:31:01 | [32mINFO[0m | Clearing previous memory...
+2025-11-29 18:31:01 | [32mINFO[0m | Loading data...
+2025-11-29 18:31:01 | [32mINFO[0m | Train shape: (1465, 81)
+2025-11-29 18:31:01 | [32mINFO[0m | Preprocessing...
+2025-11-29 18:31:01 | [32mINFO[0m | Processed shape: (1465, 212)
+2025-11-29 18:31:01 | [32mINFO[0m | Calculating baseline RMSLE...
+2025-11-29 18:31:12 | [32mINFO[0m | Baseline RMSLE: 0.10353
+2025-11-29 18:31:12 | [32mINFO[0m | Initializing Gemini client...
+2025-11-29 18:31:12 | [32mINFO[0m | Gemini client ready
+2025-11-29 18:31:12 | [32mINFO[0m | Starting from best RMSLE: 0.10353
+2025-11-29 18:31:12 | [32mINFO[0m | Starting iterations...
+2025-11-29 18:31:12 | [32mINFO[0m | 
+2025-11-29 18:31:12 | [32mINFO[0m | ============================================================
+2025-11-29 18:31:12 | [32mINFO[0m | ITERATION 1/1 [SHAP Feedback]
+2025-11-29 18:31:12 | [32mINFO[0m | ============================================================
+2025-11-29 18:31:26 | [32mINFO[0m | Generated code:
+2025-11-29 18:31:26 | [32mINFO[0m |   # Feature: OverallQual_GrLivArea_Interaction
+2025-11-29 18:31:26 | [32mINFO[0m |   # Fill NaNs for parent features to avoid errors in multiplication. OverallQual and GrLivArea are fundamental and typically not NaN, but handled for robustness.
+2025-11-29 18:31:26 | [32mINFO[0m |   df['OverallQual'] = df['OverallQual'].fillna(df['OverallQual'].median())
+2025-11-29 18:31:26 | [32mINFO[0m |   df['GrLivArea'] = df['GrLivArea'].fillna(df['GrLivArea'].median())
+2025-11-29 18:31:26 | [32mINFO[0m |   df['OverallQual_GrLivArea_Interaction'] = df['OverallQual'] * df['GrLivArea']
+2025-11-29 18:31:37 | [33mWARNING[0m | ✗ No improvement: OverallQual_GrLivArea_Interaction
+2025-11-29 18:31:37 | [33mWARNING[0m |   RMSLE: 0.10353 → 0.10441 (Δ -0.00088)
+2025-11-29 18:31:37 | [32mINFO[0m | 
+2025-11-29 18:31:37 | [32mINFO[0m | ============================================================
+2025-11-29 18:31:37 | [32mINFO[0m | ITERATION 2/2 [SHAP Feedback]
+2025-11-29 18:31:37 | [32mINFO[0m | ============================================================
+2025-11-29 18:31:48 | [32mINFO[0m | Generated code:
+2025-11-29 18:31:48 | [32mINFO[0m |   # Feature: QualityLotSize
+2025-11-29 18:31:48 | [32mINFO[0m |   # This feature combines the model's top feature (OverallQual_GrLivArea_Interaction) with LotArea,
+2025-11-29 18:31:48 | [32mINFO[0m |   # assuming that the value of a high-quality, large living space is amplified by having a larger property lot.
+2025-11-29 18:31:48 | [32mINFO[0m |   df['LotArea'] = df['LotArea'].fillna(df['LotArea'].median())
+2025-11-29 18:31:48 | [32mINFO[0m |   df['QualityLotSize'] = df['OverallQual_GrLivArea_Interaction'] * df['LotArea']
+2025-11-29 18:31:48 | [31mERROR[0m | Execution failed: Column not found: 'OverallQual_GrLivArea_Interaction'...
+2025-11-29 18:31:48 | [32mINFO[0m | 
+2025-11-29 18:31:48 | [32mINFO[0m | ============================================================
+2025-11-29 18:31:48 | [32mINFO[0m | ITERATION 3/3 [SHAP Feedback]
+2025-11-29 18:31:48 | [32mINFO[0m | ============================================================
+2025-11-29 18:31:58 | [32mINFO[0m | Generated code:
+2025-11-29 18:31:58 | [32mINFO[0m |   # Feature: LivingQualGarageCars
+2025-11-29 18:31:58 | [32mINFO[0m |   # This feature combines the top predictive feature 'OverallQual_GrLivArea_Interaction' with 'GarageCars',
+2025-11-29 18:31:58 | [32mINFO[0m |   # hypothesizing that the value of a high-quality, large living space is significantly enhanced by garage capacity.
+2025-11-29 18:31:58 | [32mINFO[0m |   # We assume 'OverallQual_GrLivArea_Interaction' is already calculated and its components handled for NaNs.
+2025-11-29 18:31:58 | [32mINFO[0m |   df['GarageCars'] = df['GarageCars'].fillna(0) # Fill NaN in GarageCars with 0, implying no garage
+2025-11-29 18:31:58 | [32mINFO[0m |   ...
+2025-11-29 18:31:58 | [31mERROR[0m | Execution failed: Column not found: 'OverallQual_GrLivArea_Interaction'...
+2025-11-29 18:31:58 | [32mINFO[0m | 
+2025-11-29 18:31:58 | [32mINFO[0m | ============================================================
+2025-11-29 18:31:58 | [32mINFO[0m | ITERATION 4/4 [SHAP Feedback]
+2025-11-29 18:31:58 | [32mINFO[0m | ============================================================
+2025-11-29 18:32:07 | [32mINFO[0m | Generated code:
+2025-11-29 18:32:07 | [32mINFO[0m |   # Feature: QualityLivingAreaInteractionSq
+2025-11-29 18:32:07 | [32mINFO[0m |   # Rationale: Applies a squared transformation to the top-ranking 'OverallQual_GrLivArea_Interaction' feature.
+2025-11-29 18:32:07 | [32mINFO[0m |   # This captures a non-linear, potentially accelerating, premium for properties that combine high overall quality with large living area.
+2025-11-29 18:32:07 | [32mINFO[0m |   # It assumes 'OverallQual_GrLivArea_Interaction' has already been calculated and its components (OverallQual, GrLivArea) have been handled for NaNs, as per previous processing.
+2025-11-29 18:32:07 | [32mINFO[0m |   df['QualityLivingAreaInteractionSq'] = df['OverallQual_GrLivArea_Interaction'] ** 2
+2025-11-29 18:32:07 | [31mERROR[0m | Execution failed: Column not found: 'OverallQual_GrLivArea_Interaction'...
+2025-11-29 18:32:07 | [32mINFO[0m | 
+2025-11-29 18:32:07 | [32mINFO[0m | ============================================================
+2025-11-29 18:32:07 | [32mINFO[0m | ITERATION 5/5 [SHAP Feedback]
+2025-11-29 18:32:07 | [32mINFO[0m | ============================================================
+2025-11-29 18:32:16 | [32mINFO[0m | Generated code:
+2025-11-29 18:32:16 | [32mINFO[0m |   # Feature: OverallQualSq
+2025-11-29 18:32:16 | [32mINFO[0m |   # Square of OverallQual to capture a non-linear premium for higher quality homes,
+2025-11-29 18:32:16 | [32mINFO[0m |   # assuming a disproportionate increase in value as quality improves.
+2025-11-29 18:32:16 | [32mINFO[0m |   # Handle potential NaNs for robustness, though OverallQual is usually complete.
+2025-11-29 18:32:16 | [32mINFO[0m |   df['OverallQual'] = df['OverallQual'].fillna(df['OverallQual'].median())
+2025-11-29 18:32:16 | [32mINFO[0m |   ...
+2025-11-29 18:32:27 | [33mWARNING[0m | ✗ No improvement: OverallQualSq
+2025-11-29 18:32:27 | [33mWARNING[0m |   RMSLE: 0.10353 → 0.10537 (Δ -0.00184)
+2025-11-29 18:32:27 | [32mINFO[0m | 
+2025-11-29 18:32:27 | [32mINFO[0m | ============================================================
+2025-11-29 18:32:27 | [32mINFO[0m | ITERATION 6/6 [SHAP Feedback]
+2025-11-29 18:32:27 | [32mINFO[0m | ============================================================
+2025-11-29 18:32:36 | [32mINFO[0m | Generated code:
+2025-11-29 18:32:36 | [32mINFO[0m |   # Feature: TotalSF_OverallQual_Interaction
+2025-11-29 18:32:36 | [32mINFO[0m |   # Rationale: This feature directly interacts the model's top predictive feature, 'TotalSF' (total square footage),
+2025-11-29 18:32:36 | [32mINFO[0m |   # with the second most important feature, 'OverallQual' (overall material and finish quality).
+2025-11-29 18:32:36 | [32mINFO[0m |   # The interaction captures a non-linear relationship, where large homes of high quality are expected to command a disproportionately higher value.
+2025-11-29 18:32:36 | [32mINFO[0m |   # It's distinct from 'OverallQual_GrLivArea_Interaction' because 'TotalSF' includes basement area, offering a more comprehensive size metric than 'GrLivArea'.
+2025-11-29 18:32:36 | [32mINFO[0m |   ...
+2025-11-29 18:32:47 | [33mWARNING[0m | ✗ No improvement: TotalSF_OverallQual_Interaction
+2025-11-29 18:32:47 | [33mWARNING[0m |   RMSLE: 0.10353 → 0.10514 (Δ -0.00161)
+2025-11-29 18:32:47 | [32mINFO[0m | 
+2025-11-29 18:32:47 | [32mINFO[0m | ============================================================
+2025-11-29 18:32:47 | [32mINFO[0m | ITERATION 7/7 [SHAP Feedback]
+2025-11-29 18:32:47 | [32mINFO[0m | ============================================================
+2025-11-29 18:33:00 | [32mINFO[0m | Generated code:
+2025-11-29 18:33:00 | [32mINFO[0m |   # Feature: TotalQualityConditionInteraction
+2025-11-29 18:33:00 | [32mINFO[0m |   # Rationale: This feature combines the model's top predictive interaction feature ('TotalSF_OverallQual_Interaction')
+2025-11-29 18:33:00 | [32mINFO[0m |   # with the 'OverallCond' (overall condition) of the house.
+2025-11-29 18:33:00 | [32mINFO[0m |   # It captures the idea that a house's value is a function of its size, material quality, and its current condition.
+2025-11-29 18:33:00 | [32mINFO[0m |   # A high-quality, large home in excellent condition should command a significantly higher price than one in poor condition,
+2025-11-29 18:33:00 | [32mINFO[0m |   ...
+2025-11-29 18:33:00 | [31mERROR[0m | Execution failed: Column not found: 'TotalSF_OverallQual_Interaction'...
+2025-11-29 18:33:00 | [32mINFO[0m | 
+2025-11-29 18:33:00 | [32mINFO[0m | ============================================================
+2025-11-29 18:33:00 | [32mINFO[0m | ITERATION 8/8 [SHAP Feedback]
+2025-11-29 18:33:00 | [32mINFO[0m | ============================================================
+2025-11-29 18:33:13 | [32mINFO[0m | Generated code:
+2025-11-29 18:33:13 | [32mINFO[0m |   # Feature: TotalSF_OverallQual_Interaction_Squared
+2025-11-29 18:33:13 | [32mINFO[0m |   # Rationale: This feature applies a polynomial (squared) transformation to the model's top predictive feature,
+2025-11-29 18:33:13 | [32mINFO[0m |   # 'TotalSF_OverallQual_Interaction'. This captures a potentially accelerating non-linear relationship,
+2025-11-29 18:33:13 | [32mINFO[0m |   # where properties with extremely high combined total square footage and overall quality might command a disproportionately higher price.
+2025-11-29 18:33:13 | [32mINFO[0m |   # It directly leverages the existing strongest feature and explores a non-linear variant, as suggested by the SHAP analysis.
+2025-11-29 18:33:13 | [32mINFO[0m |   ...
+2025-11-29 18:33:13 | [31mERROR[0m | Execution failed: Column not found: 'TotalSF_OverallQual_Interaction'...
+2025-11-29 18:33:13 | [32mINFO[0m | 
+2025-11-29 18:33:13 | [32mINFO[0m | ============================================================
+2025-11-29 18:33:13 | [32mINFO[0m | ITERATION 9/9 [SHAP Feedback]
+2025-11-29 18:33:13 | [32mINFO[0m | ============================================================
+2025-11-29 18:33:26 | [32mINFO[0m | Generated code:
+2025-11-29 18:33:26 | [32mINFO[0m |   # Feature: TotalSFQual_KitchenQual_Interaction
+2025-11-29 18:33:26 | [32mINFO[0m |   # Rationale: This feature combines the model's top predictive feature, 'TotalSF_OverallQual_Interaction',
+2025-11-29 18:33:26 | [32mINFO[0m |   # with 'KitchenQual', which is also identified as a significant predictor (rank 8).
+2025-11-29 18:33:26 | [32mINFO[0m |   # The interaction captures the amplified value of a property that combines high overall quality and large total square footage
+2025-11-29 18:33:26 | [32mINFO[0m |   # with an excellent kitchen quality, suggesting a strong multiplicative effect on sale price.
+2025-11-29 18:33:26 | [32mINFO[0m |   ...
+2025-11-29 18:33:26 | [31mERROR[0m | Execution failed: Column not found: 'TotalSF_OverallQual_Interaction'...
+2025-11-29 18:33:26 | [32mINFO[0m | 
+2025-11-29 18:33:26 | [32mINFO[0m | ============================================================
+2025-11-29 18:33:26 | [32mINFO[0m | ITERATION 10/10 [SHAP Feedback]
+2025-11-29 18:33:26 | [32mINFO[0m | ============================================================
+2025-11-29 18:33:47 | [32mINFO[0m | Generated code:
+2025-11-29 18:33:47 | [32mINFO[0m |   # Feature: TotalSFQual_HouseAge_Interaction_Squared
+2025-11-29 18:33:47 | [32mINFO[0m |   # Rationale: This feature introduces a non-linear interaction by squaring the product of the top predictive feature ('TotalSF_OverallQual_Interaction') and 'HouseAge'.
+2025-11-29 18:33:47 | [32mINFO[0m |   # It hypothesizes that the combined effect of high-quality, large living space and the age of the house has a disproportionately strong influence on sale price.
+2025-11-29 18:33:47 | [32mINFO[0m |   # For instance, a very old, high-quality, large house might be a historical gem, or a relatively new one might have cutting-edge features.
+2025-11-29 18:33:47 | [32mINFO[0m |   # We ensure the base interaction feature and HouseAge are free of NaNs before performing the multiplication and squaring.
+2025-11-29 18:33:47 | [32mINFO[0m |   ...
+2025-11-29 18:33:47 | [31mERROR[0m | Execution failed: Column not found: 'TotalSF_OverallQual_Interaction'...
+2025-11-29 18:33:47 | [32mINFO[0m | 
+2025-11-29 18:33:47 | [32mINFO[0m | ============================================================
+2025-11-29 18:33:47 | [32mINFO[0m | SESSION COMPLETE
+2025-11-29 18:33:47 | [32mINFO[0m | ============================================================
+2025-11-29 18:33:47 | [32mINFO[0m | Iterations:    10
+2025-11-29 18:33:47 | [32mINFO[0m | Successful:    0 (0.0%)
+2025-11-29 18:33:47 | [32mINFO[0m | Baseline:      0.10353
+2025-11-29 18:33:47 | [32mINFO[0m | Best:          0.10353
+2025-11-29 18:33:47 | [32mINFO[0m | Improvement:   0.00000 (0.00%)
+2025-11-29 18:33:47 | [32mINFO[0m | ============================================================
+2025-11-29 18:33:47 | [32mINFO[0m | Generating visualization...
+2025-11-29 18:33:47 | [32mINFO[0m | Visualization complete!
+2025-11-29 19:25:36 | [32mINFO[0m | ============================================================
+2025-11-29 19:25:36 | [32mINFO[0m | New session started at 2025-11-29T19:25:36.128590
+2025-11-29 19:25:36 | [32mINFO[0m | ============================================================
+2025-11-29 19:25:36 | [32mINFO[0m | ============================================================
+2025-11-29 19:25:36 | [32mINFO[0m | Feature Engineering Agent
+2025-11-29 19:25:36 | [32mINFO[0m | Iterations: 10
+2025-11-29 19:25:36 | [32mINFO[0m | Feedback: Enabled
+2025-11-29 19:25:36 | [32mINFO[0m | Model: gemini-2.5-flash
+2025-11-29 19:25:36 | [32mINFO[0m | ============================================================
+2025-11-29 19:25:36 | [32mINFO[0m | Clearing previous memory...
+2025-11-29 19:25:36 | [32mINFO[0m | Loading data...
+2025-11-29 19:25:36 | [32mINFO[0m | Train shape: (1465, 81)
+2025-11-29 19:25:36 | [32mINFO[0m | Preprocessing...
+2025-11-29 19:25:36 | [32mINFO[0m | Processed shape: (1465, 212)
+2025-11-29 19:25:36 | [32mINFO[0m | Advanced preprocessing (outlier removal, skewness)...
+2025-11-29 19:25:36 | [32mINFO[0m | Final shape: (1463, 212)
+2025-11-29 19:25:36 | [32mINFO[0m | Calculating baseline RMSLE...
+2025-11-29 19:25:47 | [32mINFO[0m | Baseline RMSLE: 0.09805
+2025-11-29 19:25:47 | [32mINFO[0m | Initializing Gemini client...
+2025-11-29 19:25:47 | [32mINFO[0m | Gemini client ready
+2025-11-29 19:25:47 | [32mINFO[0m | Starting from best RMSLE: 0.09805
+2025-11-29 19:25:47 | [32mINFO[0m | Starting iterations...
+2025-11-29 19:25:47 | [32mINFO[0m | 
+2025-11-29 19:25:47 | [32mINFO[0m | ============================================================
+2025-11-29 19:25:47 | [32mINFO[0m | ITERATION 1/1 [SHAP Feedback]
+2025-11-29 19:25:47 | [32mINFO[0m | ============================================================
+2025-11-29 19:25:53 | [32mINFO[0m | Generated code:
+2025-11-29 19:25:53 | [32mINFO[0m |   # Feature: OverallQualSquared
+2025-11-29 19:25:53 | [32mINFO[0m |   df['OverallQualSquared'] = df['OverallQual'].fillna(0) ** 2
+2025-11-29 19:26:05 | [33mWARNING[0m | ✗ No improvement: OverallQualSquared
+2025-11-29 19:26:05 | [33mWARNING[0m |   RMSLE: 0.09805 → 0.09994 (Δ -0.00189)
+2025-11-29 19:26:09 | [32mINFO[0m | 
+2025-11-29 19:26:09 | [32mINFO[0m | ============================================================
+2025-11-29 19:26:09 | [32mINFO[0m | ITERATION 2/2 [SHAP Feedback]
+2025-11-29 19:26:09 | [32mINFO[0m | ============================================================
+2025-11-29 19:26:17 | [32mINFO[0m | Generated code:
+2025-11-29 19:26:17 | [32mINFO[0m |   # Feature: QualGrLivAreaInteraction
+2025-11-29 19:26:17 | [32mINFO[0m |   df['QualGrLivAreaInteraction'] = df['OverallQual'].fillna(0) * df['GrLivArea'].fillna(0)
+2025-11-29 19:26:29 | [33mWARNING[0m | ✗ No improvement: QualGrLivAreaInteraction
+2025-11-29 19:26:29 | [33mWARNING[0m |   RMSLE: 0.09805 → 0.09900 (Δ -0.00095)
+2025-11-29 19:26:33 | [32mINFO[0m | 
+2025-11-29 19:26:33 | [32mINFO[0m | ============================================================
+2025-11-29 19:26:33 | [32mINFO[0m | ITERATION 3/3 [SHAP Feedback]
+2025-11-29 19:26:33 | [32mINFO[0m | ============================================================
+2025-11-29 19:26:43 | [32mINFO[0m | Generated code:
+2025-11-29 19:26:43 | [32mINFO[0m |   # Feature: TotalSFSquared
+2025-11-29 19:26:43 | [32mINFO[0m |   df['TotalSFSquared'] = df['TotalSF'].fillna(0) ** 2
+2025-11-29 19:26:54 | [33mWARNING[0m | ✗ No improvement: TotalSFSquared
+2025-11-29 19:26:54 | [33mWARNING[0m |   RMSLE: 0.09805 → 0.09869 (Δ -0.00064)
+2025-11-29 19:26:58 | [32mINFO[0m | 
+2025-11-29 19:26:58 | [32mINFO[0m | ============================================================
+2025-11-29 19:26:58 | [32mINFO[0m | ITERATION 4/4 [SHAP Feedback]
+2025-11-29 19:26:58 | [32mINFO[0m | ============================================================
+2025-11-29 19:27:07 | [32mINFO[0m | Generated code:
+2025-11-29 19:27:07 | [32mINFO[0m |   # Feature: OverallQual_TotalSF
+2025-11-29 19:27:07 | [32mINFO[0m |   df['OverallQual_TotalSF'] = df['OverallQual'].fillna(0) * df['TotalSF'].fillna(0)
+2025-11-29 19:27:18 | [33mWARNING[0m | ✗ No improvement: OverallQual_TotalSF
+2025-11-29 19:27:18 | [33mWARNING[0m |   RMSLE: 0.09805 → 0.09967 (Δ -0.00162)
+2025-11-29 19:27:22 | [32mINFO[0m | 
+2025-11-29 19:27:22 | [32mINFO[0m | ============================================================
+2025-11-29 19:27:22 | [32mINFO[0m | ITERATION 5/5 [SHAP Feedback]
+2025-11-29 19:27:22 | [32mINFO[0m | ============================================================
+2025-11-29 19:27:29 | [32mINFO[0m | Generated code:
+2025-11-29 19:27:29 | [32mINFO[0m |   # Feature: GrLivAreaSquared
+2025-11-29 19:27:29 | [32mINFO[0m |   df['GrLivAreaSquared'] = df['GrLivArea'].fillna(0) ** 2
+2025-11-29 19:27:41 | [32mINFO[0m | ✓ IMPROVED: GrLivAreaSquared
+2025-11-29 19:27:41 | [32mINFO[0m |   RMSLE: 0.09805 → 0.09783 (Δ +0.00022)
+2025-11-29 19:27:41 | [32mINFO[0m | 
+2025-11-29 19:27:41 | [32mINFO[0m | ============================================================
+2025-11-29 19:27:41 | [32mINFO[0m | ITERATION 6/6 [SHAP Feedback]
+2025-11-29 19:27:41 | [32mINFO[0m | ============================================================
+2025-11-29 19:27:48 | [32mINFO[0m | Generated code:
+2025-11-29 19:27:48 | [32mINFO[0m |   # Feature: OverallQual_GarageCars
+2025-11-29 19:27:48 | [32mINFO[0m |   df['OverallQual_GarageCars'] = df['OverallQual'].fillna(0) * df['GarageCars'].fillna(0)
+2025-11-29 19:28:01 | [33mWARNING[0m | ✗ No improvement: OverallQual_GarageCars
+2025-11-29 19:28:01 | [33mWARNING[0m |   RMSLE: 0.09783 → 0.09839 (Δ -0.00056)
+2025-11-29 19:28:05 | [32mINFO[0m | 
+2025-11-29 19:28:05 | [32mINFO[0m | ============================================================
+2025-11-29 19:28:05 | [32mINFO[0m | ITERATION 7/7 [SHAP Feedback]
+2025-11-29 19:28:05 | [32mINFO[0m | ============================================================
+2025-11-29 19:28:16 | [32mINFO[0m | Generated code:
+2025-11-29 19:28:16 | [32mINFO[0m |   # Feature: LogLotArea
+2025-11-29 19:28:16 | [32mINFO[0m |   df['LogLotArea'] = np.log1p(df['LotArea'].fillna(0))
+2025-11-29 19:28:28 | [33mWARNING[0m | ✗ No improvement: LogLotArea
+2025-11-29 19:28:28 | [33mWARNING[0m |   RMSLE: 0.09783 → 0.09785 (Δ -0.00003)
+2025-11-29 19:28:33 | [32mINFO[0m | 
+2025-11-29 19:28:33 | [32mINFO[0m | ============================================================
+2025-11-29 19:28:33 | [32mINFO[0m | ITERATION 8/8 [SHAP Feedback]
+2025-11-29 19:28:33 | [32mINFO[0m | ============================================================
+2025-11-29 19:28:41 | [32mINFO[0m | Generated code:
+2025-11-29 19:28:41 | [32mINFO[0m |   # Feature: OverallQual_OverallCond
+2025-11-29 19:28:41 | [32mINFO[0m |   df['OverallQual_OverallCond'] = df['OverallQual'].fillna(0) * df['OverallCond'].fillna(0)
+2025-11-29 19:28:52 | [32mINFO[0m | ✓ IMPROVED: OverallQual_OverallCond
+2025-11-29 19:28:52 | [32mINFO[0m |   RMSLE: 0.09783 → 0.09723 (Δ +0.00060)
+2025-11-29 19:28:52 | [32mINFO[0m | 
+2025-11-29 19:28:52 | [32mINFO[0m | ============================================================
+2025-11-29 19:28:52 | [32mINFO[0m | ITERATION 9/9 [SHAP Feedback]
+2025-11-29 19:28:52 | [32mINFO[0m | ============================================================
+2025-11-29 19:29:04 | [32mINFO[0m | Generated code:
+2025-11-29 19:29:04 | [32mINFO[0m |   # Feature: TotalSF_LotArea
+2025-11-29 19:29:04 | [32mINFO[0m |   df['TotalSF_LotArea'] = df['TotalSF'].fillna(0) * df['LotArea'].fillna(0)
+2025-11-29 19:29:14 | [32mINFO[0m | ✓ IMPROVED: TotalSF_LotArea
+2025-11-29 19:29:14 | [32mINFO[0m |   RMSLE: 0.09723 → 0.09627 (Δ +0.00096)
+2025-11-29 19:29:14 | [32mINFO[0m | 
+2025-11-29 19:29:14 | [32mINFO[0m | ============================================================
+2025-11-29 19:29:14 | [32mINFO[0m | ITERATION 10/10 [SHAP Feedback]
+2025-11-29 19:29:14 | [32mINFO[0m | ============================================================
+2025-11-29 19:29:27 | [32mINFO[0m | Generated code:
+2025-11-29 19:29:27 | [32mINFO[0m |   # Feature: OverallQualCubed
+2025-11-29 19:29:27 | [32mINFO[0m |   df['OverallQualCubed'] = df['OverallQual'].fillna(0) ** 3
+2025-11-29 19:29:39 | [33mWARNING[0m | ✗ No improvement: OverallQualCubed
+2025-11-29 19:29:39 | [33mWARNING[0m |   RMSLE: 0.09627 → 0.09705 (Δ -0.00078)
+2025-11-29 19:29:43 | [32mINFO[0m | 
+2025-11-29 19:29:43 | [32mINFO[0m | ============================================================
+2025-11-29 19:29:43 | [32mINFO[0m | SESSION COMPLETE
+2025-11-29 19:29:43 | [32mINFO[0m | ============================================================
+2025-11-29 19:29:43 | [32mINFO[0m | Iterations:    10
+2025-11-29 19:29:43 | [32mINFO[0m | Successful:    3 (30.0%)
+2025-11-29 19:29:43 | [32mINFO[0m | Baseline:      0.09805
+2025-11-29 19:29:43 | [32mINFO[0m | Best:          0.09627
+2025-11-29 19:29:43 | [32mINFO[0m | Improvement:   0.00178 (1.82%)
+2025-11-29 19:29:43 | [32mINFO[0m | ============================================================
+2025-11-29 19:29:43 | [32mINFO[0m | Successful features:
+2025-11-29 19:29:43 | [32mINFO[0m |   1. ['GrLivAreaSquared'] (improvement: 0.00022)
+2025-11-29 19:29:43 | [32mINFO[0m |   2. ['OverallQual_OverallCond'] (improvement: 0.00060)
+2025-11-29 19:29:43 | [32mINFO[0m |   3. ['TotalSF_LotArea'] (improvement: 0.00096)
+2025-11-29 19:29:43 | [32mINFO[0m | Generating visualization...
+2025-11-29 19:29:44 | [32mINFO[0m | Visualization complete!
+2025-11-29 19:56:49 | [32mINFO[0m | ============================================================
+2025-11-29 19:56:49 | [32mINFO[0m | New session started at 2025-11-29T19:56:49.871653
+2025-11-29 19:56:49 | [32mINFO[0m | ============================================================
+2025-11-29 19:56:49 | [32mINFO[0m | ============================================================
+2025-11-29 19:56:49 | [32mINFO[0m | Feature Engineering Agent
+2025-11-29 19:56:49 | [32mINFO[0m | Iterations: 10
+2025-11-29 19:56:49 | [32mINFO[0m | Feedback: Enabled
+2025-11-29 19:56:49 | [32mINFO[0m | Model: gemini-2.5-flash
+2025-11-29 19:56:49 | [32mINFO[0m | ============================================================
+2025-11-29 19:56:49 | [32mINFO[0m | Clearing previous memory...
+2025-11-29 19:56:49 | [32mINFO[0m | Loading data...
+2025-11-29 19:56:49 | [32mINFO[0m | Train shape: (1465, 81)
+2025-11-29 19:56:49 | [32mINFO[0m | Preprocessing (ultra-minimal mode)...
+2025-11-29 19:56:49 | [32mINFO[0m | Processed shape: (1465, 81)
+2025-11-29 19:56:49 | [32mINFO[0m | NO advanced preprocessing - agent will discover features
+2025-11-29 19:56:49 | [32mINFO[0m | Calculating baseline RMSLE...
+2025-11-29 19:57:04 | [32mINFO[0m | Baseline RMSLE: 0.10299
+2025-11-29 19:57:04 | [32mINFO[0m | Initializing Gemini client...
+2025-11-29 19:57:04 | [32mINFO[0m | Gemini client ready
+2025-11-29 19:57:04 | [32mINFO[0m | Starting from best RMSLE: 0.10299
+2025-11-29 19:57:04 | [32mINFO[0m | Starting iterations...
+2025-11-29 19:57:04 | [32mINFO[0m | 
+2025-11-29 19:57:04 | [32mINFO[0m | ============================================================
+2025-11-29 19:57:04 | [32mINFO[0m | ITERATION 1/1 [SHAP Feedback]
+2025-11-29 19:57:04 | [32mINFO[0m | ============================================================
+2025-11-29 19:57:21 | [32mINFO[0m | Generated code:
+2025-11-29 19:57:21 | [32mINFO[0m |   # Feature: OverallQual_GrLivArea_SqInteraction
+2025-11-29 19:57:21 | [32mINFO[0m |   # Rationale: This feature captures a squared interaction between 'OverallQual' (top feature) and 'GrLivArea' (second top feature). It assumes that the premium for high quality homes with large living areas is non-linear and multiplicative, increasing at an accelerated rate. By squaring the interaction, we emphasize the effect of properties that excel in both quality and size.
+2025-11-29 19:57:21 | [32mINFO[0m |   df['OverallQual_GrLivArea_SqInteraction'] = (df['OverallQual'].fillna(df['OverallQual'].median()) * \
+2025-11-29 19:57:21 | [32mINFO[0m |                                                  df['GrLivArea'].fillna(df['GrLivArea'].median())) ** 2
+2025-11-29 19:57:35 | [33mWARNING[0m | ✗ No improvement: OverallQual_GrLivArea_SqInteraction
+2025-11-29 19:57:35 | [33mWARNING[0m |   RMSLE: 0.10299 → 0.10351 (Δ -0.00053)
+2025-11-29 19:57:40 | [32mINFO[0m | 
+2025-11-29 19:57:40 | [32mINFO[0m | ============================================================
+2025-11-29 19:57:40 | [32mINFO[0m | ITERATION 2/2 [SHAP Feedback]
+2025-11-29 19:57:40 | [32mINFO[0m | ============================================================
+2025-11-29 19:57:51 | [32mINFO[0m | Generated code:
+2025-11-29 19:57:51 | [32mINFO[0m |   # Feature: OverallQualCubic
+2025-11-29 19:57:51 | [32mINFO[0m |   # Rationale: This feature applies a cubic transformation to 'OverallQual', a top-ranking predictive feature. Building on the idea of a 'QualSquared' feature, 'OverallQualCubic' captures an even stronger non-linear relationship where the premium for higher quality homes increases disproportionately. It amplifies the difference between moderately good and exceptionally good properties, assuming that the market values top-tier quality significantly more than a linear or squared increase would suggest, thereby capturing a strong non-linear premium at the high end of quality.
+2025-11-29 19:57:51 | [32mINFO[0m |   df['OverallQualCubic'] = df['OverallQual'].fillna(df['OverallQual'].median()) ** 3
+2025-11-29 19:58:05 | [33mWARNING[0m | ✗ No improvement: OverallQualCubic
+2025-11-29 19:58:05 | [33mWARNING[0m |   RMSLE: 0.10299 → 0.10416 (Δ -0.00117)
+2025-11-29 19:58:10 | [32mINFO[0m | 
+2025-11-29 19:58:10 | [32mINFO[0m | ============================================================
+2025-11-29 19:58:10 | [32mINFO[0m | ITERATION 3/3 [SHAP Feedback]
+2025-11-29 19:58:10 | [32mINFO[0m | ============================================================
+2025-11-29 19:58:16 | [32mINFO[0m | Generated code:
+2025-11-29 19:58:16 | [32mINFO[0m |   # Feature: GrLivAreaSq
+2025-11-29 19:58:16 | [32mINFO[0m |   # Rationale: This feature applies a squared transformation to 'GrLivArea', the second most important predictive feature. This captures a non-linear relationship where the market premium for larger living areas increases disproportionately, especially at the higher end of the size spectrum. It assumes that beyond a certain point, additional living space contributes to value at an accelerating rate, reflecting a luxury or premium segment where size is a key differentiator.
+2025-11-29 19:58:16 | [32mINFO[0m |   df['GrLivAreaSq'] = df['GrLivArea'].fillna(df['GrLivArea'].median()) ** 2
+2025-11-29 19:58:31 | [33mWARNING[0m | ✗ No improvement: GrLivAreaSq
+2025-11-29 19:58:31 | [33mWARNING[0m |   RMSLE: 0.10299 → 0.10382 (Δ -0.00083)
+2025-11-29 19:58:36 | [32mINFO[0m | 
+2025-11-29 19:58:36 | [32mINFO[0m | ============================================================
+2025-11-29 19:58:36 | [32mINFO[0m | ITERATION 4/4 [SHAP Feedback]
+2025-11-29 19:58:36 | [32mINFO[0m | ============================================================
+2025-11-29 19:58:46 | [32mINFO[0m | Generated code:
+2025-11-29 19:58:46 | [32mINFO[0m |   # Feature: HouseAgeSq
+2025-11-29 19:58:46 | [32mINFO[0m |   # Rationale: This feature captures the squared age of the house, derived from 'YearBuilt' (a top 3 important feature) and 'YrSold'. By squaring the age, we introduce a non-linear penalty for older homes, assuming that the market value decreases at an accelerating rate with age, or that very new homes also command a premium in a non-linear fashion (though the primary effect is usually decay). This polynomial transformation allows the model to capture a stronger non-linear relationship between a property's age and its sale price.
+2025-11-29 19:58:46 | [32mINFO[0m |   df['HouseAgeSq'] = (df['YrSold'].fillna(df['YrSold'].median()) - df['YearBuilt'].fillna(df['YearBuilt'].median())) ** 2
+2025-11-29 19:58:59 | [33mWARNING[0m | ✗ No improvement: HouseAgeSq
+2025-11-29 19:58:59 | [33mWARNING[0m |   RMSLE: 0.10299 → 0.10321 (Δ -0.00022)
+2025-11-29 19:59:03 | [32mINFO[0m | 
+2025-11-29 19:59:03 | [32mINFO[0m | ============================================================
+2025-11-29 19:59:03 | [32mINFO[0m | ITERATION 5/5 [SHAP Feedback]
+2025-11-29 19:59:03 | [32mINFO[0m | ============================================================
+2025-11-29 19:59:14 | [32mINFO[0m | Generated code:
+2025-11-29 19:59:14 | [32mINFO[0m |   # Feature: QualityTotalLivingArea
+2025-11-29 19:59:14 | [32mINFO[0m |   # Rationale: This feature captures a powerful interaction between 'OverallQual' (the most important feature by SHAP) and the total living area, which is a sum of 'GrLivArea' (second most important) and 'TotalBsmtSF' (seventh most important). It represents a 'quality-weighted total living area'. The rationale is that higher overall quality disproportionately increases the value of larger homes, and vice-versa. This multiplicative interaction captures the premium associated with properties that are both high in quality and expansive in total living space (above ground and basement), assuming that market value increases non-linearly for such desirable combinations.
+2025-11-29 19:59:14 | [32mINFO[0m |   df['QualityTotalLivingArea'] = df['OverallQual'].fillna(df['OverallQual'].median()) * \
+2025-11-29 19:59:14 | [32mINFO[0m |                                  (df['GrLivArea'].fillna(df['GrLivArea'].median()) + \
+2025-11-29 19:59:14 | [32mINFO[0m |                                   df['TotalBsmtSF'].fillna(0))
+2025-11-29 19:59:27 | [32mINFO[0m | ✓ IMPROVED: QualityTotalLivingArea
+2025-11-29 19:59:27 | [32mINFO[0m |   RMSLE: 0.10299 → 0.10269 (Δ +0.00030)
+2025-11-29 19:59:27 | [32mINFO[0m | 
+2025-11-29 19:59:27 | [32mINFO[0m | ============================================================
+2025-11-29 19:59:27 | [32mINFO[0m | ITERATION 6/6 [SHAP Feedback]
+2025-11-29 19:59:27 | [32mINFO[0m | ============================================================
+2025-11-29 19:59:38 | [32mINFO[0m | Generated code:
+2025-11-29 19:59:38 | [32mINFO[0m |   # Feature: QualityConditionLivingArea
+2025-11-29 19:59:38 | [32mINFO[0m |   # Rationale: This feature captures a powerful three-way interaction by multiplying the highly important 'QualityTotalLivingArea' (which already combines overall quality and total living space) with 'OverallCond' (6th most important feature). The rationale is that a high-quality, large home that is also in excellent overall condition commands a disproportionately higher value. This multiplicative interaction allows the model to capture the premium associated with properties that excel across all these fundamental dimensions of desirability: quality, size, and maintenance, assuming their combined effect is non-linear.
+2025-11-29 19:59:38 | [32mINFO[0m |   df['QualityConditionLivingArea'] = df['QualityTotalLivingArea'].fillna(0) * df['OverallCond'].fillna(df['OverallCond'].median())
+2025-11-29 19:59:53 | [33mWARNING[0m | ✗ No improvement: QualityConditionLivingArea
+2025-11-29 19:59:53 | [33mWARNING[0m |   RMSLE: 0.10269 → 0.10315 (Δ -0.00046)
+2025-11-29 19:59:58 | [32mINFO[0m | 
+2025-11-29 19:59:58 | [32mINFO[0m | ============================================================
+2025-11-29 19:59:58 | [32mINFO[0m | ITERATION 7/7 [SHAP Feedback]
+2025-11-29 19:59:58 | [32mINFO[0m | ============================================================
+2025-11-29 20:00:09 | [32mINFO[0m | Generated code:
+2025-11-29 20:00:09 | [32mINFO[0m |   # Feature: QualityTotalLivingArea_LotArea
+2025-11-29 20:00:09 | [32mINFO[0m |   # Rationale: This feature captures a powerful interaction between the model's top predictive feature, 'QualityTotalLivingArea' (which already embodies overall quality and total living space), and 'LotArea' (the 5th most important original feature). The rationale is that a high-quality, spacious home gains disproportionately more value when situated on a large lot. This multiplicative interaction allows the model to capture the premium associated with properties that are exceptional in both their dwelling characteristics and the land they occupy, assuming a non-linear increase in value for such desirable combinations.
+2025-11-29 20:00:09 | [32mINFO[0m |   df['QualityTotalLivingArea_LotArea'] = df['QualityTotalLivingArea'].fillna(df['QualityTotalLivingArea'].median()) * \
+2025-11-29 20:00:09 | [32mINFO[0m |                                            df['LotArea'].fillna(df['LotArea'].median())
+2025-11-29 20:00:22 | [33mWARNING[0m | ✗ No improvement: QualityTotalLivingArea_LotArea
+2025-11-29 20:00:22 | [33mWARNING[0m |   RMSLE: 0.10269 → 0.10332 (Δ -0.00062)
+2025-11-29 20:00:27 | [32mINFO[0m | 
+2025-11-29 20:00:27 | [32mINFO[0m | ============================================================
+2025-11-29 20:00:27 | [32mINFO[0m | ITERATION 8/8 [SHAP Feedback]
+2025-11-29 20:00:27 | [32mINFO[0m | ============================================================
+2025-11-29 20:00:41 | [32mINFO[0m | Generated code:
+2025-11-29 20:00:41 | [32mINFO[0m |   # Feature: QualityTotalLivingArea_Sq
+2025-11-29 20:00:41 | [32mINFO[0m |   # Rationale: This feature applies a squared transformation to 'QualityTotalLivingArea', which is the top predictive feature identified by SHAP analysis. This polynomial transformation aims to capture a strong non-linear relationship where the market premium for properties that are exceptional in both overall quality and total living space increases at an accelerating rate. It suggests that the "best of the best" homes (high quality and large) command a disproportionately higher value, amplifying the difference between moderately desirable and highly desirable properties, aligning with the suggestion to try polynomial transforms of this key feature.
+2025-11-29 20:00:41 | [32mINFO[0m |   df['QualityTotalLivingArea_Sq'] = (df['QualityTotalLivingArea'].fillna(0)) ** 2
+2025-11-29 20:00:56 | [33mWARNING[0m | ✗ No improvement: QualityTotalLivingArea_Sq
+2025-11-29 20:00:56 | [33mWARNING[0m |   RMSLE: 0.10269 → 0.10385 (Δ -0.00115)
+2025-11-29 20:01:01 | [32mINFO[0m | 
+2025-11-29 20:01:01 | [32mINFO[0m | ============================================================
+2025-11-29 20:01:01 | [32mINFO[0m | ITERATION 9/9 [SHAP Feedback]
+2025-11-29 20:01:01 | [32mINFO[0m | ============================================================
+2025-11-29 20:01:06 | [32mINFO[0m | Generated code:
+2025-11-29 20:01:06 | [32mINFO[0m |   # Feature: LogQualityTotalLivingArea
+2025-11-29 20:01:06 | [32mINFO[0m |   df['LogQualityTotalLivingArea'] = np.log1p(df['QualityTotalLivingArea'].fillna(0))
+2025-11-29 20:01:21 | [33mWARNING[0m | ✗ No improvement: LogQualityTotalLivingArea
+2025-11-29 20:01:21 | [33mWARNING[0m |   RMSLE: 0.10269 → 0.10385 (Δ -0.00115)
+2025-11-29 20:01:25 | [32mINFO[0m | 
+2025-11-29 20:01:25 | [32mINFO[0m | ============================================================
+2025-11-29 20:01:25 | [32mINFO[0m | ITERATION 10/10 [SHAP Feedback]
+2025-11-29 20:01:25 | [32mINFO[0m | ============================================================
+2025-11-29 20:01:33 | [32mINFO[0m | Generated code:
+2025-11-29 20:01:33 | [32mINFO[0m |   # Feature: OverallQual_LogLotArea
+2025-11-29 20:01:33 | [32mINFO[0m |   df['OverallQual_LogLotArea'] = df['OverallQual'].fillna(df['OverallQual'].median()) * np.log1p(df['LotArea'].fillna(df['LotArea'].median()))
+2025-11-29 20:01:49 | [33mWARNING[0m | ✗ No improvement: OverallQual_LogLotArea
+2025-11-29 20:01:49 | [33mWARNING[0m |   RMSLE: 0.10269 → 0.10444 (Δ -0.00174)
+2025-11-29 20:01:54 | [32mINFO[0m | 
+2025-11-29 20:01:54 | [32mINFO[0m | ============================================================
+2025-11-29 20:01:54 | [32mINFO[0m | SESSION COMPLETE
+2025-11-29 20:01:54 | [32mINFO[0m | ============================================================
+2025-11-29 20:01:54 | [32mINFO[0m | Iterations:    10
+2025-11-29 20:01:54 | [32mINFO[0m | Successful:    1 (10.0%)
+2025-11-29 20:01:54 | [32mINFO[0m | Baseline:      0.10299
+2025-11-29 20:01:54 | [32mINFO[0m | Best:          0.10269
+2025-11-29 20:01:54 | [32mINFO[0m | Improvement:   0.00030 (0.29%)
+2025-11-29 20:01:54 | [32mINFO[0m | ============================================================
+2025-11-29 20:01:54 | [32mINFO[0m | Successful features:
+2025-11-29 20:01:54 | [32mINFO[0m |   1. ['QualityTotalLivingArea'] (improvement: 0.00030)
+2025-11-29 20:01:54 | [32mINFO[0m | Generating visualization...
+2025-11-29 20:01:54 | [32mINFO[0m | Visualization complete!
+2025-11-29 21:00:34 | [32mINFO[0m | ============================================================
+2025-11-29 21:00:34 | [32mINFO[0m | New session started at 2025-11-29T21:00:34.054872
+2025-11-29 21:00:34 | [32mINFO[0m | ============================================================
+2025-11-29 21:00:34 | [32mINFO[0m | ============================================================
+2025-11-29 21:00:34 | [32mINFO[0m | Feature Engineering Agent
+2025-11-29 21:00:34 | [32mINFO[0m | Iterations: 10
+2025-11-29 21:00:34 | [32mINFO[0m | Feedback: Enabled
+2025-11-29 21:00:34 | [32mINFO[0m | Model: gemini-2.5-flash
+2025-11-29 21:00:34 | [32mINFO[0m | ============================================================
+2025-11-29 21:00:34 | [32mINFO[0m | Clearing previous memory...
+2025-11-29 21:00:34 | [32mINFO[0m | Loading data...
+2025-11-29 21:00:34 | [32mINFO[0m | Train shape: (1465, 81)
+2025-11-29 21:00:34 | [32mINFO[0m | Preprocessing (ultra-minimal mode)...
+2025-11-29 21:00:34 | [32mINFO[0m | Processed shape: (1465, 81)
+2025-11-29 21:00:34 | [32mINFO[0m | NO advanced preprocessing - agent will discover features
+2025-11-29 21:00:34 | [32mINFO[0m | Calculating baseline RMSLE...
+2025-11-29 21:00:39 | [32mINFO[0m | Baseline RMSLE: 0.10616
+2025-11-29 21:00:39 | [32mINFO[0m | Initializing Gemini client...
+2025-11-29 21:00:39 | [32mINFO[0m | Gemini client ready
+2025-11-29 21:00:39 | [32mINFO[0m | Starting from best RMSLE: 0.10616
+2025-11-29 21:00:39 | [32mINFO[0m | Starting iterations...
+2025-11-29 21:00:39 | [32mINFO[0m | 
+2025-11-29 21:00:39 | [32mINFO[0m | ============================================================
+2025-11-29 21:00:39 | [32mINFO[0m | ITERATION 1/1 [SHAP Feedback]
+2025-11-29 21:00:39 | [32mINFO[0m | ============================================================
+2025-11-29 21:00:50 | [32mINFO[0m | Generated code:
+2025-11-29 21:00:50 | [32mINFO[0m |   # Feature: QualGrLivAreaInteractionSquared
+2025-11-29 21:00:50 | [32mINFO[0m |   # Captures a non-linear interaction effect between the two most important features: Overall Quality and Above Grade Living Area,
+2025-11-29 21:00:50 | [32mINFO[0m |   # emphasizing homes with high quality and large living spaces.
+2025-11-29 21:00:50 | [32mINFO[0m |   df['QualGrLivAreaInteractionSquared'] = (df['OverallQual'].fillna(df['OverallQual'].median()) * df['GrLivArea'].fillna(df['GrLivArea'].median())) ** 2
+2025-11-29 21:00:56 | [33mWARNING[0m | ✗ No improvement: QualGrLivAreaInteractionSquared
+2025-11-29 21:00:56 | [33mWARNING[0m |   RMSLE: 0.10616 → 0.10691 (Δ -0.00075)
+2025-11-29 21:00:57 | [32mINFO[0m | 
+2025-11-29 21:00:57 | [32mINFO[0m | ============================================================
+2025-11-29 21:00:57 | [32mINFO[0m | ITERATION 2/2 [SHAP Feedback]
+2025-11-29 21:00:57 | [32mINFO[0m | ============================================================
+2025-11-29 21:01:08 | [32mINFO[0m | Generated code:
+2025-11-29 21:01:08 | [32mINFO[0m |   # Feature: QualGarageCars
+2025-11-29 21:01:08 | [32mINFO[0m |   # Combines the overall quality of the house with its garage car capacity,
+2025-11-29 21:01:08 | [32mINFO[0m |   # reflecting that higher quality homes with more garage space are generally more valuable.
+2025-11-29 21:01:08 | [32mINFO[0m |   # Handles missing OverallQual by imputing median, and missing GarageCars by assuming 0 (no garage).
+2025-11-29 21:01:08 | [32mINFO[0m |   df['QualGarageCars'] = df['OverallQual'].fillna(df['OverallQual'].median()) * df['GarageCars'].fillna(0)
+2025-11-29 21:01:13 | [33mWARNING[0m | ✗ No improvement: QualGarageCars
+2025-11-29 21:01:13 | [33mWARNING[0m |   RMSLE: 0.10616 → 0.10654 (Δ -0.00039)
+2025-11-29 21:01:14 | [32mINFO[0m | 
+2025-11-29 21:01:14 | [32mINFO[0m | ============================================================
+2025-11-29 21:01:14 | [32mINFO[0m | ITERATION 3/3 [SHAP Feedback]
+2025-11-29 21:01:14 | [32mINFO[0m | ============================================================
+2025-11-29 21:01:29 | [32mINFO[0m | Generated code:
+2025-11-29 21:01:29 | [32mINFO[0m |   # Feature: QualTotalLivingSFSquared
+2025-11-29 21:01:29 | [32mINFO[0m |   # This feature combines the overall quality of the house with its total living area (above grade and basement),
+2025-11-29 21:01:29 | [32mINFO[0m |   # and then squares the product to capture a strong non-linear premium for high-quality, very spacious homes.
+2025-11-29 21:01:29 | [32mINFO[0m |   # It leverages the top 3 SHAP features (OverallQual, GrLivArea, TotalBsmtSF).
+2025-11-29 21:01:29 | [32mINFO[0m |   df['QualTotalLivingSFSquared'] = (df['OverallQual'].fillna(df['OverallQual'].median()) * (df['GrLivArea'].fillna(0) + df['TotalBsmtSF'].fillna(0))) ** 2
+2025-11-29 21:01:35 | [33mWARNING[0m | ✗ No improvement: QualTotalLivingSFSquared
+2025-11-29 21:01:35 | [33mWARNING[0m |   RMSLE: 0.10616 → 0.10711 (Δ -0.00095)
+2025-11-29 21:01:36 | [32mINFO[0m | 
+2025-11-29 21:01:36 | [32mINFO[0m | ============================================================
+2025-11-29 21:01:36 | [32mINFO[0m | ITERATION 4/4 [SHAP Feedback]
+2025-11-29 21:01:36 | [32mINFO[0m | ============================================================
+2025-11-29 21:01:46 | [32mINFO[0m | Generated code:
+2025-11-29 21:01:46 | [32mINFO[0m |   # Feature: OverallQual_YearBuilt_Product
+2025-11-29 21:01:46 | [32mINFO[0m |   # This feature captures the multiplicative effect of the house's overall quality and its construction year.
+2025-11-29 21:01:46 | [32mINFO[0m |   # A higher score indicates a newer house with better overall quality, which is expected to command a premium.
+2025-11-29 21:01:46 | [32mINFO[0m |   # It directly interacts two of the top SHAP features: OverallQual (1st) and YearBuilt (4th).
+2025-11-29 21:01:46 | [32mINFO[0m |   # NaN values for OverallQual and YearBuilt are imputed with their respective medians to maintain data integrity.
+2025-11-29 21:01:46 | [32mINFO[0m |   ...
+2025-11-29 21:01:51 | [33mWARNING[0m | ✗ No improvement: OverallQual_YearBuilt_Product
+2025-11-29 21:01:51 | [33mWARNING[0m |   RMSLE: 0.10616 → 0.10680 (Δ -0.00065)
+2025-11-29 21:01:52 | [32mINFO[0m | 
+2025-11-29 21:01:52 | [32mINFO[0m | ============================================================
+2025-11-29 21:01:52 | [32mINFO[0m | ITERATION 5/5 [SHAP Feedback]
+2025-11-29 21:01:52 | [32mINFO[0m | ============================================================
+2025-11-29 21:01:59 | [32mINFO[0m | Generated code:
+2025-11-29 21:01:59 | [32mINFO[0m |   # Feature: OverallQual_TotalBsmtSF_Product
+2025-11-29 21:01:59 | [32mINFO[0m |   # This feature captures the combined effect of the house's overall quality and its total basement square footage.
+2025-11-29 21:01:59 | [32mINFO[0m |   # It suggests that higher overall quality homes with more substantial basement space (finished or unfinished)
+2025-11-29 21:01:59 | [32mINFO[0m |   # are more valuable. This directly interacts two of the top SHAP features: OverallQual (1st) and TotalBsmtSF (5th).
+2025-11-29 21:01:59 | [32mINFO[0m |   # NaN values for OverallQual are imputed with its median, and TotalBsmtSF NaNs are treated as 0, indicating no basement.
+2025-11-29 21:01:59 | [32mINFO[0m |   ...
+2025-11-29 21:02:04 | [33mWARNING[0m | ✗ No improvement: OverallQual_TotalBsmtSF_Product
+2025-11-29 21:02:04 | [33mWARNING[0m |   RMSLE: 0.10616 → 0.10746 (Δ -0.00131)
+2025-11-29 21:02:05 | [32mINFO[0m | 
+2025-11-29 21:02:05 | [32mINFO[0m | ============================================================
+2025-11-29 21:02:05 | [32mINFO[0m | ITERATION 6/6 [SHAP Feedback]
+2025-11-29 21:02:05 | [32mINFO[0m | ============================================================
+2025-11-29 21:02:13 | [32mINFO[0m | Generated code:
+2025-11-29 21:02:13 | [32mINFO[0m |   # Feature: OverallQualSquared
+2025-11-29 21:02:13 | [32mINFO[0m |   # Rationale: Captures a non-linear relationship for house quality, where higher quality might have a disproportionately higher impact on price.
+2025-11-29 21:02:13 | [32mINFO[0m |   # This directly leverages the most important feature identified by SHAP, OverallQual, and follows the explicit suggestion for polynomial transforms.
+2025-11-29 21:02:13 | [32mINFO[0m |   df['OverallQualSquared'] = df['OverallQual'].fillna(df['OverallQual'].median()) ** 2
+2025-11-29 21:02:18 | [33mWARNING[0m | ✗ No improvement: OverallQualSquared
+2025-11-29 21:02:18 | [33mWARNING[0m |   RMSLE: 0.10616 → 0.10686 (Δ -0.00070)
+2025-11-29 21:02:19 | [32mINFO[0m | 
+2025-11-29 21:02:19 | [32mINFO[0m | ============================================================
+2025-11-29 21:02:19 | [32mINFO[0m | ITERATION 7/7 [SHAP Feedback]
+2025-11-29 21:02:19 | [32mINFO[0m | ============================================================
+2025-11-29 21:02:31 | [32mINFO[0m | Generated code:
+2025-11-29 21:02:31 | [32mINFO[0m |   # Feature: OverallQual_YearRemodAdd_Product
+2025-11-29 21:02:31 | [32mINFO[0m |   # This feature captures the synergistic effect of a house's overall quality and how recently it was remodeled or built.
+2025-11-29 21:02:31 | [32mINFO[0m |   # A high-quality, recently updated home is expected to be significantly more valuable.
+2025-11-29 21:02:31 | [32mINFO[0m |   # This leverages two important features from the SHAP analysis: OverallQual (1st) and YearRemodAdd (7th),
+2025-11-29 21:02:31 | [32mINFO[0m |   # combining the primary quality indicator with the recency of significant improvements.
+2025-11-29 21:02:31 | [32mINFO[0m |   ...
+2025-11-29 21:02:36 | [33mWARNING[0m | ✗ No improvement: OverallQual_YearRemodAdd_Product
+2025-11-29 21:02:36 | [33mWARNING[0m |   RMSLE: 0.10616 → 0.10642 (Δ -0.00026)
+2025-11-29 21:02:37 | [32mINFO[0m | 
+2025-11-29 21:02:37 | [32mINFO[0m | ============================================================
+2025-11-29 21:02:37 | [32mINFO[0m | ITERATION 8/8 [SHAP Feedback]
+2025-11-29 21:02:37 | [32mINFO[0m | ============================================================
+2025-11-29 21:02:52 | [32mINFO[0m | Generated code:
+2025-11-29 21:02:52 | [32mINFO[0m |   # Feature: OverallQual_GrLivArea_GarageCars_Interaction
+2025-11-29 21:02:52 | [32mINFO[0m |   # This feature captures a triple interaction effect, combining the overall quality of the house with its above-grade living area and garage car capacity.
+2025-11-29 21:02:52 | [32mINFO[0m |   # It hypothesizes that a high-quality house with both substantial living space and ample garage accommodation creates a significant, multiplicative premium.
+2025-11-29 21:02:52 | [32mINFO[0m |   # This directly leverages the three most important features identified by SHAP: OverallQual (1st), GrLivArea (2nd), and GarageCars (3rd).
+2025-11-29 21:02:52 | [32mINFO[0m |   # NaN values are handled by filling with median for OverallQual, and 0 for GrLivArea and GarageCars (as 0 often indicates absence for these).
+2025-11-29 21:02:52 | [32mINFO[0m |   ...
+2025-11-29 21:02:57 | [33mWARNING[0m | ✗ No improvement: OverallQual_GrLivArea_GarageCars_Interaction
+2025-11-29 21:02:57 | [33mWARNING[0m |   RMSLE: 0.10616 → 0.10852 (Δ -0.00236)
+2025-11-29 21:02:58 | [32mINFO[0m | 
+2025-11-29 21:02:58 | [32mINFO[0m | ============================================================
+2025-11-29 21:02:58 | [32mINFO[0m | ITERATION 9/9 [SHAP Feedback]
+2025-11-29 21:02:58 | [32mINFO[0m | ============================================================
+2025-11-29 21:03:08 | [32mINFO[0m | Generated code:
+2025-11-29 21:03:08 | [32mINFO[0m |   # Feature: TotalLivingAreaSq
+2025-11-29 21:03:08 | [32mINFO[0m |   # Rationale: Combines the above-grade living area and total basement square footage into a single 'Total Living Area',
+2025-11-29 21:03:08 | [32mINFO[0m |   # and then squares it to capture a non-linear relationship where very large homes may command disproportionately higher prices.
+2025-11-29 21:03:08 | [32mINFO[0m |   # This leverages two of the top SHAP features: GrLivArea (2nd) and TotalBsmtSF (5th), and follows the suggestion for polynomial transforms of important features.
+2025-11-29 21:03:08 | [32mINFO[0m |   df['TotalLivingAreaSq'] = (df['GrLivArea'].fillna(0) + df['TotalBsmtSF'].fillna(0)) ** 2
+2025-11-29 21:03:13 | [33mWARNING[0m | ✗ No improvement: TotalLivingAreaSq
+2025-11-29 21:03:13 | [33mWARNING[0m |   RMSLE: 0.10616 → 0.10636 (Δ -0.00021)
+2025-11-29 21:03:14 | [32mINFO[0m | 
+2025-11-29 21:03:14 | [32mINFO[0m | ============================================================
+2025-11-29 21:03:14 | [32mINFO[0m | ITERATION 10/10 [SHAP Feedback]
+2025-11-29 21:03:14 | [32mINFO[0m | ============================================================
+2025-11-29 21:03:37 | [32mINFO[0m | Generated code:
+2025-11-29 21:03:37 | [32mINFO[0m |   # Feature: GarageCarsSquared
+2025-11-29 21:03:37 | [32mINFO[0m |   # Rationale: The value contribution of garage capacity might exhibit non-linear behavior. Squaring 'GarageCars' allows the model to capture a potentially accelerating premium for homes with larger garage capacities (e.g., the jump from 2 to 3 cars might be more significant than from 0 to 1), reflecting luxury or practical utility for multiple vehicles. This is a polynomial transform of 'GarageCars', which is the 3rd most important feature according to SHAP analysis.
+2025-11-29 21:03:37 | [32mINFO[0m |   df['GarageCarsSquared'] = df['GarageCars'].fillna(0) ** 2
+2025-11-29 21:03:42 | [32mINFO[0m | ✓ IMPROVED: GarageCarsSquared
+2025-11-29 21:03:42 | [32mINFO[0m |   RMSLE: 0.10616 → 0.10611 (Δ +0.00004)
+2025-11-29 21:03:42 | [32mINFO[0m | 
+2025-11-29 21:03:42 | [32mINFO[0m | ============================================================
+2025-11-29 21:03:42 | [32mINFO[0m | SESSION COMPLETE
+2025-11-29 21:03:42 | [32mINFO[0m | ============================================================
+2025-11-29 21:03:42 | [32mINFO[0m | Iterations:    10
+2025-11-29 21:03:42 | [32mINFO[0m | Successful:    1 (10.0%)
+2025-11-29 21:03:42 | [32mINFO[0m | Baseline:      0.10616
+2025-11-29 21:03:42 | [32mINFO[0m | Best:          0.10611
+2025-11-29 21:03:42 | [32mINFO[0m | Improvement:   0.00004 (0.04%)
+2025-11-29 21:03:42 | [32mINFO[0m | ============================================================
+2025-11-29 21:03:42 | [32mINFO[0m | Successful features:
+2025-11-29 21:03:42 | [32mINFO[0m |   1. ['GarageCarsSquared'] (improvement: 0.00004)
+2025-11-29 21:03:42 | [32mINFO[0m | Generating visualization...
+2025-11-29 21:03:43 | [32mINFO[0m | Visualization complete!
+2025-11-29 21:25:26 | [32mINFO[0m | ============================================================
+2025-11-29 21:25:26 | [32mINFO[0m | New session started at 2025-11-29T21:25:26.951156
+2025-11-29 21:25:26 | [32mINFO[0m | ============================================================
+2025-11-29 21:25:26 | [32mINFO[0m | ============================================================
+2025-11-29 21:25:26 | [32mINFO[0m | Feature Engineering Agent
+2025-11-29 21:25:26 | [32mINFO[0m | Iterations: 20
+2025-11-29 21:25:26 | [32mINFO[0m | Feedback: Enabled
+2025-11-29 21:25:26 | [32mINFO[0m | Model: gemini-2.5-flash
+2025-11-29 21:25:26 | [32mINFO[0m | ============================================================
+2025-11-29 21:25:26 | [32mINFO[0m | Clearing previous memory...
+2025-11-29 21:25:26 | [32mINFO[0m | Loading data...
+2025-11-29 21:25:26 | [32mINFO[0m | Train shape: (1465, 81)
+2025-11-29 21:25:26 | [32mINFO[0m | Preprocessing (ultra-minimal mode)...
+2025-11-29 21:25:26 | [32mINFO[0m | Processed shape: (1465, 81)
+2025-11-29 21:25:26 | [32mINFO[0m | NO advanced preprocessing - agent will discover features
+2025-11-29 21:25:26 | [32mINFO[0m | Calculating baseline RMSLE...
+2025-11-29 21:25:31 | [32mINFO[0m | Baseline RMSLE: 0.10616
+2025-11-29 21:25:32 | [32mINFO[0m | Initializing Gemini client...
+2025-11-29 21:25:32 | [32mINFO[0m | Gemini client ready
+2025-11-29 21:25:32 | [32mINFO[0m | Starting from best RMSLE: 0.10616
+2025-11-29 21:25:32 | [32mINFO[0m | Starting iterations...
+2025-11-29 21:25:32 | [32mINFO[0m | 
+2025-11-29 21:25:32 | [32mINFO[0m | ============================================================
+2025-11-29 21:25:32 | [32mINFO[0m | ITERATION 1/1 [SHAP Feedback]
+2025-11-29 21:25:32 | [32mINFO[0m | ============================================================
+2025-11-29 21:25:39 | [32mINFO[0m | Generated code:
+2025-11-29 21:25:39 | [32mINFO[0m |   # Feature: OverallQual_GrLivArea_Interaction
+2025-11-29 21:25:39 | [32mINFO[0m |   # Rationale: This interaction term combines the two most important features according to SHAP.
+2025-11-29 21:25:39 | [32mINFO[0m |   # It captures a synergistic effect where the value premium of high quality amplifies with larger
+2025-11-29 21:25:39 | [32mINFO[0m |   # living areas, and vice-versa, allowing the model to differentiate between large, high-quality homes
+2025-11-29 21:25:39 | [32mINFO[0m |   # and large, lower-quality homes more effectively.
+2025-11-29 21:25:39 | [32mINFO[0m |   ...
+2025-11-29 21:25:44 | [33mWARNING[0m | ✗ No improvement: OverallQual_GrLivArea_Interaction
+2025-11-29 21:25:44 | [33mWARNING[0m |   RMSLE: 0.10616 → 0.10691 (Δ -0.00075)
+2025-11-29 21:25:45 | [32mINFO[0m | 
+2025-11-29 21:25:45 | [32mINFO[0m | ============================================================
+2025-11-29 21:25:45 | [32mINFO[0m | ITERATION 2/2 [SHAP Feedback]
+2025-11-29 21:25:45 | [32mINFO[0m | ============================================================
+2025-11-29 21:25:50 | [32mINFO[0m | Generated code:
+2025-11-29 21:25:50 | [32mINFO[0m |   # Feature: OverallQual_Squared
+2025-11-29 21:25:50 | [32mINFO[0m |   # Rationale: 'OverallQual' is the most important feature. Squaring it captures a non-linear relationship where higher quality levels might have an exponentially greater impact on price, reflecting a premium for top-tier quality that increases more rapidly than a linear scale. This aligns with the suggestion to try polynomial transforms of 'OverallQual'.
+2025-11-29 21:25:50 | [32mINFO[0m |   df['OverallQual_Squared'] = df['OverallQual'].fillna(df['OverallQual'].median()) ** 2
+2025-11-29 21:25:55 | [33mWARNING[0m | ✗ No improvement: OverallQual_Squared
+2025-11-29 21:25:55 | [33mWARNING[0m |   RMSLE: 0.10616 → 0.10686 (Δ -0.00070)
+2025-11-29 21:25:56 | [32mINFO[0m | 
+2025-11-29 21:25:56 | [32mINFO[0m | ============================================================
+2025-11-29 21:25:56 | [32mINFO[0m | ITERATION 3/3 [SHAP Feedback]
+2025-11-29 21:25:56 | [32mINFO[0m | ============================================================
+2025-11-29 21:26:07 | [32mINFO[0m | Generated code:
+2025-11-29 21:26:07 | [32mINFO[0m |   # Feature: GarageCapacityArea
+2025-11-29 21:26:07 | [32mINFO[0m |   # Rationale: This interaction term combines two highly important features related to the garage: 'GarageCars' (number of cars it can hold) and 'GarageArea' (size in square feet). A larger garage with higher car capacity is a significant value driver, and their interaction captures the utility and desirability of a substantial garage space more effectively than either feature alone. This aligns with leveraging multiple top SHAP features and applying an interaction strategy.
+2025-11-29 21:26:07 | [32mINFO[0m |   df['GarageCapacityArea'] = df['GarageCars'].fillna(0) * df['GarageArea'].fillna(0)
+2025-11-29 21:26:12 | [33mWARNING[0m | ✗ No improvement: GarageCapacityArea
+2025-11-29 21:26:12 | [33mWARNING[0m |   RMSLE: 0.10616 → 0.10701 (Δ -0.00085)
+2025-11-29 21:26:13 | [32mINFO[0m | 
+2025-11-29 21:26:13 | [32mINFO[0m | ============================================================
+2025-11-29 21:26:13 | [32mINFO[0m | ITERATION 4/4 [SHAP Feedback]
+2025-11-29 21:26:13 | [32mINFO[0m | ============================================================
+2025-11-29 21:26:21 | [32mINFO[0m | Generated code:
+2025-11-29 21:26:21 | [32mINFO[0m |   # Feature: GrLivAreaSq
+2025-11-29 21:26:21 | [32mINFO[0m |   # Rationale: 'GrLivArea' is the second most important feature according to SHAP analysis. Squaring this feature captures a non-linear relationship, suggesting that an increase in living area might have an exponentially growing impact on property value, especially for larger homes. This aligns with the suggestion to apply polynomial transforms to 'GrLivArea'.
+2025-11-29 21:26:21 | [32mINFO[0m |   df['GrLivAreaSq'] = df['GrLivArea'].fillna(df['GrLivArea'].median()) ** 2
+2025-11-29 21:26:27 | [32mINFO[0m | ✓ IMPROVED: GrLivAreaSq
+2025-11-29 21:26:27 | [32mINFO[0m |   RMSLE: 0.10616 → 0.10583 (Δ +0.00032)
+2025-11-29 21:26:27 | [32mINFO[0m | 
+2025-11-29 21:26:27 | [32mINFO[0m | ============================================================
+2025-11-29 21:26:27 | [32mINFO[0m | ITERATION 5/5 [SHAP Feedback]
+2025-11-29 21:26:27 | [32mINFO[0m | ============================================================
+2025-11-29 21:26:38 | [32mINFO[0m | Generated code:
+2025-11-29 21:26:38 | [32mINFO[0m |   # Feature: LogTotalBsmtSF
+2025-11-29 21:26:38 | [32mINFO[0m |   # Rationale: 'TotalBsmtSF' is a highly important feature according to SHAP analysis (4th most important). Its distribution is typically right-skewed, and it can have zero values (representing no basement). Applying a logarithmic transformation using `np.log1p` (which handles zeros by adding 1 before taking the logarithm) helps to normalize its distribution, mitigate the impact of extreme values, and capture a non-linear relationship where additional basement square footage might have diminishing returns on price. This aligns with the strategy of applying polynomial/non-linear transforms to important numerical features.
+2025-11-29 21:26:38 | [32mINFO[0m |   df['LogTotalBsmtSF'] = np.log1p(df['TotalBsmtSF'].fillna(0))
+2025-11-29 21:26:44 | [32mINFO[0m | ✓ IMPROVED: LogTotalBsmtSF
+2025-11-29 21:26:44 | [32mINFO[0m |   RMSLE: 0.10583 → 0.10554 (Δ +0.00029)
+2025-11-29 21:26:44 | [32mINFO[0m | 
+2025-11-29 21:26:44 | [32mINFO[0m | ============================================================
+2025-11-29 21:26:44 | [32mINFO[0m | ITERATION 6/6 [SHAP Feedback]
+2025-11-29 21:26:44 | [32mINFO[0m | ============================================================
+2025-11-29 21:26:55 | [32mINFO[0m | Generated code:
+2025-11-29 21:26:55 | [32mINFO[0m |   # Feature: OverallQual_YearBuilt_Interaction
+2025-11-29 21:26:55 | [32mINFO[0m |   # Rationale: This feature captures the synergistic effect between the overall quality of a dwelling ('OverallQual', SHAP #1) and its year of construction ('YearBuilt', SHAP #3). A house with both high overall quality and recent construction typically commands a higher value, reflecting modern amenities and structural integrity. This interaction helps the model distinguish between high-quality older homes and high-quality newer homes more effectively than either feature alone, and directly aligns with the suggestion to consider interactions involving 'OverallQual' and leveraging top important features.
+2025-11-29 21:26:55 | [32mINFO[0m |   df['OverallQual_YearBuilt_Interaction'] = df['OverallQual'].fillna(df['OverallQual'].median()) * df['YearBuilt'].fillna(df['YearBuilt'].median())
+2025-11-29 21:27:01 | [33mWARNING[0m | ✗ No improvement: OverallQual_YearBuilt_Interaction
+2025-11-29 21:27:01 | [33mWARNING[0m |   RMSLE: 0.10554 → 0.10597 (Δ -0.00043)
+2025-11-29 21:27:02 | [32mINFO[0m | 
+2025-11-29 21:27:02 | [32mINFO[0m | ============================================================
+2025-11-29 21:27:02 | [32mINFO[0m | ITERATION 7/7 [SHAP Feedback]
+2025-11-29 21:27:02 | [32mINFO[0m | ============================================================
+2025-11-29 21:27:11 | [32mINFO[0m | Generated code:
+2025-11-29 21:27:11 | [32mINFO[0m |   # Feature: OverallCond_Squared
+2025-11-29 21:27:11 | [32mINFO[0m |   # Rationale: 'OverallCond' is an important feature, ranking 9th in SHAP importance. Similar to 'OverallQual', its impact on housing price might be non-linear. Squaring 'OverallCond' allows the model to capture a disproportionate premium for houses in excellent or very good condition (higher scores) that increases more rapidly than a linear scale, differentiating them more strongly from houses in average or poor condition. This aligns with the strategy of applying polynomial transforms to important features to capture non-linear relationships.
+2025-11-29 21:27:11 | [32mINFO[0m |   df['OverallCond_Squared'] = df['OverallCond'].fillna(df['OverallCond'].median()) ** 2
+2025-11-29 21:27:16 | [33mWARNING[0m | ✗ No improvement: OverallCond_Squared
+2025-11-29 21:27:16 | [33mWARNING[0m |   RMSLE: 0.10554 → 0.10605 (Δ -0.00051)
+2025-11-29 21:27:17 | [32mINFO[0m | 
+2025-11-29 21:27:17 | [32mINFO[0m | ============================================================
+2025-11-29 21:27:17 | [32mINFO[0m | ITERATION 8/8 [SHAP Feedback]
+2025-11-29 21:27:17 | [32mINFO[0m | ============================================================
+2025-11-29 21:27:32 | [32mINFO[0m | Generated code:
+2025-11-29 21:27:32 | [32mINFO[0m |   # Feature: BsmtScore
+2025-11-29 21:27:32 | [32mINFO[0m |   # Rationale: This feature combines 'TotalBsmtSF' (total basement square feet, SHAP #7) with 'BsmtQual' (basement quality).
+2025-11-29 21:27:32 | [32mINFO[0m |   # It creates an interaction term that captures the combined value of having a large and high-quality basement.
+2025-11-29 21:27:32 | [32mINFO[0m |   # A high-quality large basement contributes significantly more to home value than a low-quality large basement or a small high-quality one.
+2025-11-29 21:27:32 | [32mINFO[0m |   # This aligns with the strategy of creating interaction features, leveraging a top SHAP feature, and applying ordinal encoding to a categorical quality feature as per the data description.
+2025-11-29 21:27:32 | [32mINFO[0m |   ...
+2025-11-29 21:27:38 | [33mWARNING[0m | ✗ No improvement: BsmtScore
+2025-11-29 21:27:38 | [33mWARNING[0m |   RMSLE: 0.10554 → 0.10582 (Δ -0.00028)
+2025-11-29 21:27:39 | [32mINFO[0m | 
+2025-11-29 21:27:39 | [32mINFO[0m | ============================================================
+2025-11-29 21:27:39 | [32mINFO[0m | ITERATION 9/9 [SHAP Feedback]
+2025-11-29 21:27:39 | [32mINFO[0m | ============================================================
+2025-11-29 21:27:54 | [32mINFO[0m | Generated code:
+2025-11-29 21:27:54 | [32mINFO[0m |   # Feature: OverallQual_TotalBsmtSF_Interaction
+2025-11-29 21:27:54 | [32mINFO[0m |   # Rationale: This interaction term combines 'OverallQual' (the most important feature by SHAP analysis) and 'TotalBsmtSF' (total basement square feet, 7th most important). It captures the synergy between the overall perceived quality of a home and the sheer size of its basement. A large basement in a high-quality home contributes disproportionately more to value than just the sum of their individual effects. This helps differentiate properties where a substantial basement complements the overall high standard of the dwelling. This aligns with the suggestion to consider interactions involving 'OverallQual' and leveraging top important features.
+2025-11-29 21:27:54 | [32mINFO[0m |   df['OverallQual_TotalBsmtSF_Interaction'] = df['OverallQual'].fillna(df['OverallQual'].median()) * df['TotalBsmtSF'].fillna(0)
+2025-11-29 21:27:59 | [33mWARNING[0m | ✗ No improvement: OverallQual_TotalBsmtSF_Interaction
+2025-11-29 21:27:59 | [33mWARNING[0m |   RMSLE: 0.10554 → 0.10697 (Δ -0.00143)
+2025-11-29 21:28:00 | [32mINFO[0m | 
+2025-11-29 21:28:00 | [32mINFO[0m | ============================================================
+2025-11-29 21:28:00 | [32mINFO[0m | ITERATION 10/10 [SHAP Feedback]
+2025-11-29 21:28:00 | [32mINFO[0m | ============================================================
+2025-11-29 21:28:10 | [32mINFO[0m | Generated code:
+2025-11-29 21:28:10 | [32mINFO[0m |   # Feature: GarageCars_Squared
+2025-11-29 21:28:10 | [32mINFO[0m |   # Rationale: 'GarageCars' is a highly important feature according to SHAP analysis (rank #4).
+2025-11-29 21:28:10 | [32mINFO[0m |   # Applying a polynomial transformation, specifically squaring this feature, allows the model to capture
+2025-11-29 21:28:10 | [32mINFO[0m |   # a non-linear relationship where having more garage capacity might yield a disproportionately higher
+2025-11-29 21:28:10 | [32mINFO[0m |   # value. For example, the perceived utility and premium of a 3-car garage could be significantly more
+2025-11-29 21:28:10 | [32mINFO[0m |   ...
+2025-11-29 21:28:16 | [32mINFO[0m | ✓ IMPROVED: GarageCars_Squared
+2025-11-29 21:28:16 | [32mINFO[0m |   RMSLE: 0.10554 → 0.10491 (Δ +0.00063)
+2025-11-29 21:28:16 | [32mINFO[0m | 
+2025-11-29 21:28:16 | [32mINFO[0m | ============================================================
+2025-11-29 21:28:16 | [32mINFO[0m | ITERATION 11/11 [SHAP Feedback]
+2025-11-29 21:28:16 | [32mINFO[0m | ============================================================
+2025-11-29 21:28:24 | [32mINFO[0m | Generated code:
+2025-11-29 21:28:24 | [32mINFO[0m |   # Feature: OverallQual_KitchenQual_Interaction
+2025-11-29 21:28:24 | [32mINFO[0m |   df['OverallQual_KitchenQual_Interaction'] = df['OverallQual'].fillna(df['OverallQual'].median()) * \
+2025-11-29 21:28:24 | [32mINFO[0m |                                               df['KitchenQual'].map({'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1}).fillna(0)
+2025-11-29 21:28:30 | [33mWARNING[0m | ✗ No improvement: OverallQual_KitchenQual_Interaction
+2025-11-29 21:28:30 | [33mWARNING[0m |   RMSLE: 0.10491 → 0.10665 (Δ -0.00174)
+2025-11-29 21:28:31 | [32mINFO[0m | 
+2025-11-29 21:28:31 | [32mINFO[0m | ============================================================
+2025-11-29 21:28:31 | [32mINFO[0m | ITERATION 12/12 [SHAP Feedback]
+2025-11-29 21:28:31 | [32mINFO[0m | ============================================================
+2025-11-29 21:28:40 | [32mINFO[0m | Generated code:
+2025-11-29 21:28:40 | [32mINFO[0m |   # Feature: OverallQual_OverallCond_Interaction
+2025-11-29 21:28:40 | [32mINFO[0m |   # Rationale: This feature captures the synergistic effect between the overall quality of a dwelling ('OverallQual', SHAP #1)
+2025-11-29 21:28:40 | [32mINFO[0m |   # and its overall condition ('OverallCond', SHAP #9). Both are crucial indicators of a property's appeal and value.
+2025-11-29 21:28:40 | [32mINFO[0m |   # An interaction term allows the model to differentiate homes that are both high quality AND well-maintained,
+2025-11-29 21:28:40 | [32mINFO[0m |   # suggesting a premium value. Conversely, a low-quality home in poor condition would be further penalized.
+2025-11-29 21:28:40 | [32mINFO[0m |   ...
+2025-11-29 21:28:45 | [32mINFO[0m | ✓ IMPROVED: OverallQual_OverallCond_Interaction
+2025-11-29 21:28:45 | [32mINFO[0m |   RMSLE: 0.10491 → 0.10457 (Δ +0.00034)
+2025-11-29 21:28:45 | [32mINFO[0m | 
+2025-11-29 21:28:45 | [32mINFO[0m | ============================================================
+2025-11-29 21:28:45 | [32mINFO[0m | ITERATION 13/13 [SHAP Feedback]
+2025-11-29 21:28:45 | [32mINFO[0m | ============================================================
+2025-11-29 21:28:56 | [32mINFO[0m | Generated code:
+2025-11-29 21:28:56 | [32mINFO[0m |   # Feature: TotalBsmtSFSquared
+2025-11-29 21:28:56 | [32mINFO[0m |   # Rationale: 'TotalBsmtSF' (total basement square feet) is an important feature, ranking #6 in SHAP importance. Similar to other area features like 'GrLivArea', its impact on housing price might be non-linear. Squaring 'TotalBsmtSF' allows the model to capture a disproportionate premium for homes with very large basements, as additional usable space (especially if finished) can significantly increase value beyond a linear relationship. This aligns with the strategy of applying polynomial transforms to important numerical features.
+2025-11-29 21:28:56 | [32mINFO[0m |   df['TotalBsmtSFSquared'] = df['TotalBsmtSF'].fillna(0) ** 2
+2025-11-29 21:29:02 | [33mWARNING[0m | ✗ No improvement: TotalBsmtSFSquared
+2025-11-29 21:29:02 | [33mWARNING[0m |   RMSLE: 0.10457 → 0.10496 (Δ -0.00039)
+2025-11-29 21:29:03 | [32mINFO[0m | 
+2025-11-29 21:29:03 | [32mINFO[0m | ============================================================
+2025-11-29 21:29:03 | [32mINFO[0m | ITERATION 14/14 [SHAP Feedback]
+2025-11-29 21:29:03 | [32mINFO[0m | ============================================================
+2025-11-29 21:29:11 | [32mINFO[0m | Generated code:
+2025-11-29 21:29:11 | [32mINFO[0m |   # Feature: GrLivArea_Fireplaces_Interaction
+2025-11-29 21:29:11 | [32mINFO[0m |   # Rationale: This interaction term combines 'GrLivArea' (General Living Area, SHAP #2) and 'Fireplaces' (number of fireplaces, SHAP #10).
+2025-11-29 21:29:11 | [32mINFO[0m |   # A larger living area combined with a higher number of fireplaces suggests a more luxurious or desirable home,
+2025-11-29 21:29:11 | [32mINFO[0m |   # where fireplaces are often a key amenity in spacious settings. This feature captures the synergistic effect,
+2025-11-29 21:29:11 | [32mINFO[0m |   # differentiating homes that offer both ample living space and enhanced comfort/luxury through multiple fireplaces,
+2025-11-29 21:29:11 | [32mINFO[0m |   ...
+2025-11-29 21:29:16 | [33mWARNING[0m | ✗ No improvement: GrLivArea_Fireplaces_Interaction
+2025-11-29 21:29:16 | [33mWARNING[0m |   RMSLE: 0.10457 → 0.10475 (Δ -0.00018)
+2025-11-29 21:29:17 | [32mINFO[0m | 
+2025-11-29 21:29:17 | [32mINFO[0m | ============================================================
+2025-11-29 21:29:17 | [32mINFO[0m | ITERATION 15/15 [SHAP Feedback]
+2025-11-29 21:29:17 | [32mINFO[0m | ============================================================
+2025-11-29 21:29:31 | [32mINFO[0m | Generated code:
+2025-11-29 21:29:31 | [32mINFO[0m |   # Feature: OverallQual_ExterQual_Interaction
+2025-11-29 21:29:31 | [32mINFO[0m |   # Rationale: This interaction term combines 'OverallQual' (the most important feature by SHAP analysis) with 'ExterQual' (exterior material quality). Both features measure aspects of quality, and their interaction captures a synergistic effect where a house with high overall quality and excellent exterior finishing is likely to be valued disproportionately higher. This helps the model differentiate between homes that are "just" high quality and those that also present exceptionally well externally, aligning with the suggestion to consider interactions involving 'OverallQual' and leveraging a strong quality-related categorical feature.
+2025-11-29 21:29:31 | [32mINFO[0m |   df['OverallQual_ExterQual_Interaction'] = df['OverallQual'].fillna(df['OverallQual'].median()) * \
+2025-11-29 21:29:31 | [32mINFO[0m |                                             df['ExterQual'].map({'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1}).fillna(0)
+2025-11-29 21:29:36 | [33mWARNING[0m | ✗ No improvement: OverallQual_ExterQual_Interaction
+2025-11-29 21:29:36 | [33mWARNING[0m |   RMSLE: 0.10457 → 0.10636 (Δ -0.00179)
+2025-11-29 21:29:37 | [32mINFO[0m | 
+2025-11-29 21:29:37 | [32mINFO[0m | ============================================================
+2025-11-29 21:29:37 | [32mINFO[0m | ITERATION 16/16 [SHAP Feedback]
+2025-11-29 21:29:37 | [32mINFO[0m | ============================================================
+2025-11-29 21:29:46 | [32mINFO[0m | Generated code:
+2025-11-29 21:29:46 | [32mINFO[0m |   # Feature: GrLivArea_Squared
+2025-11-29 21:29:46 | [32mINFO[0m |   df['GrLivArea_Squared'] = df['GrLivArea'].fillna(0) ** 2
+2025-11-29 21:29:51 | [33mWARNING[0m | ✗ No improvement: GrLivArea_Squared
+2025-11-29 21:29:51 | [33mWARNING[0m |   RMSLE: 0.10457 → 0.10482 (Δ -0.00025)
+2025-11-29 21:29:52 | [32mINFO[0m | 
+2025-11-29 21:29:52 | [32mINFO[0m | ============================================================
+2025-11-29 21:29:52 | [32mINFO[0m | ITERATION 17/17 [SHAP Feedback]
+2025-11-29 21:29:52 | [32mINFO[0m | ============================================================
+2025-11-29 21:29:59 | [32mINFO[0m | Generated code:
+2025-11-29 21:29:59 | [32mINFO[0m |   # Feature: OverallQual_Squared
+2025-11-29 21:29:59 | [32mINFO[0m |   # Rationale: 'OverallQual' is the single most important feature by SHAP analysis (0.1089). Applying a polynomial transform (squaring) to it allows the model to capture a non-linear relationship, where an increase in perceived quality at higher levels might have a disproportionately larger impact on price. This directly aligns with the suggestion to try polynomial transforms of 'OverallQual' and leverages the top feature. It helps differentiate homes with very high quality from those that are merely good, suggesting an accelerating premium.
+2025-11-29 21:29:59 | [32mINFO[0m |   df['OverallQual_Squared'] = df['OverallQual'].fillna(df['OverallQual'].median()) ** 2
+2025-11-29 21:30:04 | [33mWARNING[0m | ✗ No improvement: OverallQual_Squared
+2025-11-29 21:30:04 | [33mWARNING[0m |   RMSLE: 0.10457 → 0.10680 (Δ -0.00223)
+2025-11-29 21:30:05 | [32mINFO[0m | 
+2025-11-29 21:30:05 | [32mINFO[0m | ============================================================
+2025-11-29 21:30:05 | [32mINFO[0m | ITERATION 18/18 [SHAP Feedback]
+2025-11-29 21:30:05 | [32mINFO[0m | ============================================================
+2025-11-29 21:30:18 | [32mINFO[0m | Generated code:
+2025-11-29 21:30:18 | [32mINFO[0m |   # Feature: TotalHouseSF_OverallQual_Interaction
+2025-11-29 21:30:18 | [32mINFO[0m |   # Rationale: This feature captures the synergistic effect of a home's overall quality ('OverallQual', SHAP #1) combined with its total habitable square footage, which is the sum of above-ground living area ('GrLivArea', SHAP #2) and total basement square footage ('TotalBsmtSF', SHAP #6). A high-quality home with extensive living space, including a large basement, is expected to command a premium disproportionately higher than the sum of its parts. This interaction directly leverages three of the most important features identified by SHAP analysis and aligns with the strategy of creating interactions with 'OverallQual' and other top features.
+2025-11-29 21:30:18 | [32mINFO[0m |   df['TotalHouseSF_OverallQual_Interaction'] = (df['GrLivArea'].fillna(0) + df['TotalBsmtSF'].fillna(0)) * df['OverallQual'].fillna(df['OverallQual'].median())
+2025-11-29 21:30:23 | [33mWARNING[0m | ✗ No improvement: TotalHouseSF_OverallQual_Interaction
+2025-11-29 21:30:23 | [33mWARNING[0m |   RMSLE: 0.10457 → 0.10805 (Δ -0.00348)
+2025-11-29 21:30:24 | [32mINFO[0m | 
+2025-11-29 21:30:24 | [32mINFO[0m | ============================================================
+2025-11-29 21:30:24 | [32mINFO[0m | ITERATION 19/19 [SHAP Feedback]
+2025-11-29 21:30:24 | [32mINFO[0m | ============================================================
+2025-11-29 21:30:44 | [32mINFO[0m | Generated code:
+2025-11-29 21:30:44 | [32mINFO[0m |   # Feature: OverallQual_AgeRecent_Interaction
+2025-11-29 21:30:44 | [32mINFO[0m |   # Rationale: This feature creates an interaction between 'OverallQual' (the most important feature by SHAP analysis)
+2025-11-29 21:30:44 | [32mINFO[0m |   # and the house's 'effective age' at the time of sale. The 'effective age' is calculated as the sale year ('YrSold')
+2025-11-29 21:30:44 | [32mINFO[0m |   # minus the most recent of either 'YearBuilt' or 'YearRemodAdd'. This captures how the premium for overall quality
+2025-11-29 21:30:44 | [32mINFO[0m |   # might differ based on whether a house is brand new, recently remodeled, or an older property.
+2025-11-29 21:30:44 | [32mINFO[0m |   ...
+2025-11-29 21:30:50 | [33mWARNING[0m | ✗ No improvement: OverallQual_AgeRecent_Interaction
+2025-11-29 21:30:50 | [33mWARNING[0m |   RMSLE: 0.10457 → 0.10515 (Δ -0.00058)
+2025-11-29 21:30:51 | [32mINFO[0m | 
+2025-11-29 21:30:51 | [32mINFO[0m | ============================================================
+2025-11-29 21:30:51 | [32mINFO[0m | ITERATION 20/20 [SHAP Feedback]
+2025-11-29 21:30:51 | [32mINFO[0m | ============================================================
+2025-11-29 21:31:10 | [32mINFO[0m | Generated code:
+2025-11-29 21:31:10 | [32mINFO[0m |   # Feature: OverallQual_GarageCars_Interaction
+2025-11-29 21:31:10 | [32mINFO[0m |   # Rationale: This feature creates an interaction term between 'OverallQual' (the most important feature by SHAP analysis, #1) and 'GarageCars' (number of cars the garage can hold, SHAP #4). It captures a synergistic effect: a high-quality home with a large garage capacity is often more desirable, commanding a premium that goes beyond the additive effects of quality and garage size alone. For example, a 3-car garage in an excellent quality home indicates a higher level of luxury or utility than just a 1-car garage in an excellent home. This aligns with the suggestion to create interactions with 'OverallQual' and leverages another top important numerical feature.
+2025-11-29 21:31:10 | [32mINFO[0m |   df['OverallQual_GarageCars_Interaction'] = df['OverallQual'].fillna(df['OverallQual'].median()) * df['GarageCars'].fillna(0)
+2025-11-29 21:31:16 | [33mWARNING[0m | ✗ No improvement: OverallQual_GarageCars_Interaction
+2025-11-29 21:31:16 | [33mWARNING[0m |   RMSLE: 0.10457 → 0.10548 (Δ -0.00091)
+2025-11-29 21:31:17 | [32mINFO[0m | 
+2025-11-29 21:31:17 | [32mINFO[0m | ============================================================
+2025-11-29 21:31:17 | [32mINFO[0m | SESSION COMPLETE
+2025-11-29 21:31:17 | [32mINFO[0m | ============================================================
+2025-11-29 21:31:17 | [32mINFO[0m | Iterations:    20
+2025-11-29 21:31:17 | [32mINFO[0m | Successful:    4 (20.0%)
+2025-11-29 21:31:17 | [32mINFO[0m | Baseline:      0.10616
+2025-11-29 21:31:17 | [32mINFO[0m | Best:          0.10457
+2025-11-29 21:31:17 | [32mINFO[0m | Improvement:   0.00159 (1.49%)
+2025-11-29 21:31:17 | [32mINFO[0m | ============================================================
+2025-11-29 21:31:17 | [32mINFO[0m | Successful features:
+2025-11-29 21:31:17 | [32mINFO[0m |   1. ['GrLivAreaSq'] (improvement: 0.00032)
+2025-11-29 21:31:17 | [32mINFO[0m |   2. ['LogTotalBsmtSF'] (improvement: 0.00029)
+2025-11-29 21:31:17 | [32mINFO[0m |   3. ['GarageCars_Squared'] (improvement: 0.00063)
+2025-11-29 21:31:17 | [32mINFO[0m |   4. ['OverallQual_OverallCond_Interaction'] (improvement: 0.00034)
+2025-11-29 21:31:17 | [32mINFO[0m | Generating visualization...
+2025-11-29 21:31:17 | [32mINFO[0m | Visualization complete!

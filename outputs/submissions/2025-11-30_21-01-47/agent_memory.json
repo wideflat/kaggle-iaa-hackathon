@@ -1,0 +1,9 @@
+{
+  "successful_features": [],
+  "failed_features": [],
+  "iteration_history": [],
+  "shap_history": [],
+  "baseline_rmsle": 0.10628557967101142,
+  "best_rmsle": 0.10628557967101142,
+  "session_start": "2025-11-30T20:56:01.287589"
+}

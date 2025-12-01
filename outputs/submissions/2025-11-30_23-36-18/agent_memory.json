@@ -1,0 +1,43 @@
+{
+  "successful_features": [
+    {
+      "code": "# Feature: QualityAdjustedGrLivArea\n# Strategy: quality_interactions\n# Rationale: This feature combines the overall quality of the house (OverallQual),\n# exterior quality (ExterQual), and kitchen quality (KitchenQual), and then interacts\n# this combined quality score with the above-grade living area (GrLivArea).\n# This captures a 'quality density' or 'quality per square foot' metric,\n# which is a strong predictor of value. It leverages three top SHAP features\n# (OverallQual, GrLivArea) and closely related quality attributes.\nquality_map = {'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1, 'NA': 0}\n\ndf['ExterQual_Mapped'] = df['ExterQual'].map(quality_map).fillna(0)\ndf['KitchenQual_Mapped'] = df['KitchenQual'].map(quality_map).fillna(0)\n\ndf['QualityAdjustedGrLivArea'] = (\n    df['OverallQual'] + \n    df['ExterQual_Mapped'] + \n    df['KitchenQual_Mapped']\n) * df['GrLivArea']",
+      "columns": [
+        "KitchenQual_Mapped",
+        "ExterQual_Mapped",
+        "QualityAdjustedGrLivArea"
+      ],
+      "rmsle": 0.09902160734249674,
+      "improvement": 0.0013875942201686392,
+      "timestamp": "2025-11-30T23:33:07.614108"
+    }
+  ],
+  "failed_features": [
+    {
+      "code": "# Feature: AgeAtLastRemodelOrBuilt\n# Strategy: foundational\n# Rationale: This foundational feature calculates the effective age of the house\n# at the time of sale. As per the dataset description, 'YearRemodAdd' is the\n# year of remodeling or addition, and if no remodeling, it's the same as 'YearBuilt'.\n# Therefore, 'YearRemodAdd' represents the most recent significant update or\n# original construction year. This feature directly leverages two top SHAP features:\n# 'YearBuilt' (as a fallback for 'YearRemodAdd' if needed) and 'YearRemodAdd',\n# providing a more robust age metric than just 'YearBuilt' alone.\ndf['AgeAtLastRemodelOrBuilt'] = df['YrSold'] - df['YearRemodAdd'].fillna(df['YearBuilt'])",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:33:07.614784"
+    }
+  ],
+  "iteration_history": [
+    {
+      "iteration": 1,
+      "rmsle": 0.09902160734249674,
+      "success": true,
+      "feature_summary": "QualityAdjustedGrLivArea",
+      "feature_description": "Transform: ExterQual.map(quality_map)",
+      "feature_code": "# Feature: QualityAdjustedGrLivArea\n# Strategy: quality_interactions\n# Rationale: This feature combines the overall quality of the house (OverallQual),\n# exterior quality (ExterQual), and kitchen quality (KitchenQual), and then interacts\n# this combined quality score with the above-grade living area (GrLivArea).\n# This captures a 'quality density' or 'quality per square foot' metric,\n# which is a strong predictor of value. It leverages three top SHAP features\n# (OverallQual, GrLivArea) and closely related quality attributes.\nquality_map = {'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1, 'NA': 0}\n\ndf['ExterQual_Mapped'] = df['ExterQual'].map(quality_map).fillna(0)\ndf['KitchenQual_Mapped'] = df['KitchenQual'].map(quality_map).fillna(0)\n\ndf['QualityAdjustedGrLivArea'] = (\n    df['OverallQual'] + \n    df['ExterQual_Mapped'] + \n    df['KitchenQual_Mapped']\n) * df['GrLivArea']",
+      "columns": [
+        "KitchenQual_Mapped",
+        "ExterQual_Mapped",
+        "QualityAdjustedGrLivArea"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T23:33:07.614590"
+    }
+  ],
+  "shap_history": [],
+  "baseline_rmsle": 0.10040920156266538,
+  "best_rmsle": 0.09902160734249674,
+  "session_start": "2025-11-30T23:31:38.163650"
+}

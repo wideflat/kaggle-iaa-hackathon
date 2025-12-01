@@ -1,0 +1,214 @@
+{
+  "successful_features": [
+    {
+      "code": "# Feature: HouseAgeAtSale\n# Strategy: temporal\n# Enhances: YearBuilt (top 3)\n# Description: Calculates the age of the house at the time of sale.\ndf['HouseAgeAtSale'] = df['YrSold'] - df['YearBuilt'].fillna(df['YrSold']) # YearBuilt is usually clean, but fillna for safety",
+      "columns": [
+        "HouseAgeAtSale"
+      ],
+      "rmsle": 0.0998888639741203,
+      "improvement": 0.0005203375885450695,
+      "timestamp": "2025-11-30T19:39:00.839387"
+    },
+    {
+      "code": "# Feature: LivAreaPerLotArea\n# Strategy: size_efficiency\n# Enhances: GrLivArea (top 2), LotArea (top 5)\n# Description: Ratio of above-grade living area to total lot area, indicating building density or footprint on the lot.\ndf['LivAreaPerLotArea'] = df['GrLivArea'] / df['LotArea'].replace(0, 1).fillna(1) # Replace 0 with 1 in LotArea to avoid division by zero",
+      "columns": [
+        "LivAreaPerLotArea"
+      ],
+      "rmsle": 0.09987400439392781,
+      "improvement": 1.4859580192497224e-05,
+      "timestamp": "2025-11-30T19:39:00.840218"
+    },
+    {
+      "code": "# Feature: Neighborhood_Frequency\n# Strategy: frequency_encoding\n# Enhances: (Indirectly) OverallQual, GrLivArea, YearBuilt by providing context for Neighborhood\n# Description: Replaces each Neighborhood with the frequency of its occurrence in the dataset, indicating its prevalence.\nneighborhood_counts = df['Neighborhood'].value_counts()\ndf['Neighborhood_Frequency'] = df['Neighborhood'].map(neighborhood_counts).fillna(0) # Fillna(0) for any unseen categories",
+      "columns": [
+        "Neighborhood_Frequency"
+      ],
+      "rmsle": 0.09946679688002852,
+      "improvement": 0.0004072075138992909,
+      "timestamp": "2025-11-30T19:39:00.840402"
+    },
+    {
+      "code": "# Feature: GrLivArea_OverallQual_Interaction\n# Strategy: Interaction\n# Enhances: OverallQual (1) and GrLivArea (2) by multiplying them. This captures homes that are both large and high quality.\ndf['GrLivArea_OverallQual_Interaction'] = df['GrLivArea'] * df['OverallQual']",
+      "columns": [
+        "GrLivArea_OverallQual_Interaction"
+      ],
+      "rmsle": 0.09893253638997171,
+      "improvement": 0.0005342604900568093,
+      "timestamp": "2025-11-30T19:39:00.840877"
+    },
+    {
+      "code": "# Feature: HasFinishedBsmt\n# Strategy: binary\n# Enhances: BsmtFinSF1 (top 10), TotalBsmtSF (top 6)\n# Description: Binary flag indicating if the house has any finished basement area (BsmtFinSF1 or BsmtFinSF2 greater than 0).\ndf['HasFinishedBsmt'] = ((df['BsmtFinSF1'].fillna(0) > 0) | (df['BsmtFinSF2'].fillna(0) > 0)).astype(int)",
+      "columns": [
+        "HasFinishedBsmt"
+      ],
+      "rmsle": 0.09878941455209449,
+      "improvement": 0.000143121837877222,
+      "timestamp": "2025-11-30T19:39:00.841821"
+    },
+    {
+      "code": "# Feature: LotShape_Ordinal\n# Strategy: ordinal_from_description\n# Enhances: LotArea (top 6) by providing qualitative shape context.\n# Description: Converts the 'LotShape' categorical feature into an ordinal numerical scale based on the level of irregularity described in the data.\nlot_shape_map = {'Reg': 0, 'IR1': 1, 'IR2': 2, 'IR3': 3}\ndf['LotShape_Ordinal'] = df['LotShape'].map(lot_shape_map).fillna(0) # Fill with 0 (Regular) if NaN",
+      "columns": [
+        "LotShape_Ordinal"
+      ],
+      "rmsle": 0.09861956537378913,
+      "improvement": 0.00016984917830535629,
+      "timestamp": "2025-11-30T19:39:00.842865"
+    }
+  ],
+  "failed_features": [
+    {
+      "code": "# Feature: OverallQual_Relative_to_Neighborhood\n# Strategy: grouped_features\n# Enhances: OverallQual (top 1)\n# Description: Compares the house's Overall Quality to the average Overall Quality in its neighborhood, providing a relative quality score.\ntemp_neighborhood_qual_mean = df.groupby('Neighborhood')['OverallQual'].transform('mean')\ndf['OverallQual_Relative_to_Neighborhood'] = df['OverallQual'] / temp_neighborhood_qual_mean.replace(0, 1).fillna(1) # Handle division by zero and potential NaNs",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:39:00.840021"
+    },
+    {
+      "code": "# Feature: HasFireplace\n# Strategy: presence_detection\n# Enhances: Fireplaces (top 9)\n# Description: Creates a binary flag indicating if the house has at least one fireplace.\ndf['HasFireplace'] = (df['Fireplaces'] > 0).astype(int)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:39:00.840124"
+    },
+    {
+      "code": "# Feature: FinishedBsmtRatio\n# Strategy: Size Efficiency\n# Enhances: BsmtFinSF1 (10) and TotalBsmtSF (4) by expressing the proportion of finished basement space.\n# Replaces 0 in denominator to avoid division by zero for houses without a basement.\ndf['FinishedBsmtRatio'] = df['BsmtFinSF1'].fillna(0) / df['TotalBsmtSF'].fillna(0).replace(0, 1)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:39:00.840654"
+    },
+    {
+      "code": "# Feature: TotalLivingSF\n# Strategy: Aggregation\n# Enhances: GrLivArea (2) and TotalBsmtSF (4) by summing them to represent total conditioned living space.\ndf['TotalLivingSF'] = df['GrLivArea'] + df['TotalBsmtSF'].fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:39:00.840779"
+    },
+    {
+      "code": "# Feature: Log_LotArea\n# Strategy: Skewness Correction\n# Enhances: LotArea (5) by applying a log transformation to reduce its skewness, which can help linear models.\ndf['Log_LotArea'] = np.log1p(df['LotArea'])",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:39:00.841116"
+    },
+    {
+      "code": "# Feature: FireplaceQual_Ordinal\n# Strategy: Ordinal from Description\n# Enhances: Fireplaces (9) by converting the categorical quality of fireplaces into an ordinal numerical scale.\n# Maps 'NA' (no fireplace) to 0.\nquality_map = {'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1, 'NA': 0}\ndf['FireplaceQual_Ordinal'] = df['FireplaceQu'].map(quality_map).fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:39:00.841230"
+    },
+    {
+      "code": "# Feature: AgeAtRemodel\n# Strategy: temporal\n# Enhances: YearBuilt (top 3), YearRemodAdd (related)\n# Description: Calculates the age of the house when it was last remodeled. If YearRemodAdd is the same as YearBuilt, it means no significant remodel occurred after initial construction.\ndf['AgeAtRemodel'] = (df['YearRemodAdd'].fillna(df['YearBuilt']) - df['YearBuilt'].fillna(df['YearRemodAdd'])).fillna(0)\n# Note: YearRemodAdd often defaults to YearBuilt if no remodel. This calculation captures the difference.\n# FillNa ensures calculation robustness, if YearBuilt or YearRemodAdd were truly missing.",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:39:00.841344"
+    },
+    {
+      "code": "# Feature: AvgOverallQual_by_YearBuilt_Decade\n# Strategy: aggregation\n# Enhances: OverallQual (top 1), YearBuilt (top 3)\n# Description: Calculates the average Overall Quality for houses built in the same decade. This provides context for a house's quality relative to its construction era.\ndf['YearBuilt_Decade'] = (df['YearBuilt'].fillna(df['YearBuilt'].mode()[0]) // 10) * 10\n# Calculate the average OverallQual for each decade, filling NaNs in OverallQual first\ndf['AvgOverallQual_by_YearBuilt_Decade'] = df.groupby('YearBuilt_Decade')['OverallQual'].transform(lambda x: x.fillna(x.mean()).mean())\n# Fill any remaining NaNs (e.g., if a decade group was entirely NaN or new decade) with the global mean of OverallQual\ndf['AvgOverallQual_by_YearBuilt_Decade'] = df['AvgOverallQual_by_YearBuilt_Decade'].fillna(df['OverallQual'].mean().fillna(5)) # Fallback to 5 if global mean is also NaN",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:39:00.841506"
+    },
+    {
+      "code": "# Feature: GrLivArea_x_OverallQual\n# Strategy: polynomial\n# Enhances: GrLivArea (top 2), OverallQual (top 1)\n# Description: An interaction term multiplying above-grade living area by the overall quality score. This captures the combined impact of size and quality.\ndf['GrLivArea_x_OverallQual'] = df['GrLivArea'].fillna(0) * df['OverallQual'].fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:39:00.841662"
+    },
+    {
+      "code": "# Feature: LotShape_Ordinal\n# Strategy: ordinal_from_description\n# Enhances: LotArea (top 5), OverallQual (implicitly)\n# Description: Converts the categorical 'LotShape' into an ordinal scale based on regularity, with higher values for more regular lots.\nlot_shape_map = {\n    'Reg': 3,  # Regular\n    'IR1': 2,  # Slightly irregular\n    'IR2': 1,  # Moderately Irregular\n    'IR3': 0   # Irregular\n}\ndf['LotShape_Ordinal'] = df['LotShape'].map(lot_shape_map).fillna(0) # Fill any unmapped or NaN values as most irregular (0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:39:00.842138"
+    },
+    {
+      "code": "# Feature: LogLotArea\n# Strategy: skewness_correction\n# Enhances: LotArea (top 6)\n# Description: Applies a log1p transformation to LotArea to correct for its high skewness, making its distribution more normal and potentially improving model performance.\ndf['LogLotArea'] = np.log1p(df['LotArea'].fillna(0))",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:39:00.842297"
+    },
+    {
+      "code": "# Feature: GrLivArea_Per_Room\n# Strategy: foundational\n# Enhances: GrLivArea (top 5), TotRmsAbvGrd\n# Description: Calculates the average square footage per room above ground, providing insight into the spaciousness of rooms within the main living area.\ndf['GrLivArea_Per_Room'] = df['GrLivArea'] / df['TotRmsAbvGrd'].replace(0, 1).fillna(1)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:39:00.842463"
+    },
+    {
+      "code": "# Feature: TotalPorchArea\n# Strategy: aggregation\n# Enhances: (Indirectly) GrLivArea, LotArea by adding related outdoor living space metrics.\n# Description: Sums up all types of porch and deck areas to create a single feature representing total accessible outdoor living space.\ndf['TotalPorchArea'] = df['WoodDeckSF'].fillna(0) + df['OpenPorchSF'].fillna(0) + \\\n                      df['EnclosedPorch'].fillna(0) + df['3SsnPorch'].fillna(0) + \\\n                      df['ScreenPorch'].fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:39:00.842631"
+    },
+    {
+      "code": "# Feature: ConstructionEra\n# Strategy: quality_tiers\n# Enhances: YearBuilt (top 3), YearRemodAdd (top 10) by categorizing based on construction age.\n# Description: Groups houses into distinct construction eras based on their 'YearBuilt', providing a tiered categorical view of age.\nbins = [0, 1945, 1970, 1990, 2005, np.inf] # Pre-war, Mid-century, Late 20th C, Early 21st C, Modern\nlabels = [1, 2, 3, 4, 5]\ndf['ConstructionEra'] = pd.cut(df['YearBuilt'].fillna(df['YearBuilt'].median()), \n                               bins=bins, labels=labels, right=False).astype(int)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T19:39:00.843256"
+    }
+  ],
+  "iteration_history": [
+    {
+      "iteration": 2,
+      "rmsle": 0.0998888639741203,
+      "success": true,
+      "feature_summary": "HouseAgeAtSale",
+      "feature_description": "Difference: YrSold - YearBuilt # YearBuilt is usually clean, but fillna for safety",
+      "feature_code": "# Feature: HouseAgeAtSale\n# Strategy: temporal\n# Enhances: YearBuilt (top 3)\n# Description: Calculates the age of the house at the time of sale.\ndf['HouseAgeAtSale'] = df['YrSold'] - df['YearBuilt'].fillna(df['YrSold']) # YearBuilt is usually clean, but fillna for safety",
+      "columns": [
+        "HouseAgeAtSale"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T19:39:00.839907"
+    },
+    {
+      "iteration": 4,
+      "rmsle": 0.09987400439392781,
+      "success": true,
+      "feature_summary": "LivAreaPerLotArea",
+      "feature_description": "Ratio: GrLivArea / LotArea # Replace 0 with 1 in LotArea to avoid division by zero",
+      "feature_code": "# Feature: LivAreaPerLotArea\n# Strategy: size_efficiency\n# Enhances: GrLivArea (top 2), LotArea (top 5)\n# Description: Ratio of above-grade living area to total lot area, indicating building density or footprint on the lot.\ndf['LivAreaPerLotArea'] = df['GrLivArea'] / df['LotArea'].replace(0, 1).fillna(1) # Replace 0 with 1 in LotArea to avoid division by zero",
+      "columns": [
+        "LivAreaPerLotArea"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T19:39:00.840325"
+    },
+    {
+      "iteration": 5,
+      "rmsle": 0.09946679688002852,
+      "success": true,
+      "feature_summary": "Neighborhood_Frequency",
+      "feature_description": "Transform: Neighborhood.map(neighborhood_counts) # Fillna(0) for any unseen categories",
+      "feature_code": "# Feature: Neighborhood_Frequency\n# Strategy: frequency_encoding\n# Enhances: (Indirectly) OverallQual, GrLivArea, YearBuilt by providing context for Neighborhood\n# Description: Replaces each Neighborhood with the frequency of its occurrence in the dataset, indicating its prevalence.\nneighborhood_counts = df['Neighborhood'].value_counts()\ndf['Neighborhood_Frequency'] = df['Neighborhood'].map(neighborhood_counts).fillna(0) # Fillna(0) for any unseen categories",
+      "columns": [
+        "Neighborhood_Frequency"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T19:39:00.840540"
+    },
+    {
+      "iteration": 6,
+      "rmsle": 0.09893253638997171,
+      "success": true,
+      "feature_summary": "GrLivArea_OverallQual_Interaction",
+      "feature_description": "Interaction: GrLivArea * OverallQual",
+      "feature_code": "# Feature: GrLivArea_OverallQual_Interaction\n# Strategy: Interaction\n# Enhances: OverallQual (1) and GrLivArea (2) by multiplying them. This captures homes that are both large and high quality.\ndf['GrLivArea_OverallQual_Interaction'] = df['GrLivArea'] * df['OverallQual']",
+      "columns": [
+        "GrLivArea_OverallQual_Interaction"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T19:39:00.840995"
+    },
+    {
+      "iteration": 13,
+      "rmsle": 0.09878941455209449,
+      "success": true,
+      "feature_summary": "HasFinishedBsmt",
+      "feature_description": "Binary indicator: ((BsmtFinSF1 > 0) | (BsmtFinSF2 > 0)).astype(int)",
+      "feature_code": "# Feature: HasFinishedBsmt\n# Strategy: binary\n# Enhances: BsmtFinSF1 (top 10), TotalBsmtSF (top 6)\n# Description: Binary flag indicating if the house has any finished basement area (BsmtFinSF1 or BsmtFinSF2 greater than 0).\ndf['HasFinishedBsmt'] = ((df['BsmtFinSF1'].fillna(0) > 0) | (df['BsmtFinSF2'].fillna(0) > 0)).astype(int)",
+      "columns": [
+        "HasFinishedBsmt"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T19:39:00.841985"
+    },
+    {
+      "iteration": 19,
+      "rmsle": 0.09861956537378913,
+      "success": true,
+      "feature_summary": "LotShape_Ordinal",
+      "feature_description": "Transform: LotShape.map(lot_shape_map) # Fill with 0 (Regular) if NaN",
+      "feature_code": "# Feature: LotShape_Ordinal\n# Strategy: ordinal_from_description\n# Enhances: LotArea (top 6) by providing qualitative shape context.\n# Description: Converts the 'LotShape' categorical feature into an ordinal numerical scale based on the level of irregularity described in the data.\nlot_shape_map = {'Reg': 0, 'IR1': 1, 'IR2': 2, 'IR3': 3}\ndf['LotShape_Ordinal'] = df['LotShape'].map(lot_shape_map).fillna(0) # Fill with 0 (Regular) if NaN",
+      "columns": [
+        "LotShape_Ordinal"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T19:39:00.843071"
+    }
+  ],
+  "shap_history": [],
+  "baseline_rmsle": 0.10040920156266538,
+  "best_rmsle": 0.09861956537378913,
+  "session_start": "2025-11-30T19:28:50.540584"
+}

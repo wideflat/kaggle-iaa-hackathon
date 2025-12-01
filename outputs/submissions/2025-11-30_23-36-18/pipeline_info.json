@@ -1,0 +1,51 @@
+{
+  "timestamp": "2025-11-30_23-36-18",
+  "data": {
+    "train_shape": [
+      1464,
+      81
+    ],
+    "test_shape": [
+      1465,
+      80
+    ],
+    "outliers_removed": 0,
+    "features_count": 82,
+    "selected_features_count": 82
+  },
+  "agent_features": {
+    "count": 3,
+    "names": [
+      "ExterQual_Mapped",
+      "KitchenQual_Mapped",
+      "QualityAdjustedGrLivArea"
+    ]
+  },
+  "scores": {
+    "layer1": {
+      "ridge": 0.1015538620966701,
+      "lasso": 0.10155197062251217,
+      "elasticnet": 0.10154767458282198,
+      "svr": 0.15679763431454202,
+      "gbr": 0.0948886489123326,
+      "xgboost": 0.09613564586215434,
+      "lightgbm": 0.09823429261145997
+    },
+    "layer2_weighted": 0.092405679890448,
+    "layer2_stacking": 0.0337510155485784,
+    "layer3_final": 0.092405679890448
+  },
+  "predictions": {
+    "count": 1465,
+    "mean": 210869.53064345833,
+    "median": 190766.49539658008,
+    "min": 74225.1182235227,
+    "max": 888279.4889518006
+  },
+  "options": {
+    "skip_features": false,
+    "skip_selection": true,
+    "include_ames": false,
+    "blend_weight": 1.0
+  }
+}

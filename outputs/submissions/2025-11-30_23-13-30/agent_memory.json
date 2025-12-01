@@ -1,0 +1,332 @@
+{
+  "successful_features": [
+    {
+      "code": "# Feature: QualGrLivArea\n# Strategy: quality_interactions\n# Enhances: OverallQual (1), GrLivArea (2)\n# Description: Multiplies the overall quality of the house by its above grade living area.\n# This creates a weighted living area, prioritizing larger homes with higher quality.\ndf['QualGrLivArea'] = df['OverallQual'] * df['GrLivArea']",
+      "columns": [
+        "QualGrLivArea"
+      ],
+      "rmsle": 0.09877956977557148,
+      "improvement": 0.0016296317870938964,
+      "timestamp": "2025-11-30T23:10:09.587085"
+    },
+    {
+      "code": "# Feature: Neighborhood_Frequency\nneighborhood_counts = df.groupby('Neighborhood')['Neighborhood'].transform('count')\ndf['Neighborhood_Frequency'] = neighborhood_counts.fillna(neighborhood_counts.mean()) # Fill any potential NaNs in the result if 'Neighborhood' had NaNs",
+      "columns": [
+        "Neighborhood_Frequency"
+      ],
+      "rmsle": 0.09836482288103658,
+      "improvement": 0.0004147468945348981,
+      "timestamp": "2025-11-30T23:10:09.588884"
+    },
+    {
+      "code": "# Feature: CompositeQualityScore\n# Strategy: Quality_tiers\n# Interacts with: OverallQual (top feature), KitchenQual\n# Description: Creates a composite quality score by combining the overall quality with a numerical mapping of the kitchen quality. Kitchen quality is a significant driver of home value.\nquality_map = {'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1, 'NA': 0}\ndf['KitchenQual_Mapped'] = df['KitchenQual'].map(quality_map).fillna(0) # Fill NA for no kitchen or missing\ndf['CompositeQualityScore'] = df['OverallQual'] + df['KitchenQual_Mapped']",
+      "columns": [
+        "CompositeQualityScore",
+        "KitchenQual_Mapped"
+      ],
+      "rmsle": 0.09816440123573114,
+      "improvement": 0.00020042164530544027,
+      "timestamp": "2025-11-30T23:10:09.591095"
+    },
+    {
+      "code": "# Feature: IsRecentBuildOrRemodel\n# Strategy: binary\n# Interaction with Top SHAP: Interacts with 'YearBuilt' and 'YearRemodAdd'.\n# Rationale: Indicates if a property is relatively new or has been recently updated. Newer or recently remodeled homes often command a premium, and this binary flag helps capture that modern appeal, enhancing the predictive power of the year features.\ndf['IsRecentBuildOrRemodel'] = ((df['YrSold'] - df['YearBuilt'] <= 10) | (df['YrSold'] - df['YearRemodAdd'] <= 10)).astype(int)\n# YearBuilt, YearRemodAdd, and YrSold are typically complete, so no explicit .fillna() is needed here.",
+      "columns": [
+        "IsRecentBuildOrRemodel"
+      ],
+      "rmsle": 0.09784719773639766,
+      "improvement": 0.00031720349933347936,
+      "timestamp": "2025-11-30T23:10:09.593195"
+    }
+  ],
+  "failed_features": [
+    {
+      "code": "# Feature: YearsSinceRemodel\n# Strategy: foundational\n# Enhances: YearRemodAdd (8), YearBuilt (3)\n# Description: Calculates how many years have passed since the last remodel.\n# If no remodel occurred, it uses the year the house was built. This provides\n# insight into the recency of property updates.\ndf['YearsSinceRemodel'] = df['YrSold'] - df['YearRemodAdd'].fillna(df['YearBuilt'])",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.588567"
+    },
+    {
+      "code": "# Feature: Qual_vs_Neighborhood_AvgQual\n# Strategy: grouped_features\n# Enhances: OverallQual (1)\n# Description: Measures how a house's overall quality compares to the median overall\n# quality of other houses in its neighborhood. This contextualizes quality.\ndf['Qual_vs_Neighborhood_AvgQual'] = df['OverallQual'] - df.groupby('Neighborhood')['OverallQual'].transform('median')",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.588674"
+    },
+    {
+      "code": "# Feature: Basement_to_GrLivRatio\n# Strategy: interaction\n# Enhances: TotalBsmtSF (5), GrLivArea (2)\n# Description: Represents the proportion of total living space that is in the basement.\n# A higher ratio might indicate a more functional or larger basement relative to\n# the above-grade area. Fills NaN basement SF with 0.\ndf['Basement_to_GrLivRatio'] = (df['TotalBsmtSF'].fillna(0) / df['GrLivArea'])\n# Handle potential division by zero if GrLivArea somehow is 0 (unlikely for a house) or NaNs.\ndf['Basement_to_GrLivRatio'] = df['Basement_to_GrLivRatio'].replace([np.inf, -np.inf], np.nan).fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.588778"
+    },
+    {
+      "code": "# Feature: GarageFootprintRatio\n# Strategy: size_efficiency\n# Enhances: GarageCars (4), LotArea (6), GarageArea\n# Description: Calculates the ratio of the garage area to the total lot area.\n# This indicates how much of the property's footprint is dedicated to the garage,\n# potentially reflecting density or design priorities. Fills NaN garage area with 0.\ndf['GarageFootprintRatio'] = (df['GarageArea'].fillna(0) / df['LotArea'])\n# Handle potential division by zero if LotArea somehow is 0 (unlikely) or NaNs.\ndf['GarageFootprintRatio'] = df['GarageFootprintRatio'].replace([np.inf, -np.inf], np.nan).fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.589136"
+    },
+    {
+      "code": "# Feature: GrLivArea_Squared\ndf['GrLivArea_Squared'] = (df['GrLivArea'].fillna(0)) ** 2",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.589289"
+    },
+    {
+      "code": "# Feature: OverallQual_KitchenQual_Interaction\n# Map KitchenQual to numerical values\nkitchen_qual_map = {'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1, 'NA': 0}\ndf['KitchenQual_Mapped'] = df['KitchenQual'].map(kitchen_qual_map).fillna(0) # Fill NA with 0 for interaction\ndf['OverallQual_KitchenQual_Interaction'] = df['OverallQual'] * df['KitchenQual_Mapped']\n# Drop the intermediate mapped column if not needed later\ndf = df.drop(columns=['KitchenQual_Mapped'])",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.589437"
+    },
+    {
+      "code": "# Feature: HasGarage\n# A house has a garage if GarageArea is greater than 0. Fill NaN GarageArea with 0.\ndf['HasGarage'] = (df['GarageArea'].fillna(0) > 0).astype(int)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.589587"
+    },
+    {
+      "code": "# Feature: Neighborhood_AvgGrLivArea\n# Calculate the average GrLivArea for each Neighborhood\nneighborhood_avg_grliv = df.groupby('Neighborhood')['GrLivArea'].transform('mean')\ndf['Neighborhood_AvgGrLivArea'] = neighborhood_avg_grliv.fillna(df['GrLivArea'].mean()) # Fill NaNs with overall mean GrLivArea",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.589741"
+    },
+    {
+      "code": "# Feature: Neighborhood_Freq\n# Strategy: Frequency Encoding\n# Enhances: Contextual information around the property, indirectly affecting OverallQual (1) and LotArea (6).\n# Missing Neighborhood values are treated as 'Unknown' for frequency calculation.\ndf['Neighborhood_Imputed'] = df['Neighborhood'].fillna('Unknown')\nneighborhood_counts = df['Neighborhood_Imputed'].value_counts()\ndf['Neighborhood_Freq'] = df['Neighborhood_Imputed'].map(neighborhood_counts)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.589896"
+    },
+    {
+      "code": "# Feature: OverallQual_GrLivArea_Interaction\n# Strategy: Polynomial (interaction term)\n# Enhances: OverallQual (1) and GrLivArea (2) by capturing their combined effect.\ndf['OverallQual_GrLivArea_Interaction'] = df['OverallQual'].fillna(0) * df['GrLivArea'].fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.590052"
+    },
+    {
+      "code": "# Feature: WasRemodeled\n# Strategy: Presence Detection\n# Enhances: YearBuilt (3) and YearRemodAdd (8) by indicating if the house underwent a remodel.\n# If YearRemodAdd is NaN, assume no remodel (i.e., it's the same as YearBuilt).\ndf['YearRemodAdd_Imputed'] = df['YearRemodAdd'].fillna(df['YearBuilt'])\ndf['WasRemodeled'] = (df['YearRemodAdd_Imputed'] > df['YearBuilt'].fillna(0)).astype(int)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.590190"
+    },
+    {
+      "code": "# Feature: GarageArea_Per_Car\n# Strategy: Size Efficiency\n# Enhances: GarageCars (4) and GarageArea by providing a metric of garage spaciousness per vehicle.\n# Handle division by zero: if GarageCars is 0, GarageArea is typically 0, so the ratio is 0.\ndf['GarageArea_Per_Car'] = df['GarageArea'].fillna(0)\nmask_has_cars = df['GarageCars'].fillna(0) > 0\ndf.loc[mask_has_cars, 'GarageArea_Per_Car'] = df.loc[mask_has_cars, 'GarageArea'].fillna(0) / df.loc[mask_has_cars, 'GarageCars'].fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.590331"
+    },
+    {
+      "code": "# Feature: TotalLivingSF\n# Strategy: Foundational\n# Enhances: GrLivArea (2) and TotalBsmtSF (5) by summing them into a total habitable area.\ndf['TotalLivingSF'] = df['GrLivArea'].fillna(0) + df['TotalBsmtSF'].fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.590484"
+    },
+    {
+      "code": "# Feature: LogLotArea\n# Strategy: Skewness_correction\n# Enhances: LotArea (top feature)\n# Description: Applies a log1p transformation to LotArea to reduce its skewness and potentially improve model performance for features with wide ranges and high skew.\ndf['LogLotArea'] = np.log1p(df['LotArea'])",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.590642"
+    },
+    {
+      "code": "# Feature: YearsSinceLastMajorChange\n# Strategy: Temporal\n# Interacts with: YearRemodAdd (top feature)\n# Description: Captures the time elapsed since the last major renovation or construction, whichever is more recent.\ndf['YearsSinceLastMajorChange'] = df['YrSold'] - df['YearRemodAdd'].fillna(df['YearBuilt'])",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.590791"
+    },
+    {
+      "code": "# Feature: TotalLivingAreaSF\n# Strategy: Foundational\n# Interacts with: GrLivArea, TotalBsmtSF (top features)\n# Description: Combines the above-grade living area and the total basement square footage to get a comprehensive measure of the total usable living space.\ndf['TotalLivingAreaSF'] = df['GrLivArea'] + df['TotalBsmtSF'].fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.590948"
+    },
+    {
+      "code": "# Feature: NeighborhoodAverageQuality\n# Strategy: Aggregation\n# Interacts with: OverallQual (top feature), Neighborhood\n# Description: Calculates the average OverallQual for each neighborhood. This provides a contextual quality baseline for properties within a given neighborhood, indicating the general standard of homes in that area.\ndf['NeighborhoodAverageQuality'] = df.groupby('Neighborhood')['OverallQual'].transform('mean')",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.591408"
+    },
+    {
+      "code": "# Feature: Neighborhood_Frequency\n# Strategy: Frequency_Encoding\n# Enhances: Neighborhood (strong categorical feature, indirectly impacting GrLivArea, LotArea, YearBuilt trends)\n# This feature encodes the 'Neighborhood' categorical variable by replacing each neighborhood\n# with the count of houses in that neighborhood. It captures the popularity or\n# density of houses within a neighborhood, which can be an indicator of demand or market activity.\ndf['Neighborhood_Frequency'] = df['Neighborhood'].map(df['Neighborhood'].value_counts())",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.591587"
+    },
+    {
+      "code": "# Feature: YearsSinceGarageBuilt\n# Strategy: Temporal\n# Enhances: GarageCars (implicitly via GarageYrBlt), YearBuilt\n# This feature calculates how many years have passed since the garage was built.\n# For houses without a specified garage year (often implying no garage or built with house),\n# we fill NaN values in 'GarageYrBlt' with 'YearBuilt' as a reasonable proxy.\n# This captures the age of the garage relative to the sale year.\ndf['YearsSinceGarageBuilt'] = df['YrSold'] - df['GarageYrBlt'].fillna(df['YearBuilt'])",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.591760"
+    },
+    {
+      "code": "# Feature: AvgRoomSize_GrLivArea\n# Strategy: Ratio\n# Enhances: GrLivArea (top feature)\n# This feature calculates the average size of rooms above ground by dividing the\n# total living area above ground by the number of rooms above ground.\n# It provides an indicator of spaciousness per room.\n# We replace 0 in 'TotRmsAbvGrd' with 1 to avoid division by zero errors, assuming at least 1 functional room.\ndf['AvgRoomSize_GrLivArea'] = df['GrLivArea'] / df['TotRmsAbvGrd'].replace(0, 1)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.591934"
+    },
+    {
+      "code": "# Feature: Qual_TotalBsmtSF_Interaction\n# Strategy: Quality_Interactions\n# Enhances: OverallQual (top feature), TotalBsmtSF (top feature)\n# This feature creates an interaction term by multiplying the overall quality rating\n# with the total basement square footage. It assumes that a higher quality house\n# with a larger basement is more desirable.\n# NaN values in 'TotalBsmtSF' are filled with 0, indicating no basement.\ndf['Qual_TotalBsmtSF_Interaction'] = df['OverallQual'] * df['TotalBsmtSF'].fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.592125"
+    },
+    {
+      "code": "# Feature: MSSubClass_Mean_GrLivArea\n# Strategy: Aggregation\n# Enhances: GrLivArea (top feature)\n# This feature calculates the average 'GrLivArea' for each 'MSSubClass' (dwelling type).\n# It helps capture the typical size expectations for different house styles,\n# and how a specific house's living area compares to its type's average.\ndf['MSSubClass_Mean_GrLivArea'] = df.groupby('MSSubClass')['GrLivArea'].transform('mean')",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.592533"
+    },
+    {
+      "code": "# Feature: OverallQual_NeighAvg\n# Strategy: grouped_features\n# Interaction with Top SHAP: Enhances 'OverallQual' by providing a neighborhood context.\n# Rationale: The quality of a house is often relative to its neighborhood. A house with a high OverallQual might be even more premium if its neighborhood's average quality is lower, and vice versa. This feature captures that relative standing.\ndf['OverallQual_NeighAvg'] = df.groupby('Neighborhood')['OverallQual'].transform('mean')\n# OverallQual and Neighborhood are typically complete, so no explicit .fillna() is needed here.",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.592808"
+    },
+    {
+      "code": "# Feature: LotAreaSqrt\n# Strategy: polynomial\n# Interaction with Top SHAP: Enhances 'LotArea'.\n# Rationale: 'LotArea' is often highly skewed. A square root transformation can help normalize its distribution, capture non-linear relationships with SalePrice, and make it more suitable for linear models or models sensitive to feature scales.\ndf['LotAreaSqrt'] = np.sqrt(df['LotArea'])\n# LotArea is typically complete, so no explicit .fillna() is needed here.",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.593010"
+    },
+    {
+      "code": "# Feature: Qual_GrLivArea_Interaction\n# Strategy: quality_interactions\n# Interaction with Top SHAP: Interacts with 'OverallQual' and 'GrLivArea'.\n# Rationale: This feature captures the synergy between the quality of the house and its total above-ground living area. A larger high-quality house is expected to be significantly more valuable than a large low-quality house, or a small high-quality house. This multiplication captures that exponential value increase.\ndf['Qual_GrLivArea_Interaction'] = df['OverallQual'] * df['GrLivArea']\n# OverallQual and GrLivArea are typically complete, so no explicit .fillna() is needed here.",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.593545"
+    },
+    {
+      "code": "# Feature: TotalSF\n# Strategy: aggregation\n# Interaction with Top SHAP: Aggregates 'GrLivArea', 'TotalBsmtSF', and 'GarageArea'.\n# Rationale: Provides a comprehensive measure of total usable square footage, combining the three most significant area features. This holistic view often correlates very strongly with house price, as it represents the overall \"size\" of the dwelling including functional spaces like basement and garage.\ndf['TotalSF'] = df['GrLivArea'] + df['TotalBsmtSF'].fillna(0) + df['GarageArea'].fillna(0)\n# GrLivArea is typically complete. TotalBsmtSF and GarageArea can have NaNs (indicating no basement or no garage), which are handled by filling with 0.",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.593709"
+    },
+    {
+      "code": "# Feature: LivAreaPerBedroom\n# Strategy: Size Efficiency\n# Enhances: GrLivArea (top feature) and interacts with Bedroom (related to TotRmsAbvGrd) by measuring living space efficiency per bedroom.\n# This indicates how spacious bedrooms or the overall living area is relative to the number of bedrooms.\ndf['LivAreaPerBedroom'] = (df['GrLivArea'].fillna(0)) / (df['BedroomAbvGr'].replace(0, 1).fillna(1))",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.593906"
+    },
+    {
+      "code": "# Feature: QualGrLivArea\n# Strategy: Quality Interactions\n# Enhances: OverallQual and GrLivArea (the top two features) by multiplying them.\n# This feature amplifies the effect of high quality for larger houses, or diminishes it for smaller, lower-quality ones.\ndf['QualGrLivArea'] = df['OverallQual'].fillna(0) * df['GrLivArea'].fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.594100"
+    },
+    {
+      "code": "# Feature: LogGrLivArea\n# Strategy: Skewness Correction\n# Enhances: GrLivArea (top feature) by applying a log transformation to reduce skewness and potentially improve linearity for models.\ndf['LogGrLivArea'] = np.log1p(df['GrLivArea'].fillna(0))",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.594297"
+    },
+    {
+      "code": "# Feature: BsmtToLivRatio\n# Strategy: Ratio\n# Enhances: TotalBsmtSF and GrLivArea (top features) by expressing the proportion of basement area relative to ground living area.\n# Handles potential division by zero by replacing 0 GrLivArea with 1 (though GrLivArea is highly unlikely to be 0 for a house).\ndf['BsmtToLivRatio'] = (df['TotalBsmtSF'].fillna(0)) / (df['GrLivArea'].replace(0, 1).fillna(1))",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.594486"
+    },
+    {
+      "code": "# Feature: HasGarage\n# Strategy: Presence Detection\n# Enhances: GarageCars (top feature) by creating a binary indicator of whether a house has a garage.\n# This can capture a fundamental distinction that might be missed by the continuous GarageCars count alone.\ndf['HasGarage'] = (df['GarageCars'].fillna(0) > 0).astype(int)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.594696"
+    },
+    {
+      "code": "# Feature: Neighborhood_Frequency\n# Strategy: frequency_encoding\n# Enhances: Indirectly enhances features correlated with neighborhood (e.g., OverallQual, YearBuilt, LotArea)\n# Description: Encodes the 'Neighborhood' categorical feature by the frequency of each neighborhood in the dataset.\n# This can capture general desirability or market activity associated with each neighborhood.\nneighborhood_counts = df['Neighborhood'].value_counts()\ndf['Neighborhood_Frequency'] = df['Neighborhood'].map(neighborhood_counts).fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.594877"
+    },
+    {
+      "code": "# Feature: OverallCond_TotalBsmtSF\n# Strategy: quality_interactions\n# Enhances: OverallCond (6), TotalBsmtSF (2)\n# Description: Multiplies the overall condition of the house by its total basement square footage.\n# This creates a weighted basement size, valuing larger basements more if the house's overall condition is better.\ndf['OverallCond_TotalBsmtSF'] = df['OverallCond'] * df['TotalBsmtSF'].fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.595080"
+    },
+    {
+      "code": "# Feature: Log_TotalBsmtSF\n# Strategy: skewness_correction\n# Enhances: TotalBsmtSF (2)\n# Description: Applies a log(1+x) transformation to TotalBsmtSF to reduce its skewness.\n# This is particularly useful for features with many zero values (no basement) and right-skewed distributions.\ndf['Log_TotalBsmtSF'] = np.log1p(df['TotalBsmtSF'].fillna(0))",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.596388"
+    },
+    {
+      "code": "# Feature: LivingArea_to_LotArea_Ratio\n# Strategy: size_efficiency\n# Enhances: LotArea (7), GrLivArea (part of 1)\n# Description: Calculates the ratio of above grade living area to the total lot area.\n# This indicates the density of living space on the property, providing insight into space utilization or lot efficiency.\n# Handles potential division by zero by replacing 0 LotArea with 1 before division.\ndf['LivingArea_to_LotArea_Ratio'] = df['GrLivArea'] / df['LotArea'].replace(0, 1)\ndf['LivingArea_to_LotArea_Ratio'] = df['LivingArea_to_LotArea_Ratio'].replace([np.inf, -np.inf], np.nan).fillna(0) # Ensure no infinities or NaNs from division",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.596632"
+    },
+    {
+      "code": "# Feature: Neighborhood_MedianYearBuilt\n# Strategy: aggregation\n# Enhances: YearBuilt (3)\n# Description: Aggregates the median 'YearBuilt' for each 'Neighborhood'.\n# This provides a contextual age for each house, indicating the general age profile or \"era\" of its neighborhood,\n# which often correlates with architectural style, overall quality, and pricing.\ndf['Neighborhood_MedianYearBuilt'] = df.groupby('Neighborhood')['YearBuilt'].transform('median').fillna(df['YearBuilt'])",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.596877"
+    },
+    {
+      "code": "# Feature: GrLivArea_to_LotArea_Ratio\n# Strategy: ratio\n# Enhances: LotArea (7), GrLivArea (part of QualGrLivArea, 1)\n# Description: Calculates the ratio of above-grade living area to the total lot area.\n# This indicates how densely the living space occupies the land, which can be an\n# important factor in urban or suburban settings.\ndf['GrLivArea_to_LotArea_Ratio'] = df['GrLivArea'].fillna(0) / df['LotArea'].replace(0, 1).fillna(1)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.600522"
+    },
+    {
+      "code": "# Feature: MSSubClass_Freq\n# Strategy: frequency_encoding\n# Enhances: Influences many top features indirectly by characterizing dwelling type\n# Description: Encodes the frequency of each dwelling type (MSSubClass).\n# This helps the model understand the commonality or rarity of a specific\n# house type in the dataset, which can correlate with demand and price.\ndf['MSSubClass_Freq'] = df.groupby('MSSubClass')['MSSubClass'].transform('count')",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.600912"
+    },
+    {
+      "code": "# Feature: BsmtFinSF1_to_TotalBsmtSF_Ratio\n# Strategy: size_efficiency\n# Enhances: BsmtFinSF1 (10), TotalBsmtSF (2)\n# Description: Represents the proportion of the total basement area that is\n# dedicated to Type 1 finished square feet. A higher ratio indicates a more\n# 'high-quality' or primary finished basement space relative to its total size.\ndf['BsmtFinSF1_to_TotalBsmtSF_Ratio'] = df['BsmtFinSF1'].fillna(0) / df['TotalBsmtSF'].replace(0, 1).fillna(1)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.601128"
+    },
+    {
+      "code": "# Feature: LotShape_Ordinal\n# Strategy: ordinal_from_description\n# Enhances: LotArea (7)\n# Description: Converts the 'LotShape' categorical feature into an ordinal scale,\n# reflecting the desirability or regularity of the lot's shape.\n# Regular (Reg) is considered most desirable, irregular (IR3) least.\nshape_mapping = {'Reg': 4, 'IR1': 3, 'IR2': 2, 'IR3': 1}\ndf['LotShape_Ordinal'] = df['LotShape'].map(shape_mapping).fillna(0) # Fill NaNs with 0 for unknown/least desirable",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.601584"
+    },
+    {
+      "code": "# Feature: Age_x_OverallCond\n# Strategy: interaction\n# Enhances: YearBuilt (3), OverallCond (6)\n# Description: Creates an interaction term by multiplying the age of the house\n# (YrSold - YearBuilt) by its overall condition. This captures the idea that\n# an older house in excellent condition might be more valuable than a newer\n# house in poor condition, or vice-versa, giving context to age.\ndf['Age_x_OverallCond'] = (df['YrSold'] - df['YearBuilt']) * df['OverallCond']",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.601790"
+    },
+    {
+      "code": "# Feature: LotArea_vs_Neighborhood_Median\n# Strategy: grouped_features\n# Enhances: LotArea (7)\n# Description: Measures how a house's lot area compares to the median lot area of other\n# houses in its neighborhood. This provides context for the lot size, indicating if it's\n# larger or smaller than typical for its location.\ndf['LotArea_vs_Neighborhood_Median'] = df['LotArea'] - df.groupby('Neighborhood')['LotArea'].transform('median')",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.602210"
+    },
+    {
+      "code": "# Feature: GarageArea_to_GrLivRatio\n# Strategy: size_efficiency\n# Enhances: GarageCars (4), GrLivArea (from QualGrLivArea)\n# Description: Represents the proportion of garage area relative to the above-grade living area.\n# A higher ratio might indicate a property with a significantly large garage compared to its\n# living space, which can be a key selling point for certain buyers.\ndf['GarageArea_to_GrLivRatio'] = df['GarageArea'].fillna(0) / df['GrLivArea'].replace(0, 1)\ndf['GarageArea_to_GrLivRatio'] = df['GarageArea_to_GrLivRatio'].replace([np.inf, -np.inf], np.nan).fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.602445"
+    },
+    {
+      "code": "# Feature: Fireplace_Quality_Score\n# Strategy: quality_tiers\n# Enhances: Fireplaces (8), OverallQual (9)\n# Description: Creates a weighted score for fireplaces by mapping their qualitative rating\n# to a numerical tier and multiplying by the number of fireplaces. This combines the count\n# and quality into a single metric, differentiating between multiple low-quality fireplaces\n# and fewer, high-quality ones.\nfireplace_quality_map = {'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1, 'NA': 0}\ndf['Fireplace_Quality_Score'] = df['FireplaceQu'].map(fireplace_quality_map).fillna(0) * df['Fireplaces']",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.602684"
+    },
+    {
+      "code": "# Feature: HasGarage\n# Strategy: binary\n# Enhances: GarageCars (4)\n# Description: A binary indicator (1 or 0) marking the presence of a garage.\n# While GarageCars provides a count, this feature explicitly signals the existence\n# of a garage, which can be a fundamental factor influencing house price independent\n# of garage size or capacity.\ndf['HasGarage'] = df['GarageType'].notna().astype(int)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.602922"
+    },
+    {
+      "code": "# Feature: TotalLivingSF\n# Strategy: aggregation\n# Enhances: TotalBsmtSF (2), GrLivArea (from QualGrLivArea)\n# Description: Aggregates the total square footage of all primary finished living areas,\n# including the above-grade living area and the total basement square footage.\n# This provides a holistic measure of the usable living space in the property.\ndf['TotalLivingSF'] = df['GrLivArea'] + df['TotalBsmtSF'].fillna(0)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:10:09.603149"
+    }
+  ],
+  "iteration_history": [
+    {
+      "iteration": 1,
+      "rmsle": 0.09877956977557148,
+      "success": true,
+      "feature_summary": "QualGrLivArea",
+      "feature_description": "Interaction: OverallQual * GrLivArea",
+      "feature_code": "# Feature: QualGrLivArea\n# Strategy: quality_interactions\n# Enhances: OverallQual (1), GrLivArea (2)\n# Description: Multiplies the overall quality of the house by its above grade living area.\n# This creates a weighted living area, prioritizing larger homes with higher quality.\ndf['QualGrLivArea'] = df['OverallQual'] * df['GrLivArea']",
+      "columns": [
+        "QualGrLivArea"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T23:10:09.588464"
+    },
+    {
+      "iteration": 6,
+      "rmsle": 0.09836482288103658,
+      "success": true,
+      "feature_summary": "Neighborhood_Frequency",
+      "feature_description": "Transform: neighborhood_counts) # Fill any potential NaNs in the result if 'Neighborhood' h",
+      "feature_code": "# Feature: Neighborhood_Frequency\nneighborhood_counts = df.groupby('Neighborhood')['Neighborhood'].transform('count')\ndf['Neighborhood_Frequency'] = neighborhood_counts.fillna(neighborhood_counts.mean()) # Fill any potential NaNs in the result if 'Neighborhood' had NaNs",
+      "columns": [
+        "Neighborhood_Frequency"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T23:10:09.589007"
+    },
+    {
+      "iteration": 19,
+      "rmsle": 0.09816440123573114,
+      "success": true,
+      "feature_summary": "CompositeQualityScore",
+      "feature_description": "Transform: KitchenQual.map(quality_map) # Fill NA for no kitchen or missing",
+      "feature_code": "# Feature: CompositeQualityScore\n# Strategy: Quality_tiers\n# Interacts with: OverallQual (top feature), KitchenQual\n# Description: Creates a composite quality score by combining the overall quality with a numerical mapping of the kitchen quality. Kitchen quality is a significant driver of home value.\nquality_map = {'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1, 'NA': 0}\ndf['KitchenQual_Mapped'] = df['KitchenQual'].map(quality_map).fillna(0) # Fill NA for no kitchen or missing\ndf['CompositeQualityScore'] = df['OverallQual'] + df['KitchenQual_Mapped']",
+      "columns": [
+        "CompositeQualityScore",
+        "KitchenQual_Mapped"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T23:10:09.591255"
+    },
+    {
+      "iteration": 27,
+      "rmsle": 0.09784719773639766,
+      "success": true,
+      "feature_summary": "IsRecentBuildOrRemodel",
+      "feature_description": "Difference: ((YrSold - YearBuilt <= 10) | (YrSold - YearRemodAdd <= 10)).astype(int)",
+      "feature_code": "# Feature: IsRecentBuildOrRemodel\n# Strategy: binary\n# Interaction with Top SHAP: Interacts with 'YearBuilt' and 'YearRemodAdd'.\n# Rationale: Indicates if a property is relatively new or has been recently updated. Newer or recently remodeled homes often command a premium, and this binary flag helps capture that modern appeal, enhancing the predictive power of the year features.\ndf['IsRecentBuildOrRemodel'] = ((df['YrSold'] - df['YearBuilt'] <= 10) | (df['YrSold'] - df['YearRemodAdd'] <= 10)).astype(int)\n# YearBuilt, YearRemodAdd, and YrSold are typically complete, so no explicit .fillna() is needed here.",
+      "columns": [
+        "IsRecentBuildOrRemodel"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T23:10:09.593377"
+    }
+  ],
+  "shap_history": [],
+  "baseline_rmsle": 0.10040920156266538,
+  "best_rmsle": 0.09784719773639766,
+  "session_start": "2025-11-30T22:50:58.038963"
+}

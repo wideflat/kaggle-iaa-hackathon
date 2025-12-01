@@ -1,0 +1,53 @@
+{
+  "timestamp": "2025-11-30_19-42-19",
+  "data": {
+    "train_shape": [
+      1464,
+      81
+    ],
+    "test_shape": [
+      1465,
+      80
+    ],
+    "outliers_removed": 0,
+    "features_count": 85,
+    "selected_features_count": 85
+  },
+  "agent_features": {
+    "count": 6,
+    "names": [
+      "GrLivArea_OverallQual_Interaction",
+      "HasFinishedBsmt",
+      "HouseAgeAtSale",
+      "LivAreaPerLotArea",
+      "LotShape_Ordinal",
+      "Neighborhood_Frequency"
+    ]
+  },
+  "scores": {
+    "layer1": {
+      "ridge": 0.10078910642892211,
+      "lasso": 0.10051772490348362,
+      "elasticnet": 0.10054260893500139,
+      "svr": 0.15595145856176432,
+      "gbr": 0.09335052659026767,
+      "xgboost": 0.09532791595723553,
+      "lightgbm": 0.09713990483664306
+    },
+    "layer2_weighted": 0.09136353597972988,
+    "layer2_stacking": 0.03284700439997482,
+    "layer3_final": 0.07373136570419184
+  },
+  "predictions": {
+    "count": 1465,
+    "mean": 210805.40201121315,
+    "median": 191224.57539979403,
+    "min": 76008.63188666226,
+    "max": 797589.4895255391
+  },
+  "options": {
+    "skip_features": false,
+    "skip_selection": true,
+    "include_ames": false
+  }
+}

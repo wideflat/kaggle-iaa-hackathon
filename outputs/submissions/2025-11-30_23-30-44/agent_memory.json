@@ -1,0 +1,39 @@
+{
+  "successful_features": [
+    {
+      "code": "# Feature: ComprehensiveQualScore\n# Strategy: quality_interactions\n# Description: Creates a composite score reflecting the overall internal quality and comfort of the living space.\n# It combines 'OverallQual' (top feature) with mapped ordinal values for 'HeatingQC', 'KitchenQual',\n# and 'FireplaceQu' (related to 'Fireplaces', a top feature). This provides a more nuanced view\n# of quality beyond just the overall rating.\n# Define standard quality map (Ex, Gd, TA, Fa, Po)\nstandard_qual_map = {'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1}\n# Define quality map for features that can have 'NA' (e.g., no fireplace)\nna_qual_map = {'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1, 'NA': 0}\n\n# Map individual quality features to numerical scores, handling NaNs by filling with 0 (lowest quality/absence)\nheating_qc_score = df['HeatingQC'].map(standard_qual_map).fillna(0)\nkitchen_qual_score = df['KitchenQual'].map(standard_qual_map).fillna(0)\nfireplace_qu_score = df['FireplaceQu'].map(na_qual_map).fillna(0)\n\n# Combine 'OverallQual' (already numerical) with the newly mapped quality scores\ndf['ComprehensiveQualScore'] = df['OverallQual'] + heating_qc_score + \\\n                                kitchen_qual_score + fireplace_qu_score\ndf['ComprehensiveQualScore'] = df['ComprehensiveQualScore'].astype(int)",
+      "columns": [
+        "ComprehensiveQualScore"
+      ],
+      "rmsle": 0.09967353711987384,
+      "improvement": 0.0007356644427915365,
+      "timestamp": "2025-11-30T23:27:45.032820"
+    }
+  ],
+  "failed_features": [
+    {
+      "code": "# Feature: Functional_Score\n# Strategy: ordinal_from_description\n# Description: Maps the 'Functional' quality of the home to an ordinal scale.\n# This reflects the condition and usability of the dwelling, directly impacting overall livability\n# and interacting with 'GrLivArea', 'OverallQual', and 'OverallCond'. A higher score means better functionality.\nfunctional_map = {\n    'Typ': 7,   # Typical\n    'Min1': 6,  # Minor Deductions 1\n    'Min2': 5,  # Minor Deductions 2\n    'Mod': 4,   # Moderate Deductions\n    'Maj1': 3,  # Major Deductions 1\n    'Maj2': 2,  # Major Deductions 2\n    'Sev': 1,   # Severely Damaged\n    'Sal': 0    # Salvage Only\n}\ndf['Functional_Score'] = df['Functional'].map(functional_map).fillna(0).astype(int)",
+      "error": "No improvement",
+      "timestamp": "2025-11-30T23:27:45.033347"
+    }
+  ],
+  "iteration_history": [
+    {
+      "iteration": 2,
+      "rmsle": 0.09967353711987384,
+      "success": true,
+      "feature_summary": "ComprehensiveQualScore",
+      "feature_description": "Sum: OverallQual + heating_qc_score + \\",
+      "feature_code": "# Feature: ComprehensiveQualScore\n# Strategy: quality_interactions\n# Description: Creates a composite score reflecting the overall internal quality and comfort of the living space.\n# It combines 'OverallQual' (top feature) with mapped ordinal values for 'HeatingQC', 'KitchenQual',\n# and 'FireplaceQu' (related to 'Fireplaces', a top feature). This provides a more nuanced view\n# of quality beyond just the overall rating.\n# Define standard quality map (Ex, Gd, TA, Fa, Po)\nstandard_qual_map = {'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1}\n# Define quality map for features that can have 'NA' (e.g., no fireplace)\nna_qual_map = {'Ex': 5, 'Gd': 4, 'TA': 3, 'Fa': 2, 'Po': 1, 'NA': 0}\n\n# Map individual quality features to numerical scores, handling NaNs by filling with 0 (lowest quality/absence)\nheating_qc_score = df['HeatingQC'].map(standard_qual_map).fillna(0)\nkitchen_qual_score = df['KitchenQual'].map(standard_qual_map).fillna(0)\nfireplace_qu_score = df['FireplaceQu'].map(na_qual_map).fillna(0)\n\n# Combine 'OverallQual' (already numerical) with the newly mapped quality scores\ndf['ComprehensiveQualScore'] = df['OverallQual'] + heating_qc_score + \\\n                                kitchen_qual_score + fireplace_qu_score\ndf['ComprehensiveQualScore'] = df['ComprehensiveQualScore'].astype(int)",
+      "columns": [
+        "ComprehensiveQualScore"
+      ],
+      "prev_rmsle": null,
+      "timestamp": "2025-11-30T23:27:45.033246"
+    }
+  ],
+  "shap_history": [],
+  "baseline_rmsle": 0.10040920156266538,
+  "best_rmsle": 0.09967353711987384,
+  "session_start": "2025-11-30T23:26:16.096263"
+}
